@@ -1,0 +1,38 @@
+{
+  "action_id": "report/r-1",
+  "action_type": "fyi",
+  "ai.brutor": {
+    "context": {
+      "record_type": "ai.brutor.report",
+      "report_id": "r-1"
+    },
+    "lossy": [
+      "attestation_tier_not_projected",
+      "verdict_unregistered"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "5b30bf96c4dca5f08c7e07ebd58983ee5f6681bd932ebfb8858fb7be50f87a6e",
+    "record_schema": "ai.brutor/action-record/v1",
+    "system": "ungoverned",
+    "verdict": "recorded"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "not_applicable",
+    "ledger_mode": "standalone"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "03d1e628fad349118f0931c9fd623159699be0a20a446d9dd4a1cb73e5a0cedd",
+  "developer": "urn:brutor:ungoverned",
+  "disposition": {
+    "approver": "policy",
+    "decision": "accept",
+    "human_disposed": false,
+    "verdict_class": "ai.brutor.recorded"
+  },
+  "format_version": "4",
+  "operator": "tenant-acme",
+  "references": [],
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-19T13:00:00.000Z"
+}

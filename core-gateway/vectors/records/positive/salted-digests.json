@@ -1,0 +1,86 @@
+{
+  "canonical": "{\"action_id\":\"mcp/01K5VEC0000000000000000021\",\"attestation\":{\"digest_salt\":\"5a17c0ffee5a17c0ffee5a17c0ffee00\",\"input_digest\":\"cc5a062d90a99b81ba852b01f7f02401bc4e483ec35e176db3351d89844d9cce\",\"numbers_canonicalized\":true,\"observation\":\"in_path\",\"output_digest\":\"434c7657ab737be58e4ff7c93dd7f27a43591a4dbf48f582271e0a65f44b53d4\",\"runtime\":\"brutor-gateway\"},\"disposition\":{\"approver\":\"policy\",\"decision\":\"accept\",\"human_disposed\":false},\"effect\":{\"attestation\":\"gate_observed\",\"request_digest\":\"cc5a062d90a99b81ba852b01f7f02401bc4e483ec35e176db3351d89844d9cce\",\"response_digest\":\"434c7657ab737be58e4ff7c93dd7f27a43591a4dbf48f582271e0a65f44b53d4\",\"status\":\"confirmed\",\"type\":\"mcp_tool_call\"},\"epoch\":\"contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"kind\":\"decide\",\"operator\":\"tenant-vectors\",\"schema\":\"ai.brutor/action-record/v1\",\"system\":{\"ai_system_id\":\"rg-vectors-claims\",\"contract_hash\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"contract_version\":3},\"timestamp\":\"2026-09-19T10:00:21.000Z\",\"verdict\":\"executed\"}",
+  "description": "salt_digests: digest = SHA-256(JCS(value) || \"|\" || digest_salt); the JSON body's float became a decimal string (numbers_canonicalized: true); the text body commits as a JSON string",
+  "expect": {
+    "codes": [],
+    "effect_mode": "confirmed",
+    "ok": true,
+    "record_id": "b5c1f13cc5234e560accf66ad00316b6edd0302bc46cbe61c6eccd284fdf1d03"
+  },
+  "preimages": {
+    "attestation.input_digest": {
+      "body": "{\"order_id\":\"PO-88213\",\"amount\":1240.19,\"lines\":[{\"sku\":\"A-1\",\"qty\":2}]}",
+      "scheme": "jcs_salted",
+      "value": {
+        "amount": "1240.19",
+        "lines": [
+          {
+            "qty": 2,
+            "sku": "A-1"
+          }
+        ],
+        "order_id": "PO-88213"
+      }
+    },
+    "attestation.output_digest": {
+      "body": "Refund R-5521 issued for PO-88213",
+      "scheme": "jcs_salted",
+      "value": "Refund R-5521 issued for PO-88213"
+    },
+    "effect.request_digest": {
+      "body": "{\"order_id\":\"PO-88213\",\"amount\":1240.19,\"lines\":[{\"sku\":\"A-1\",\"qty\":2}]}",
+      "scheme": "jcs_salted",
+      "value": {
+        "amount": "1240.19",
+        "lines": [
+          {
+            "qty": 2,
+            "sku": "A-1"
+          }
+        ],
+        "order_id": "PO-88213"
+      }
+    },
+    "effect.response_digest": {
+      "body": "Refund R-5521 issued for PO-88213",
+      "scheme": "jcs_salted",
+      "value": "Refund R-5521 issued for PO-88213"
+    }
+  },
+  "record": {
+    "action_id": "mcp/01K5VEC0000000000000000021",
+    "attestation": {
+      "digest_salt": "5a17c0ffee5a17c0ffee5a17c0ffee00",
+      "input_digest": "cc5a062d90a99b81ba852b01f7f02401bc4e483ec35e176db3351d89844d9cce",
+      "numbers_canonicalized": true,
+      "observation": "in_path",
+      "output_digest": "434c7657ab737be58e4ff7c93dd7f27a43591a4dbf48f582271e0a65f44b53d4",
+      "runtime": "brutor-gateway"
+    },
+    "disposition": {
+      "approver": "policy",
+      "decision": "accept",
+      "human_disposed": false
+    },
+    "effect": {
+      "attestation": "gate_observed",
+      "request_digest": "cc5a062d90a99b81ba852b01f7f02401bc4e483ec35e176db3351d89844d9cce",
+      "response_digest": "434c7657ab737be58e4ff7c93dd7f27a43591a4dbf48f582271e0a65f44b53d4",
+      "status": "confirmed",
+      "type": "mcp_tool_call"
+    },
+    "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+    "kind": "decide",
+    "operator": "tenant-vectors",
+    "record_id": "b5c1f13cc5234e560accf66ad00316b6edd0302bc46cbe61c6eccd284fdf1d03",
+    "schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "rg-vectors-claims",
+      "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "contract_version": 3
+    },
+    "timestamp": "2026-09-19T10:00:21.000Z",
+    "verdict": "executed"
+  },
+  "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggtcHxPMUjTlYKzPZq0AMWtu3QMCvEbL5hxuzNKE/fHQNYQK3sKQ73ECuEIxPYlA0wdPhlxwKBs/NKN6emkeVX616IzZ1qoKHLyTJrJM6TOT7jjmCXg74H1Itoww7gK4j7fAs="
+}

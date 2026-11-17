@@ -1,0 +1,78 @@
+{
+  "consistency": [],
+  "countersignatures": [],
+  "disclosures": {},
+  "extensions": {},
+  "manifest": {
+    "bundle_id": "bdl-vectors-single",
+    "completeness": {
+      "closure_depth": 1,
+      "missing": [],
+      "payloads_mode": "none",
+      "records_mode": "complete",
+      "selection": "producer-selected",
+      "suppressed_fields": []
+    },
+    "issuer": "urn:brutor:deployment:vectors",
+    "kids": [
+      "618f4b0227a9bc2f6c4cdc4b4814c0da1b351bae87f07f2899a622323e2fe911"
+    ],
+    "kind": "ai.brutor/evidence-bundle",
+    "log_id": "0dd41f0f7c274fad28492142d7176f6a41211417f695099844fb7e9fb74942e5",
+    "produced_at": "2026-09-19T11:00:00.000Z",
+    "root_record_id": "63b3aafc62acfb842a191a4f1f6762bbbbe94064a8dbeac09a71d4dda72e325b",
+    "selector": {
+      "record_ids": [
+        "63b3aafc62acfb842a191a4f1f6762bbbbe94064a8dbeac09a71d4dda72e325b"
+      ]
+    },
+    "verification": {
+      "self_report": {
+        "heads": 1,
+        "proofs": 1,
+        "records": 1
+      }
+    },
+    "version": 1
+  },
+  "proofs": [
+    {
+      "leaf_index": 0,
+      "path": [],
+      "record_id": "63b3aafc62acfb842a191a4f1f6762bbbbe94064a8dbeac09a71d4dda72e325b",
+      "tree_size": 1
+    }
+  ],
+  "prunes": [],
+  "records": [
+    {
+      "record": {
+        "action_id": "ai.brutor.declaration/01K5VEC0030",
+        "context": {
+          "record_type": "ai.brutor.declaration",
+          "surface": "control_plane"
+        },
+        "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "kind": "fyi",
+        "operator": "tenant-vectors",
+        "record_id": "63b3aafc62acfb842a191a4f1f6762bbbbe94064a8dbeac09a71d4dda72e325b",
+        "schema": "ai.brutor/action-record/v1",
+        "system": {
+          "ai_system_id": "rg-vectors-claims",
+          "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+          "contract_version": 3
+        },
+        "timestamp": "2026-09-19T10:00:30.000Z",
+        "verdict": "recorded"
+      },
+      "seq": 0,
+      "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggY7Oq/GKs+4QqGRpPH2diu7vpQGSo2+rAmnHU3acuMltYQFibjSjQ9oIXtumZvuQKjbl4PxtUAEPtKQCHiNUoVmcGeKzOOHqYy/TkIHi6+X10xlxFHCrQYmlsbd1WFokxHgI="
+    }
+  ],
+  "tree_heads": [
+    {
+      "receipts": [],
+      "statement_b64": "0oRY2KQBJwN4JWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IudHJlZS1oZWFkK2Nib3IEWCBhj0sCJ6m8L2xM3EtIFMDaGzUbrofwfyiZpiIyPi/pEQ+iAXhAMGRkNDFmMGY3YzI3NGZhZDI4NDkyMTQyZDcxNzZmNmE0MTIxMTQxN2Y2OTUwOTk4NDRmYjdlOWZiNzQ5NDJlNQJ4QjBkZDQxZjBmN2MyNzRmYWQyODQ5MjE0MmQ3MTc2ZjZhNDEyMTE0MTdmNjk1MDk5ODQ0ZmI3ZTlmYjc0OTQyZTUjMaBYyadkcm9vdFggiPDXnkKFBIIGJRpIAvkR4QrYLC++iz7K4l1fvsBx+4ZmbG9nX2lkeEAwZGQ0MWYwZjdjMjc0ZmFkMjg0OTIxNDJkNzE3NmY2YTQxMjExNDE3ZjY5NTA5OTg0NGZiN2U5ZmI3NDk0MmU1aWlzc3VlZF9hdHgYMjAyNi0wOS0xOVQxMDozMDowMC4wMDBaaXByZXZfcm9vdEBpcHJldl9zaXplAGl0cmVlX3NpemUBcWNvbnNpc3RlbmN5X3Byb29mgFhAzM8y/fcDobzCjIbqKB3RlRlGGg52ZVpN1j4V4IKZ6iBLsttUzHrJwlfDC64GY0dPQwG7a6hhCJEtvHgbJ10RCg=="
+    }
+  ]
+}

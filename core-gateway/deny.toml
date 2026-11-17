@@ -1,0 +1,79 @@
+# cargo-deny policy: advisories, licences, bans and sources of the dependency graph.
+#
+# Run: `cargo deny --locked check` (CI job `Deny`, and prepush-check.sh).
+# Replaces the cargo-audit job and .cargo/audit.toml: advisories are one of
+# the four checks below. Every exception names its reason; remove it when the
+# reason goes away. Changes to this file are gate changes (push-path alert).
+
+[graph]
+all-features = true
+
+# ── Advisories (RustSec) ────────────────────────────────────────────────────
+[advisories]
+# Vulnerabilities fail. Unmaintained crates fail only when we depend on them
+# directly; unsound/yanked transitive crates are reported for triage.
+unmaintained = "workspace"
+yanked = "warn"
+ignore = [
+    # chrono — unmaintained (RUSTSEC-2026-0543); no known vulnerability.
+    # Every Rust workspace of the product uses it directly for timestamps.
+    # Ignored until the move to `jiff`. A chrono vulnerability is a different
+    # advisory and still fails this check.
+    { id = "RUSTSEC-2026-0543", reason = "chrono unmaintained, no known vulnerability; move to jiff tracked after the release" },
+    # rsa 0.9 — Marvin attack: a timing side channel on RSA PRIVATE-KEY
+    # decryption. The only use is crates/brutor-tsp (lib.rs:494), which
+    # VERIFIES PKCS#1 v1.5 signatures with PUBLIC keys (RsaPublicKey +
+    # Pkcs1v15Sign); no secret is ever processed, so there is nothing to
+    # leak. (The previous ignore in .cargo/audit.toml claimed rsa was "never
+    # compiled" — false: `cargo tree -i rsa` shows brutor-tsp.) No fixed
+    # upstream release exists. Revisit if rsa is ever used to sign or decrypt.
+    { id = "RUSTSEC-2023-0071", reason = "public-key signature verification only (brutor-tsp); Marvin needs private-key decryption" },
+]
+
+# ── Licenses ────────────────────────────────────────────────────────────────
+[licenses]
+confidence-threshold = 0.93
+# Exactly the licenses in today's graph (`cargo deny list -l license`,
+# 2026-10-10), all permissive. A new license fails the build until reviewed.
+allow = [
+    "0BSD",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-1-Clause",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+
+# ── Bans ────────────────────────────────────────────────────────────────────
+[bans]
+# Many crates appear in more than one version (`cargo deny check bans` lists them). Reported,
+# not failed: driving that down is a ratchet, not a gate.
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+# One TLS stack (rustls). OpenSSL reached the binary through
+# reqwest's default `native-tls`, and reqwest's default client preferred it.
+deny = [
+    { name = "openssl-sys", reason = "TLS is rustls only" },
+    { name = "openssl", reason = "TLS is rustls only" },
+    { name = "native-tls", reason = "TLS is rustls only" },
+]
+
+# ── Sources ─────────────────────────────────────────────────────────────────
+[sources]
+# crates.io. Nothing else: the Community gateway has no git dependency (the
+# private licence library, a git dependency, is the
+# Enterprise workspace's, `enterprise/deny.toml`), so no organisation's
+# repositories are allowed here.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

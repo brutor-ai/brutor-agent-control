@@ -1,0 +1,23 @@
+[package]
+name = "brutor-aac"
+version = "0.1.0"
+edition = "2024"
+description = "Optional Agent Action Capsule profile (draft-mih-scitt-agent-action-capsule-04): deterministic ai.brutor/action-record/v1 -> capsule mapping, producer envelopes, evidence-bundle/v2, capsule-emit import, Class-1 verifier"
+license = "Apache-2.0"
+publish = false
+authors = ["Brutor AI Ltd"]
+
+[dependencies]
+brutor-cose = { path = "../brutor-cose" }
+brutor-evidence = { path = "../brutor-evidence" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+hex = "0.4"
+base64 = "0.22"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+thiserror = "2"
+
+# Evidence crates contain no unsafe Rust and never may.
+[lints.rust]
+unsafe_code = "forbid"

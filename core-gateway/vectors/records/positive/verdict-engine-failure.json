@@ -1,0 +1,54 @@
+{
+  "canonical": "{\"action_id\":\"mcp/01K5VEC0000000000000000012\",\"context\":{\"autonomy_level\":\"supervised\",\"autonomy_provenance\":\"contract\",\"root_task_id\":\"run-vectors-1\",\"server_version\":\"orders-mcp/2.4.1\",\"surface\":\"mcp\",\"tags\":[\"eu_ai_act.art12\",\"soc2.cc7.2\"],\"tool_definition_hash\":\"39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3\",\"turn_id\":\"turn-12\"},\"controls\":[{\"blocking\":true,\"id\":\"ai.brutor.engine.guardrail\",\"kind\":\"gate\",\"result\":\"fail\",\"severity\":\"high\"}],\"disposition\":{\"approver\":\"policy\",\"decision\":\"reject\",\"human_disposed\":false},\"epoch\":\"contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"kind\":\"decide\",\"operator\":\"tenant-vectors\",\"schema\":\"ai.brutor/action-record/v1\",\"system\":{\"ai_system_id\":\"rg-vectors-claims\",\"contract_hash\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"contract_version\":3},\"timestamp\":\"2026-09-19T10:00:12.000Z\",\"verdict\":\"engine_failure\"}",
+  "description": "engine_failure: a gate failed closed because its engine could not decide",
+  "expect": {
+    "codes": [],
+    "effect_mode": "not_applicable",
+    "ok": true,
+    "record_id": "ba426689bfe4aebb100bb52d05fc824f40de6d16bdcfc217149a90db4980429a"
+  },
+  "preimages": {},
+  "record": {
+    "action_id": "mcp/01K5VEC0000000000000000012",
+    "context": {
+      "autonomy_level": "supervised",
+      "autonomy_provenance": "contract",
+      "root_task_id": "run-vectors-1",
+      "server_version": "orders-mcp/2.4.1",
+      "surface": "mcp",
+      "tags": [
+        "eu_ai_act.art12",
+        "soc2.cc7.2"
+      ],
+      "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+      "turn_id": "turn-12"
+    },
+    "controls": [
+      {
+        "blocking": true,
+        "id": "ai.brutor.engine.guardrail",
+        "kind": "gate",
+        "result": "fail",
+        "severity": "high"
+      }
+    ],
+    "disposition": {
+      "approver": "policy",
+      "decision": "reject",
+      "human_disposed": false
+    },
+    "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+    "kind": "decide",
+    "operator": "tenant-vectors",
+    "record_id": "ba426689bfe4aebb100bb52d05fc824f40de6d16bdcfc217149a90db4980429a",
+    "schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "rg-vectors-claims",
+      "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "contract_version": 3
+    },
+    "timestamp": "2026-09-19T10:00:12.000Z",
+    "verdict": "engine_failure"
+  },
+  "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggukJmib/krrsQC7UtBfyCT0DebRa9z8IXFJqQ20mAQppYQOmFLdU1w1a6Ci1BG3KdDORUiP7cmDbnuHoAVWziHiQ67DjRlTgOzGJp0wWZbKV2Ykvh8HSK9KxGLgI0PvJr4gs="
+}

@@ -1,0 +1,15 @@
+{
+  "consistency_proof": null,
+  "description": "a first head (prev_size 0): signature and payload only",
+  "expect": {
+    "codes": [],
+    "consistent_with_previous": null,
+    "log_id": "0dd41f0f7c274fad28492142d7176f6a41211417f695099844fb7e9fb74942e5",
+    "ok": true,
+    "root": "d81512555137bae1b9e3fdfef12d0a625064a262a1aa383b29eba0318af9328c",
+    "tree_size": 4
+  },
+  "keys": "keys/well-known.json",
+  "previous_b64": null,
+  "statement_b64": "0oRY2KQBJwN4JWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IudHJlZS1oZWFkK2Nib3IEWCBhj0sCJ6m8L2xM3EtIFMDaGzUbrofwfyiZpiIyPi/pEQ+iAXhAMGRkNDFmMGY3YzI3NGZhZDI4NDkyMTQyZDcxNzZmNmE0MTIxMTQxN2Y2OTUwOTk4NDRmYjdlOWZiNzQ5NDJlNQJ4QjBkZDQxZjBmN2MyNzRmYWQyODQ5MjE0MmQ3MTc2ZjZhNDEyMTE0MTdmNjk1MDk5ODQ0ZmI3ZTlmYjc0OTQyZTUjNKBYyadkcm9vdFgg2BUSVVE3uuG54/3+8S0KYlBkomKhqjg7KeugMYr5MoxmbG9nX2lkeEAwZGQ0MWYwZjdjMjc0ZmFkMjg0OTIxNDJkNzE3NmY2YTQxMjExNDE3ZjY5NTA5OTg0NGZiN2U5ZmI3NDk0MmU1aWlzc3VlZF9hdHgYMjAyNi0wOS0xOVQxMDowNTowMC4wMDBaaXByZXZfcm9vdEBpcHJldl9zaXplAGl0cmVlX3NpemUEcWNvbnNpc3RlbmN5X3Byb29mgFhAtluDclB67+hT3x9rpFq8ikHyxnnxNTo7wHpJiBh7k8lyORoxqHgM4qrLc6rADMnvdCb5rR6aYCg677Td+upNAA=="
+}

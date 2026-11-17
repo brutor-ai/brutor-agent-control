@@ -1,0 +1,62 @@
+{
+  "$comment": "Every environment variable of the Admin Console, defined once. src/env.ts reads the application's (at build time through Vite, at run time through window._env_, which docker-entrypoint.sh writes from the container's environment); scripts/tool-env.mjs reads the build tools'. The README table and .env.example are generated from this file (node scripts/gen-env-docs.mjs) and held to it by src/__tests__/envRegistry.test.ts. The Enterprise package adds its own in enterprise/envRegistry.json.",
+  "schema_version": 1,
+  "component": "admin-console",
+  "variables": [
+    {
+      "name": "BRUTOR_CONTROL_PLANE_PUBLIC_URL",
+      "build_name": "VITE_CONTROL_PLANE_PUBLIC_URL",
+      "read_by": "application",
+      "type": "url",
+      "default": "http://localhost:5050",
+      "edition": "both",
+      "description": "Base URL of the Control Plane (the admin API), as the browser reaches it. Every /v1/admin/* call goes there. The Control Plane is given the same value under the same name.",
+      "accepted": "an http:// or https:// URL the browser can reach",
+      "example": "https://control.example.com"
+    },
+    {
+      "name": "BRUTOR_GATEWAY_PUBLIC_URL",
+      "build_name": "VITE_GATEWAY_PUBLIC_URL",
+      "read_by": "application",
+      "type": "url",
+      "default": "http://localhost:8100",
+      "edition": "both",
+      "description": "Base URL of the Core Gateway, as the browser reaches it. Used for the gateway addresses the console shows (MCP, model and agent endpoints) and for the health probes it calls directly. The Core Gateway is given the same value under the same name.",
+      "accepted": "an http:// or https:// URL the browser can reach",
+      "example": "https://gateway.example.com"
+    },
+    {
+      "name": "BRUTOR_DEBUG_ENABLED",
+      "build_name": null,
+      "read_by": "application",
+      "type": "boolean",
+      "default": "false",
+      "edition": "both",
+      "description": "Write the console's diagnostics, and the configuration it started with, to the browser's console. Off, the console writes nothing there but failures. Run time only.",
+      "accepted": "one of true, false, 1, 0, yes, no, on, off",
+      "example": "true"
+    },
+    {
+      "name": "BRUTOR_CONTROL_PLANE_DOCUMENTS_DIR",
+      "build_name": null,
+      "read_by": "tool",
+      "type": "path",
+      "default": null,
+      "edition": "both",
+      "description": "For the contract scripts and the tests that check their output: a directory holding the Control Plane's two OpenAPI documents under their own file names, read instead of the sibling Control Plane working tree; and, for the permission list written with --documents-dir, its two permission modules at their Control Plane paths. Unset: the sibling working tree.",
+      "accepted": "a directory",
+      "example": "/tmp/control-plane-documents"
+    },
+    {
+      "name": "PRIVATE_REFERENCES_REPORT",
+      "build_name": null,
+      "read_by": "tool",
+      "type": "boolean",
+      "default": "false",
+      "edition": "both",
+      "description": "For one test (src/__tests__/noPrivateReferences.test.ts): print what the generated contract files carry.",
+      "accepted": "one of true, false, 1, 0, yes, no, on, off",
+      "example": "1"
+    }
+  ]
+}

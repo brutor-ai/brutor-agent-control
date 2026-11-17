@@ -1,0 +1,34 @@
+# cargo-about: the third-party licences file (THIRD_PARTY_LICENSES), written by
+# scripts/third-party-licenses.sh from the committed Cargo.lock, here and in
+# the image build. Owner decision (legal answer 5, 2026-11-16): third-party
+# packages ship unmodified with their licence texts, in each image and in the
+# repository.
+#
+# `accepted` is deny.toml's `allow`, the same licences in the same order
+# (tests/third_party_licenses_guard.rs holds it there): a licence outside it
+# fails the generation (`--fail`) as it fails `cargo deny`. Where a crate
+# offers a choice, the first accepted licence in this order is the one named.
+accepted = [
+    "0BSD",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-1-Clause",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+# The images are Linux: dependencies for other platforms are not shipped.
+targets = ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu"]
+# Brutor's own crates (publish = false) are not third-party.
+private = { ignore = true }
+# Test and benchmark dependencies are not in the binary. Build dependencies
+# are kept: what a build script generates can end up in it.
+ignore-dev-dependencies = true

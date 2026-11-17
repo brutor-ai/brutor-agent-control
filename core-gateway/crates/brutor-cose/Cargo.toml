@@ -1,0 +1,22 @@
+[package]
+name = "brutor-cose"
+version = "0.1.0"
+edition = "2024"
+description = "COSE_Sign1 (RFC 9052), COSE Hash Envelope (RFC 9995), COSE Receipts (RFC 9942) and RFC 6962/9162 Merkle proofs — standards-only, profile-opaque"
+license = "Apache-2.0"
+publish = false
+authors = ["Brutor AI Ltd"]
+
+[dependencies]
+ciborium = "0.2"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+sha2 = "0.10"
+hex = "0.4"
+thiserror = "2"
+
+[dev-dependencies]
+rand = "0.9"
+
+# Evidence crates contain no unsafe Rust and never may.
+[lints.rust]
+unsafe_code = "forbid"

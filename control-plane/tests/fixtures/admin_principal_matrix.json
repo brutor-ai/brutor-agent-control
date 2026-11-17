@@ -1,0 +1,5903 @@
+{
+ "DELETE /v1/admin/agent-cards/{card_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/agent-identities/{agent_id}/grants/{grant_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/agent-identities/{agent_id}/memberships/{member_id}": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "DELETE /v1/admin/agent-skills/{skill_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/agent-skills/{skill_id}/assets/{asset_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/agent-skills/{skill_id}/groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "DELETE /v1/admin/agent-skills/{skill_id}/resources/{resource_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/agent-skills/{skill_id}/scripts/{script_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/agent-skills/{skill_id}/workflow": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/ai-systems/{ai_system_id}/dependencies/{edge_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/ai-systems/{ai_system_id}/evidence/{evidence_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/ai-systems/{ai_system_id}/reach-rules/{rule_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/argument-policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/assets/{asset_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/assurance-checks/{check_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/audit-export-destinations/{destination_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/compliance/notice-configs/{config_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/deployments/docker/containers/{container_name}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/deployments/docker/images/{image_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "DELETE /v1/admin/deployments/kubernetes/deployments/{deployment_name}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/end-user-groups/{group_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 400,
+  "tenant": 204,
+  "tenant_other": 204
+ },
+ "DELETE /v1/admin/end-user-groups/{group_id}/members": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "DELETE /v1/admin/end-user-groups/{group_id}/resource-groups": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "DELETE /v1/admin/end-users/{user_id}": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "DELETE /v1/admin/end-users/{user_id}/photo": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "DELETE /v1/admin/evidence/witnesses/{witness_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/guardrails/break-glass": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "DELETE /v1/admin/guardrails/configs/{config_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/idps/{idp_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/incident-windows/{window_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/kb-connector-identities/{mapping_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/kb-connectors/{connector_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/knowledge-base/collections/{collection_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/knowledge-base/documents/{document_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/llm-catalog/{catalog_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/llm-router/routing-groups/{group_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/llm-runner/machines/{machine_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/llm-runner/machines/{machine_id}/models/{model_name}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/llm-runner/machines/{machine_id}/models/{model_name}/register": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/llms/{model_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/mcp-catalog/{entry_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/mcp-registries/instance/proxy/{path}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 503,
+  "tenant": 503,
+  "tenant_other": 503
+ },
+ "DELETE /v1/admin/mcp-registries/{registry_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/mcp-servers/{server_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/mcp-servers/{server_id}/icon": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/notifications/channels/{channel_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/notifications/subscriptions/{subscription_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/oauth-app-clients/{client_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/prompt-cache/policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/prompt-cache/policies/{policy_id}/groups/{group_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/prompt-cache/policies/{policy_id}/model-overrides/{group_id}/{model_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/providers/{provider_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/providers/{provider_id}/icon": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/agent-skills/{skill_id}/governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/agent-skills/{skill_id}/limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/end-user-groups": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/llm-global-governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/llm-models/{model_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/llm-models/{model_id}/governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/llm-models/{model_id}/limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/mcp-global-governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/mcp-servers/{server_id}/limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/members/{user_id}": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/server-configs/{config_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/server-configs/{config_id}/capabilities": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/resource-groups/{group_id}/skill-global-governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/response-policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/saved-log-views/{view_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/semantic-cache/configs/{config_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/semantic-cache/configs/{config_id}/groups/{group_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/semantic-policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/server-configs/{config_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/skill-sources/{source_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/system-servers/search-config/api-key": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "DELETE /v1/admin/tenants/{tenant_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/tenants/{tenant_id}/theme": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "DELETE /v1/admin/users/roles/{role_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/users/tenant/{admin_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/users/tenant/{admin_id}/photo": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/video-generation-jobs/{job_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/virtual-servers/{server_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "DELETE /v1/admin/virtual-servers/{server_id}/capabilities/source/{source_server_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/a2a-tasks": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/a2a-tasks/{task_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/a2a-tasks/{task_id}/push-configs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/a2a/delegation-graphs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/a2a/delegation-graphs/stats": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/a2a/delegation-graphs/{root_task_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/actions": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/agent-cards": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/agent-cards/catalog": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 502,
+  "tenant": 502,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/agent-cards/tenant-key": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/agent-cards/{card_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/agent-identities": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/agent-identities/{agent_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/agent-identities/{agent_id}/grants": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/agent-identities/{agent_id}/memberships": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/agent-identities/{agent_id}/releases": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/agent-registry": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/agent-skills": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/agent-skills/catalog": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/agent-skills/executions/{execution_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/assets": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/assets/{asset_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/executions": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/manifest": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/resources": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/resources/{resource_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/scripts": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/scripts/{script_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/workflow": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/workflow/executions": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/agent-skills/{skill_id}/workflow/executions/{execution_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/ai-systems": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/gate-policy/vocabulary": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/runs/live": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/runs/{root_task_id}/intervention": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/assurance": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/assurance/history": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/assurance/history/{report_id}/export": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/baseline-epochs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/baselines": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/composition": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/contracts": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/contracts/current": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/contracts/{version}": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/contracts/{version}/diff": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/contracts/{version}/export": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/data-scope": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/data-scope/activity": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/dependencies": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/documentation": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/documentation/exports": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/drift": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/envelope": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/evidence": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/health": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/incident-windows": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/lifecycle": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/liveness": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/outcomes": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/reach-rules": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/replay": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/response-policies": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/responses": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/runs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/runs/stats": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/runs/timeseries": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/served-calls": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/statement": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/ai-systems/{system_id}/obligations": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/approvals": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/approvals/pending-count": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/approvals/{approval_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/argument-policies": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/argument-policies/export.yaml": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/argument-policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/assets": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assets/{asset_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assets/{asset_id}/factsheet": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assets/{asset_id}/factsheet/snapshots": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assets/{asset_id}/factsheet/snapshots/{snapshot_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assurance-checks": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assurance-checks/{check_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assurance-checks/{check_id}/agreement": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assurance-checks/{check_id}/results": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assurance-checks/{check_id}/reviews": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assurance-checks/{check_id}/versions": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assurance-digest": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assurance-inbox": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assurance-inbox/counts": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/assurance-inbox/{item_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/audit-export-destinations": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/audit-export-destinations/{destination_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/audit/chains": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 503,
+  "tenant": 503,
+  "tenant_other": 503
+ },
+ "GET /v1/admin/batch-jobs/statistics": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/batch-jobs/{batch_job_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/batch-jobs/{batch_job_id}/requests/{request_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/compliance/ai-systems/{ai_system_id}/profile": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/dashboard": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/eu-ai-act/risk-classification": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/frameworks": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/gdpr/article-30": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/hipaa/phi-access": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/incidents": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/incidents/{incident_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/incidents/{incident_id}/events": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/iso-42001/activity": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/notice-configs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/notice-configs/effective": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/obligation-frameworks": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/compliance/obligations": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/obligations/{key}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/oversight": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/overview": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/profile": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/reports": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/reports/{report_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/reports/{report_id}/bundle": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/retention": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/soc2/control-coverage": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/systems": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/compliance/transparency": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/data-erasure": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/deployments/capabilities": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/deployments/docker/containers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/deployments/docker/containers/{container_name}/logs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/deployments/docker/containers/{container_name}/stats": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/deployments/docker/containers/{deployment_name}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/deployments/docker/deployments/{deployment_name}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/deployments/docker/images": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/deployments/docker/repositories/{namespace}": {
+  "anonymous": 401,
+  "system": 503,
+  "system_named": 503,
+  "tenant": 503,
+  "tenant_other": 503
+ },
+ "GET /v1/admin/deployments/docker/repositories/{namespace}/{repository}": {
+  "anonymous": 401,
+  "system": 503,
+  "system_named": 503,
+  "tenant": 503,
+  "tenant_other": 503
+ },
+ "GET /v1/admin/deployments/docker/repositories/{namespace}/{repository}/tags": {
+  "anonymous": 401,
+  "system": 503,
+  "system_named": 503,
+  "tenant": 503,
+  "tenant_other": 503
+ },
+ "GET /v1/admin/deployments/docker/system/info": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/deployments/kubernetes/cluster/info": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "GET /v1/admin/deployments/kubernetes/deployments": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/deployments/kubernetes/deployments/{deployment_name}/pods": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/deployments/kubernetes/namespaces": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/deployments/kubernetes/pods/{pod_name}/logs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "GET /v1/admin/deployments/kubernetes/tenants/{tenant_id}/namespaces": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/discovery/agent-events": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/discovery/assets": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/discovery/assets/{asset_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/discovery/collector-keys": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/discovery/coverage": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/discovery/devices": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/discovery/ingest-adapters": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/drift": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/end-user-groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 400,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/end-user-groups/{group_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 400,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/end-users": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/end-users/export/csv": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/end-users/export/json": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/end-users/{user_id}": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/end-users/{user_id}/photo": {
+  "anonymous": 422,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/evidence/disclosures": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/evidence/keys": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/evidence/logs": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/evidence/logs/{log_id}/tree-heads": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/evidence/records": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/evidence/records/{record_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/evidence/records/{record_id}/proof": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/evidence/settings": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/evidence/summary": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/evidence/tree-heads/{head_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/evidence/witnesses": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/gateway-config/health-config": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/gateway-config/health-config/defaults": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "GET /v1/admin/guardrails/break-glass": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/guardrails/config": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/guardrails/configs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/guardrails/configs/{config_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/guardrails/providers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/idps": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/idps/{idp_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/incident-windows": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/iso42001/coverage": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/iso42001/evidence-pack": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/kb-connector-identities": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/kb-connectors": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/kb-connectors/catalog": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/kb-connectors/catalog/{connector_type}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/kb-connectors/{connector_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/kb-connectors/{connector_id}/runs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/knowledge-base/collections": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/knowledge-base/collections/{collection_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/knowledge-base/collections/{collection_id}/documents": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/knowledge-base/documents/{document_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/licence": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-catalog": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-catalog/{catalog_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/llm-router/cache-config": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-router/deployments": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-router/deployments/{model_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/llm-router/health": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-router/routing-groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-router/routing-groups/{group_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/llm-router/routing-groups/{group_id}/tiers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/llm-router/statistics": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-router/status": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-router/test-history": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-runner/catalog": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-runner/catalog/huggingface": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/llm-runner/catalog/huggingface/{model_id}": {
+  "anonymous": 401,
+  "system": 502,
+  "system_named": 502,
+  "tenant": 502,
+  "tenant_other": 502
+ },
+ "GET /v1/admin/llm-runner/kube-contexts": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-runner/license-check/{model_id}": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-runner/llmd/accelerators": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-runner/llmd/deployments/{machine_id}/{model_name}/status": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/llm-runner/machines": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llm-runner/machines/{machine_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/llm-runner/machines/{machine_id}/cluster-nodes": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/llm-runner/machines/{machine_id}/models": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/llm-runner/machines/{machine_id}/models/{model_name}/status": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/llm-runner/preflight": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llms": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llms/by-group": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llms/search/quick": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/llms/search/suggestions": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/llms/{model_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/mcp-catalog": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/mcp-catalog/categories": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/mcp-catalog/{entry_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/mcp-catalog/{entry_id}/verify": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/mcp-registries": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/mcp-registries/health": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/mcp-registries/instance/proxy/{path}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 503,
+  "tenant": 503,
+  "tenant_other": 503
+ },
+ "GET /v1/admin/mcp-registries/instance/servers/{server_id}/icon": {
+  "anonymous": 404,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/mcp-registries/instance/status": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/mcp-registries/{registry_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/mcp-registries/{registry_id}/servers/{server_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/mcp-servers": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/mcp-servers/{server_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/mcp-servers/{server_id}/health": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/mcp-servers/{server_id}/icon": {
+  "anonymous": 404,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/metrics/agents/activity": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/cost/breakdown": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/cost/budgets": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/cost/export/focus": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/cost/monthly": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/cost/savings": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/cost/series": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/dashboard": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/export": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/governance/posture": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/heatmap/hourly": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/methods/performance": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "GET /v1/admin/metrics/performance": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/real-time": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/servers/status": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/metrics/servers/{server_id}/health": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/metrics/timeseries/error-rate": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "GET /v1/admin/metrics/timeseries/latency": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "GET /v1/admin/metrics/timeseries/requests": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "GET /v1/admin/metrics/usage": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/mission-control/cards": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/mission-control/explainers": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/notifications/channels": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/notifications/deliveries": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/notifications/subscriptions": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/oauth-app-clients": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/oauth-app-clients/{client_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/oauth-app-clients/{client_id}/usage": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/oauth-tokens": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/platform/overview": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/platform/requests-timeseries": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/platform/settings": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/policies/bundles": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/policies/bundles/{bundle_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/policies/bundles/{bundle_id}/diff": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/policies/bundles/{bundle_id}/events": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/policies/effective": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/policies/export": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/policies/schema": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/policies/scopes": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/policies/templates": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/policies/templates/{template_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/prompt-cache/aggregates": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/prompt-cache/aggregates/groups/{group_id}": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/prompt-cache/models/{provider}/capability": {
+  "anonymous": 200,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/prompt-cache/policies": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/prompt-cache/policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/prompt-cache/timeseries": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "GET /v1/admin/provider-catalog": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/providers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/providers/{provider_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/providers/{provider_id}/icon": {
+  "anonymous": 404,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/proxy-logs/health": {
+  "anonymous": 200,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/proxy-logs/statistics": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/proxy-logs/thread/{correlation_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/proxy-logs/traces": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/proxy-logs/traces/{root_task_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/proxy-logs/user/{user_id}/activity": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/resource-groups": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/resource-groups/by-type/{group_type}": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/resource-groups/hierarchy-tree": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/resource-groups/roots": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/resource-groups/search": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/resource-groups/stats": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/resource-groups/tree": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/resource-groups/usage-alerts": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/resource-groups/{group_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/a2a-global-governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/a2a-global-limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/agent-skills/{skill_id}/governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/agent-skills/{skill_id}/limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/ancestors": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/api-keys": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/api-keys/usage": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/approval-window": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/children": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/descendants": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/effective-agent-cards": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/effective-agent-skills": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/effective-guardrails": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/effective-kb-collections": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/effective-kb-connectors": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/effective-llm-models": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/effective-server-configs": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/end-user-groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 400,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/llm-global-governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/llm-global-limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/llm-models/{model_id}/governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/llm-models/{model_id}/limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/mcp-global-governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/mcp-global-limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/mcp-servers/{server_id}/limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/media-global-governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/media-global-limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/members": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/server-configs/{config_id}/capabilities": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/siblings": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/skill-global-governance": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/skill-global-limits": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/usage": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/usage-alerts": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/runs/unattributed": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/runs/{run_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/runs/{run_id}/consequences": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/runs/{run_id}/trajectory": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/saved-log-views": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/saved-log-views/{view_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/semantic-cache/configs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/semantic-cache/configs/{config_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/semantic-cache/stats": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/semantic-cache/stats/groups/{group_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/semantic-cache/vpt": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/semantic-cache/vpt/groups/{group_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/semantic-policies": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/semantic-policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/server-configs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/server-configs/by-group/{group_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/server-configs/by-oauth-client/{oauth_client_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/server-configs/by-server/{mcp_server_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/server-configs/stats": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/server-configs/{config_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/skill-sources": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/skill-sources/{source_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/standards": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/standards/{slug}/schema": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/system-alerts": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/system-servers/search-config": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 500
+ },
+ "GET /v1/admin/system/audit": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/system/audit/export": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/system/audit/facets": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/system/caches": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/system/connections": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/system/counters": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/system/logs/levels": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/system/maintenance": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/system/overview": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/system/sessions": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "GET /v1/admin/system/tasks": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/tenants": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/tenants/current": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/tenants/current/theme": {
+  "anonymous": 401,
+  "system": 403,
+  "system_named": 403,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/tenants/current/theme-variants": {
+  "anonymous": 401,
+  "system": 403,
+  "system_named": 403,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/tenants/stats/summary": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/tenants/{tenant_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/tenants/{tenant_id}/kb-stats": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/tenants/{tenant_id}/stats": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/tenants/{tenant_id}/theme": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/tenants/{tenant_id}/theme-variants": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/tenants/{tenant_id}/theme/preview": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/usage-import/providers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/usage-import/providers/{provider_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/usage-import/providers/{provider_id}/runs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/user-notifications/sent": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/users/audit-logs": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/users/audit-logs/export": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/users/me": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/users/me/2fa/status": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/users/permissions": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/users/roles": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/users/roles/{role_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/users/system": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "GET /v1/admin/users/tenant": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/users/tenant/sessions": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/users/tenant/{admin_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/users/tenant/{admin_id}/photo": {
+  "anonymous": 404,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/video-generation-jobs/stats/summary": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/video-generation-jobs/{job_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/virtual-servers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "GET /v1/admin/virtual-servers/{server_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/virtual-servers/{server_id}/statistics": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/agent-cards/{card_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/agent-identities/{agent_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/agent-skills/{skill_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/agent-skills/{skill_id}/assets/{asset_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/agent-skills/{skill_id}/resources/{resource_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/agent-skills/{skill_id}/scripts/{script_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/agent-skills/{skill_id}/workflow": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/ai-systems/{ai_system_id}/dependencies/{edge_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/ai-systems/{ai_system_id}/evidence/{evidence_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/ai-systems/{ai_system_id}/reach-rules/{rule_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/argument-policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/argument-policies/{policy_id}/groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/assets/{asset_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/assurance-checks/{check_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/audit-export-destinations/{destination_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/compliance/frameworks/{framework_id}": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/compliance/incidents/{incident_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/compliance/profile": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/end-user-groups/{group_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 400,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/end-users/{user_id}/primary-group": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/end-users/{user_id}/status": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/evidence/witnesses/{witness_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/gateway-config/health-config": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "PATCH /v1/admin/guardrails/config": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "PATCH /v1/admin/guardrails/configs/{config_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/guardrails/configs/{config_id}/groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/idps/{idp_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/incident-windows/{window_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/kb-connectors/{connector_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/knowledge-base/collections/{collection_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/knowledge-base/documents/{document_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/llm-catalog/{catalog_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/llm-router/cache-config": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "PATCH /v1/admin/llm-router/routing-groups/{group_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/llm-runner/machines/{machine_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/llms/{model_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/mcp-registries/instance/proxy/{path}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 503,
+  "tenant": 503,
+  "tenant_other": 503
+ },
+ "PATCH /v1/admin/mcp-registries/{registry_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/mcp-servers/{server_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/notifications/channels/{channel_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/notifications/subscriptions/{subscription_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/oauth-app-clients/{client_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/platform/settings": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/prompt-cache/policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/providers/{provider_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/resource-groups/api-keys/{key_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/agent-skills/{skill_id}/governance": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/agent-skills/{skill_id}/limits": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/llm-global-governance": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/llm-global-limits": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/llm-models/{model_id}/governance": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/llm-models/{model_id}/limits": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/llm-models/{model_id}/portal-visibility": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/mcp-global-governance": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/mcp-global-limits": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/mcp-servers/{server_id}/limits": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/media-global-governance": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/media-global-limits": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/skill-global-governance": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/resource-groups/{group_id}/skill-global-limits": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/response-policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/saved-log-views/{view_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/semantic-cache/configs/{config_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/semantic-policies/{policy_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/server-configs/{config_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/skill-sources/{source_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/system/maintenance": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/tenants/current": {
+  "anonymous": 401,
+  "system": 403,
+  "system_named": 403,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "PATCH /v1/admin/tenants/{tenant_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/tenants/{tenant_id}/theme": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "PATCH /v1/admin/usage-import/providers/{provider_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/users/roles/{role_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/users/tenant/{admin_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PATCH /v1/admin/users/tenant/{admin_id}/role": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PATCH /v1/admin/virtual-servers/{server_id}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/agent-cards": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-cards/discover": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-cards/health-check/bulk": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/agent-cards/import": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-cards/import-bulk": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-cards/{card_id}/health-check": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/agent-cards/{card_id}/revoke": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-cards/{card_id}/sign": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/agent-identities": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-identities/{agent_id}/grants": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-identities/{agent_id}/memberships": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-identities/{agent_id}/revoke": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/agent-skills": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-skills/bulk-delete": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-skills/import": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-skills/search": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/archive": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/assets": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/deprecate": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/export": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/publish": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/resources": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/scripts": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/validate": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/workflow/execute": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/workflow/publish": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/agent-skills/{skill_id}/workflow/validate": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/ai-systems/runs/{root_task_id}/abort": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/assurance": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/contracts": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/dependencies": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/evidence": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/incident-windows": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/lifecycle": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/liveness/accept": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/liveness/learn": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/reach-rules": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/reach-rules/preview": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/replay/run": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/replay/suite": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/response-policies": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/response-policies/preview": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/ai-systems/{ai_system_id}/restore": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/approvals/{approval_id}/approve": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/approvals/{approval_id}/reject": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/argument-policies": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/argument-policies/import.yaml": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 400,
+  "tenant": 400,
+  "tenant_other": 400
+ },
+ "POST /v1/admin/assets": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/assets/sync": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/assets/{asset_id}/factsheet/snapshot": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/assurance-checks": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/assurance-checks/compile": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/assurance-checks/compile-assist": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/assurance-checks/{check_id}/backtest": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/assurance-checks/{check_id}/reviews/sample": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/assurance-checks/{check_id}/reviews/{review_id}": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/assurance-digest/preview": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/assurance-inbox/bulk-acknowledge": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/assurance-inbox/{item_id}/acknowledge": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/assurance-inbox/{item_id}/assign": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/assurance-inbox/{item_id}/reopen": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/assurance-inbox/{item_id}/resolve": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/audit-export-destinations": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/audit-export-destinations/{destination_id}/run-now": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/audit/chains/{chain_id}/verify": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 503,
+  "tenant": 503,
+  "tenant_other": 503
+ },
+ "POST /v1/admin/batch-jobs/query": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/batch-jobs/{batch_job_id}/cancel": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/batch-jobs/{batch_job_id}/requests/query": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/compliance/incidents": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/compliance/incidents/{incident_id}/close": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/compliance/incidents/{incident_id}/events": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/compliance/incidents/{incident_id}/report": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/compliance/incidents/{incident_id}/submissions": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/compliance/reports": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/contracts/{contract_id}/approve": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/contracts/{contract_id}/promote": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/contracts/{contract_id}/reject": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/data-erasure": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/deployments/docker/containers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/deployments/docker/containers/{container_name}/link-mcp": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/deployments/docker/containers/{container_name}/restart": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/deployments/docker/containers/{container_name}/start": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/deployments/docker/containers/{container_name}/stop": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/deployments/docker/images/build": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/deployments/docker/images/github-build": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/deployments/docker/images/pull": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/deployments/docker/preflight": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/deployments/docker/system/prune/containers": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/deployments/docker/system/prune/images": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/deployments/kubernetes/deploy": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/deployments/kubernetes/deployments/{deployment_name}/link-mcp": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/deployments/kubernetes/deployments/{deployment_name}/scale": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/discovery/assets/{asset_id}/dismiss": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/discovery/assets/{asset_id}/onboard": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/discovery/collector-keys": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/discovery/collector-keys/{key_id}/revoke": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/discovery/reconcile": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/drift/{event_id}/ack": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/drift/{event_id}/false-positive": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/drift/{event_id}/resolve": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/end-user-groups": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/end-user-groups/{group_id}/members": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/end-user-groups/{group_id}/resource-groups": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/end-users": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/end-users/{user_id}/claude-desktop-config": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/end-users/{user_id}/photo": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/evidence/bundles": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/evidence/bundles/verify": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/evidence/keys/rotate": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 409,
+  "tenant": 409,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/evidence/verify": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/evidence/witnesses": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/gateway-config/health-config/reset": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/guardrails/break-glass": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/guardrails/configs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/guardrails/providers/test": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/guardrails/test": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/guardrails/{config_id}/apply-recommended-mode-defaults": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/idps": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/idps/{idp_id}/discover": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/idps/{idp_id}/test": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/incident-windows": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/kb-connector-identities": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/kb-connector-identities/bulk": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/kb-connectors": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/kb-connectors/{connector_id}/sync": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/kb-connectors/{connector_id}/test-connection": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/knowledge-base/collections": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/knowledge-base/collections/{collection_id}/documents": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/knowledge-base/collections/{collection_id}/groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/knowledge-base/collections/{collection_id}/search": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/knowledge-base/documents/{document_id}/reembed": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/llm-catalog": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/llm-catalog/{catalog_id}/import": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/llm-router/routing-groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/llm-router/test": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/llm-runner/llmd/deploy": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/llm-runner/machines": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/llm-runner/machines/{machine_id}/models/pull": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/llm-runner/machines/{machine_id}/models/{model_name}/register": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/llm-runner/machines/{machine_id}/models/{model_name}/start": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/llm-runner/machines/{machine_id}/models/{model_name}/stop": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/llm-runner/machines/{machine_id}/test-connection": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/llms": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/llms/health-check/bulk": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/llms/search": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/llms/search/with-summary": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/llms/test-connection": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/llms/user-access": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/llms/{model_id}/copy": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/llms/{model_id}/groups/assign": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/llms/{model_id}/groups/remove": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/llms/{model_id}/health-check": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/mcp-catalog": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/mcp-catalog/{entry_id}/import": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 400,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/mcp-catalog/{entry_id}/revoke": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/mcp-catalog/{entry_id}/sign": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/mcp-registries": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/mcp-registries/instance/proxy/{path}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 503,
+  "tenant": 503,
+  "tenant_other": 503
+ },
+ "POST /v1/admin/mcp-registries/search-all": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/mcp-registries/test": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/mcp-registries/{registry_id}/search": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/mcp-registries/{registry_id}/test": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/mcp-servers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/mcp-servers/health/bulk": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/mcp-servers/test-connection": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/mcp-servers/{server_id}/discover-capabilities": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/mcp-servers/{server_id}/icon": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/notifications/channels": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/notifications/channels/{channel_id}/test": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/notifications/subscriptions": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/oauth-app-clients": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/oauth-app-clients/auto-register": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/oauth-tokens/revoke-bulk": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/oauth-tokens/{token_id}/revoke": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/policies/apply": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/policies/bundles/{bundle_id}/rollback": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/policies/dry-run": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/policies/templates": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/policies/validate": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/prompt-cache/policies": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/prompt-cache/policies/{policy_id}/model-overrides": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/providers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/providers/{provider_id}/icon": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/providers/{provider_id}/rename": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/proxy-logs/cleanup": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/proxy-logs/export": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/proxy-logs/facets": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/proxy-logs/query": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/proxy-logs/suggest": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/resource-groups": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/resource-groups/api-keys/{key_id}/disable": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/resource-groups/api-keys/{key_id}/enable": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/resource-groups/api-keys/{key_id}/revoke": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/resource-groups/usage-alerts/{alert_id}/acknowledge": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/resource-groups/{group_id}/api-keys": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/resource-groups/{group_id}/end-user-groups": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/resource-groups/{group_id}/llm-models": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/resource-groups/{group_id}/members": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/resource-groups/{group_id}/server-configs": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/saved-log-views": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/semantic-cache/configs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/semantic-cache/configs/{config_id}/groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/semantic-cache/invalidate": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 204,
+  "tenant": 204,
+  "tenant_other": 204
+ },
+ "POST /v1/admin/semantic-policies": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/server-configs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/sessions/{session_id}/budget/reset": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/skill-sources": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/skill-sources/{source_id}/refresh": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/skill-sources/{source_id}/sync-error": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/skill-sources/{source_id}/sync-ingest": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/system-alerts/{alert_id}/acknowledge": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/system-alerts/{alert_id}/resolve": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/system/caches/flush": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/system/connections/recycle": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/system/counters/release-cooldown": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/system/counters/reset": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/system/logs/levels": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/system/logs/tail/ticket": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 201,
+  "tenant": 201,
+  "tenant_other": 201
+ },
+ "POST /v1/admin/system/maintenance/db-vacuum": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/system/maintenance/restart-rolling": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 202,
+  "tenant": 202,
+  "tenant_other": 202
+ },
+ "POST /v1/admin/system/sessions/revoke": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/system/tasks/pause": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "POST /v1/admin/system/tasks/resume": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "POST /v1/admin/system/tasks/trigger": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "POST /v1/admin/tenants": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/tenants/{tenant_id}/re-embed-kb": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/tenants/{tenant_id}/suspend": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/tenants/{tenant_id}/unsuspend": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/usage-import/providers/{provider_id}/backfill": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/usage-import/providers/{provider_id}/run": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/usage-import/providers/{provider_id}/test": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/user-notifications/send": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/audit-logs/facets": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/users/audit-logs/search": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/users/audit-logs/suggest": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/login/2fa": {
+  "anonymous": 422,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/login/2fa/enroll/setup": {
+  "anonymous": 422,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/login/2fa/enroll/verify": {
+  "anonymous": 422,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/logout": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/users/me/2fa/disable": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/me/2fa/setup": {
+  "anonymous": 401,
+  "system": 200,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/users/me/2fa/verify": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/me/change-password": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/roles": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/system/login": {
+  "anonymous": 422,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/system/{admin_id}/unlock": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "POST /v1/admin/users/tenant": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/tenant/login": {
+  "anonymous": 422,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/users/tenant/sessions/{session_id}/revoke": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/users/tenant/{admin_id}/photo": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/users/tenant/{admin_id}/unlock": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/video-generation-jobs/query": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 200,
+  "tenant_other": 200
+ },
+ "POST /v1/admin/video-generation-jobs/{job_id}/cancel": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "POST /v1/admin/virtual-servers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/virtual-servers/{server_id}/capabilities/prompt": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/virtual-servers/{server_id}/capabilities/resource": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "POST /v1/admin/virtual-servers/{server_id}/capabilities/tool": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PUT /v1/admin/agent-cards/{card_id}/resource-groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PUT /v1/admin/ai-systems/{ai_system_id}/data-scope": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PUT /v1/admin/ai-systems/{ai_system_id}/envelope": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PUT /v1/admin/ai-systems/{ai_system_id}/liveness": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PUT /v1/admin/ai-systems/{ai_system_id}/outcomes": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PUT /v1/admin/compliance/ai-systems/{ai_system_id}/profile": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 403
+ },
+ "PUT /v1/admin/compliance/notice-configs": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "PUT /v1/admin/deployments/kubernetes/tenants/{tenant_id}/namespaces": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 403,
+  "tenant_other": 403
+ },
+ "PUT /v1/admin/end-user-groups/{group_id}/members": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PUT /v1/admin/evidence/settings": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 200,
+  "tenant": 200,
+  "tenant_other": 403
+ },
+ "PUT /v1/admin/iso42001/coverage/{control_id}": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PUT /v1/admin/kb-connectors/{connector_id}/groups": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PUT /v1/admin/llm-router/routing-groups/{group_id}/tiers": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PUT /v1/admin/mcp-catalog/{entry_id}": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PUT /v1/admin/mcp-registries/instance/proxy/{path}": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 503,
+  "tenant": 503,
+  "tenant_other": 503
+ },
+ "PUT /v1/admin/prompt-cache/policies/{policy_id}/groups": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PUT /v1/admin/resource-groups/{group_id}/agent-cards": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 400,
+  "tenant_other": 400
+ },
+ "PUT /v1/admin/resource-groups/{group_id}/approval-window": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "PUT /v1/admin/resource-groups/{group_id}/server-configs/{config_id}/capabilities": {
+  "anonymous": 401,
+  "system": 422,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
+ },
+ "PUT /v1/admin/system-servers/search-config": {
+  "anonymous": 401,
+  "system": 500,
+  "system_named": 500,
+  "tenant": 500,
+  "tenant_other": 500
+ },
+ "PUT /v1/admin/tenants/{tenant_id}/theme-variants": {
+  "anonymous": 401,
+  "system": 404,
+  "system_named": 404,
+  "tenant": 403,
+  "tenant_other": 403
+ }
+}

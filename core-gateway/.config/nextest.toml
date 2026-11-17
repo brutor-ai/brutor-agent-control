@@ -1,0 +1,67 @@
+# cargo-nextest configuration.
+#
+# Why nextest: `cargo test` runs test binaries one after another and has no
+# per-test timeout, so one hanging test (in group_inheritance_tests) held
+# the whole Tests job until its 45-minute limit, named nothing, and hid the
+# results of every binary after it. nextest runs each test in its own process,
+# kills a hung one after a bounded time, names it, and carries on.
+
+# Setup scripts (below) are still experimental in nextest.
+experimental = ["setup-scripts"]
+
+[profile.default]
+# A test is reported slow after 60 s and killed after 5 periods (5 min). The
+# slowest legitimate tests (db-tests that replay the schema under load) finish
+# in about 2 min on a contended laptop.
+slow-timeout = { period = "60s", terminate-after = 5 }
+# Run every test even after a failure, so one red test never hides the rest.
+fail-fast = false
+
+[profile.ci]
+slow-timeout = { period = "60s", terminate-after = 5 }
+fail-fast = false
+# No retries: a flaky test must be fixed, not masked.
+retries = 0
+
+[profile.ci.junit]
+# Machine-readable per-test results, uploaded as a CI artefact.
+path = "junit.xml"
+
+# Tests that share ONE database and assume they never overlap. nextest runs
+# each test in its own process, so a process-local lock serialises nothing:
+# `system_alerts_resolver_tests` sweeps every active alert and purges its own
+# `rst-` fixtures on start, so two of its tests at once delete each other's
+# rows (seen as `fetch status: RowNotFound`). Overrides on the default
+# profile apply to every profile.
+[test-groups]
+shared-db-serial = { max-threads = 1 }
+
+[[profile.default.overrides]]
+filter = 'binary(system_alerts_resolver_tests)'
+test-group = 'shared-db-serial'
+
+# The usage spool tests own Redis database 14 and clear its spool lists on
+# start, so two at once delete each other's spooled rows.
+[[profile.default.overrides]]
+filter = 'test(/^usage_spool::/)'
+test-group = 'shared-db-serial'
+
+# The audit spool tests own Redis database 13 and clear its spool lists on
+# start, so two at once delete each other's spooled rows.
+[[profile.default.overrides]]
+filter = 'test(/^audit_spool::/)'
+test-group = 'shared-db-serial'
+
+# The outbound policy refuses private destinations unless
+# BRUTOR_OUTBOUND_ALLOW_HOSTS allows them (src/services/outbound_policy.rs).
+# Every upstream the tests mock (MCP servers, model endpoints, agents,
+# witnesses) listens on loopback, so the tests run as a deployment that
+# allows loopback, and only loopback. A test of the policy builds its own
+# policy and does not read this. Both profiles (the ci profile inherits the
+# default one's scripts; the enterprise workspace has a copy of this).
+[scripts.setup.outbound-allow-loopback]
+command = ["sh", "-c", "echo 'BRUTOR_OUTBOUND_ALLOW_HOSTS=localhost,127.0.0.0/8,::1' >> \"$NEXTEST_ENV\""]
+
+[[profile.default.scripts]]
+filter = 'all()'
+setup = 'outbound-allow-loopback'

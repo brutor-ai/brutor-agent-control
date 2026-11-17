@@ -1,0 +1,16 @@
+{
+  // Type-check of the test files. `tsconfig.json` leaves them out so the
+  // build compiles only what ships; this project is the same compiler
+  // options over all of `src`: tests, fixtures, builders and the test
+  // set-up included, and over the two configuration files, `vite.config.ts`
+  // and `vitest.config.ts`.
+  // `allowJs` lets a test import the build scripts it tests; their types
+  // come from their JSDoc.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false
+  },
+  "include": ["src", "vite.config.ts", "vitest.config.ts"],
+  "exclude": []
+}

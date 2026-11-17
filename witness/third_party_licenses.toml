@@ -1,0 +1,99 @@
+# The third-party licences of the witness image (`third_party_licenses.py`;
+# the generated file is `THIRD_PARTY_LICENSES` beside this one).
+#
+# The rule: third-party packages ship unmodified with their licence texts, in
+# a generated file in each image and in the repository, listing every
+# dependency with its licence. capsule-anchor itself is one of them: it is
+# built unmodified from the commit the Dockerfile pins.
+
+component = "Brutor Agent Control Witness"
+root = "."
+# The image's interpreter (`python:3.12.13-slim-bookworm`).
+python = "3.12"
+# The Linux wheel tags that interpreter installs (Debian bookworm, glibc
+# 2.36), most specific first, the order pip prefers them in: `regenerate`
+# unpacks the wheels the image's build would choose.
+wheel_tags = ["manylinux_2_36", "manylinux_2_34", "manylinux_2_28", "manylinux_2_17", "manylinux2014"]
+tool_requirements = "third_party_licenses_tool.txt"
+# Packages the image builds from source, never from a wheel (owner decision
+# L1): psycopg-c, psycopg's C extension, compiled against Debian's libpq
+# (`libpq-dev` in the build stage, `libpq5` at run time), so that the native
+# library it uses is the Debian package's, whose copyright file the image
+# ships under /usr/share/doc. (psycopg-binary's wheel bundles libpq, OpenSSL,
+# Kerberos and others without their licence texts.) `regenerate` builds it
+# from the sdist, which needs `pg_config` on the PATH (macOS: `brew install
+# libpq`).
+built_from_source = ["psycopg-c"]
+exclude_prefixes = []
+
+# The allowed licences. A package whose licence is not on it (every term of
+# an AND, one alternative of an OR) fails the build until the licence is
+# reviewed and added here.
+allowed = [
+    # The Core Gateway's list (its deny.toml), all permissive.
+    "0BSD",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-1-Clause",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+    # The Python Software Foundation licence (typing_extensions): permissive.
+    "PSF-2.0",
+    # Weak copyleft, allowed by name: the packages ship unmodified, as their
+    # authors publish them, with their licence texts, which is what these
+    # licences ask of a redistribution. certifi (the CA bundle) is MPL-2.0;
+    # psycopg and psycopg-c (the PostgreSQL driver) are LGPL-3.0-only.
+    "MPL-2.0",
+    "LGPL-3.0-only",
+]
+
+# Packages that declare their licence ambiguously: the resolution, made from
+# the licence files they carry. `declared` is what pip-licenses reports
+# (License-Metadata, License-Classifier, License-Expression); when a new
+# version declares something else the build fails until it is reviewed again.
+# `texts` are licence texts a package refers to without carrying them.
+
+[overrides.psycopg]
+declared = ["UNKNOWN", "UNKNOWN", "LGPL-3.0-only"]
+spdx = "LGPL-3.0-only"
+# It carries the LGPL 3, a set of additional permissions on the GPL 3, which
+# it does not carry: the GPL 3 ships beside it (from gnu.org).
+texts = ["licence-texts/GPL-3.0.txt"]
+
+[overrides.psycopg-c]
+declared = ["UNKNOWN", "UNKNOWN", "LGPL-3.0-only"]
+spdx = "LGPL-3.0-only"
+texts = ["licence-texts/GPL-3.0.txt"]
+
+[overrides.httpx]
+declared = ["BSD-3-Clause", "BSD License", "UNKNOWN"]
+# LICENSE.md is the three-clause BSD licence, as its metadata says.
+spdx = "BSD-3-Clause"
+
+[overrides.uvloop]
+declared = ["MIT License", "Apache Software License; MIT License", "UNKNOWN"]
+# Dual licensed: LICENSE-MIT and LICENSE-APACHE, at the user's option.
+spdx = "MIT OR Apache-2.0"
+
+# Installed from source at the commit the Dockerfile pins
+# (CAPSULE_ANCHOR_COMMIT), not from the lock.
+[pinned_elsewhere]
+capsule-anchor = "the Dockerfile's CAPSULE_ANCHOR_COMMIT"
+
+[editions.community]
+title = "Community Edition"
+constraints = ["constraints.txt"]
+output = "THIRD_PARTY_LICENSES"
+regenerate = "python third_party_licenses.py regenerate community (in the witness directory)"
+# What `regenerate` builds a wheel of, beside the lock: the Dockerfile's
+# source (without its postgres extra, as the image installs it).
+sources = ["capsule-anchor @ git+https://github.com/action-state-group/capsule-anchor.git@0e040e819e770c598eb20f6cfe8cbacfea244006"]

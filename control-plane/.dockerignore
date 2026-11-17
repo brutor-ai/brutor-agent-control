@@ -1,0 +1,124 @@
+# =============================================================================
+# Docker Ignore File - Exclude unnecessary files from Docker build context
+#
+# This is the build context of the COMMUNITY image (the root `Dockerfile`):
+# the Enterprise package is not in it. The Enterprise image is built from the
+# same directory with `-f enterprise/Dockerfile`, which reads its own ignore
+# file, `enterprise/Dockerfile.dockerignore` (this file plus `enterprise/`,
+# without its tests). `tests/test_packaging.py` holds the difference.
+# =============================================================================
+
+# The Enterprise Edition: never in the Community build context.
+enterprise/
+
+# Python. (`**/`: a pattern without it matches at the top of the context
+# only, and the bytecode caches are beside every module.)
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+*.so
+.Python
+lib/
+lib64/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+.venv-*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation. The package READMEs stay: each `pyproject.toml` names its
+# own as the package description, and the install reads it.
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Local development. `.env` holds the developer's secrets: an image built
+# from a working tree must not carry it (`COPY . .`).
+.env
+.env.*
+!.env.example
+.claude/
+mcp-server-builds/
+.mcp-server-builds
+
+# Logs and data
+logs/
+data/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+Thumbs.db
+**/.DS_Store
+
+# The committed third-party licences: the image ships the file its build
+# generates from the environment it installs.
+**/THIRD_PARTY_LICENSES
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Node modules (if any)
+node_modules/
+
+# Build artifacts
+*.pyc
+*.pyo
+*.pyd
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/

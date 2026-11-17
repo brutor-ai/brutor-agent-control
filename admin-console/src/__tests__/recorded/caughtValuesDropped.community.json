@@ -1,0 +1,770 @@
+{
+  "src/App.tsx": [
+    {
+      "in": "read",
+      "guards": "const c = await fetchAssuranceInboxCounts(); if (!cancelled) setInboxB",
+      "why": "badge"
+    },
+    {
+      "in": "handleLogout",
+      "guards": "await logout(); }",
+      "why": "follow-up"
+    }
+  ],
+  "src/components/AppSidebar.tsx": [
+    {
+      "in": "AppSidebar",
+      "guards": "return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; }",
+      "why": "local"
+    },
+    {
+      "in": "AppSidebar",
+      "guards": "localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed)); }",
+      "why": "local"
+    },
+    {
+      "in": "AppSidebar",
+      "guards": "const stored = localStorage.getItem(SIDEBAR_WIDTH_KEY); if (stored) { ",
+      "why": "local"
+    },
+    {
+      "in": "AppSidebar",
+      "guards": "localStorage.setItem(SIDEBAR_WIDTH_KEY, String(sidebarWidth)); }",
+      "why": "local"
+    },
+    {
+      "in": "AppSidebar",
+      "guards": "const raw = localStorage.getItem(SIDEBAR_EXPANDED_SECTIONS_KEY); retur",
+      "why": "local"
+    },
+    {
+      "in": "AppSidebar",
+      "guards": "localStorage.setItem(SIDEBAR_EXPANDED_SECTIONS_KEY, JSON.stringify([..",
+      "why": "local"
+    },
+    {
+      "in": "AppSidebar",
+      "guards": "const raw = localStorage.getItem(GROUP_TREE_EXPANDED_KEY); return raw ",
+      "why": "local"
+    },
+    {
+      "in": "AppSidebar",
+      "guards": "localStorage.setItem(GROUP_TREE_EXPANDED_KEY, JSON.stringify([...expan",
+      "why": "local"
+    }
+  ],
+  "src/components/a2a/A2ATenantKeyTab.tsx": [
+    {
+      "in": "copy",
+      "guards": "navigator.clipboard?.writeText(value)",
+      "why": "local"
+    }
+  ],
+  "src/components/a2a/AgentCardEditDialog.tsx": [
+    {
+      "in": "onCopy",
+      "guards": "await navigator.clipboard.writeText(id); setCopied(true); setTimeout((",
+      "why": "local"
+    },
+    {
+      "in": "formatDate",
+      "guards": "return new Date(raw).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/a2a/AgentCardEndpointModal.tsx": [
+    {
+      "in": "copy",
+      "guards": "await navigator.clipboard.writeText(url); setCopied(true); setTimeout(",
+      "why": "local"
+    }
+  ],
+  "src/components/a2a/AgentCardsTab.tsx": [
+    {
+      "in": "handleDialogSaved",
+      "guards": "const detail = await gatewayClient.getA2AAgentCard(activeCard.id); set",
+      "why": "follow-up"
+    },
+    {
+      "in": "AgentCardsTab",
+      "guards": "await navigator.clipboard.writeText(card.id); toast.success('Card ID c",
+      "why": "local"
+    }
+  ],
+  "src/components/a2a/a2aFormatters.ts": [
+    {
+      "in": "formatDate",
+      "guards": "return new Date(value).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/ai-assets/AIAssetFactsheet.tsx": [
+    {
+      "in": "renderValue",
+      "guards": "return JSON.stringify(value); }",
+      "why": "local"
+    }
+  ],
+  "src/components/ai-systems/AISystemRunsTab.tsx": [
+    {
+      "in": "RunRow",
+      "guards": "await navigator.clipboard?.writeText(run.id); setCopied(true); setTime",
+      "why": "local"
+    }
+  ],
+  "src/components/ai-systems/AISystemsFleetTab.tsx": [
+    {
+      "in": "readStoredView",
+      "guards": "// Gallery is the default; only an explicit table choice sticks. retur",
+      "why": "local"
+    },
+    {
+      "in": "setView",
+      "guards": "localStorage.setItem(VIEW_STORAGE_KEY, next); }",
+      "why": "local"
+    }
+  ],
+  "src/components/ai-systems/RunDetailsDialog.tsx": [
+    {
+      "in": "copyJson",
+      "guards": "await navigator.clipboard.writeText(JSON.stringify(printable, null, 2)",
+      "why": "local"
+    }
+  ],
+  "src/components/approvals/ApprovalsPage.tsx": [
+    {
+      "in": "read",
+      "guards": "const list = await gatewayClient.listToolApprovals({ status_filter: 'a",
+      "why": "local"
+    },
+    {
+      "in": "decide",
+      "guards": "setSelected(await gatewayClient.getToolApproval(selected.id)); }",
+      "why": "follow-up"
+    }
+  ],
+  "src/components/argument-policies/ArgumentPolicyForm.tsx": [
+    {
+      "in": "handleSubmit",
+      "guards": "parsedConfigForGuard = JSON.parse(analyzerConfigText); }",
+      "why": "local"
+    },
+    {
+      "in": "handleSubmit",
+      "guards": "parsed = JSON.parse(analyzerConfigText); }",
+      "why": "local"
+    }
+  ],
+  "src/components/audit-export/AuditExportForm.tsx": [
+    {
+      "in": "validateForm",
+      "guards": "new URL(formData.webhook_url.trim()); }",
+      "why": "local"
+    },
+    {
+      "in": "validateForm",
+      "guards": "new URL(formData.splunk_url.trim()); }",
+      "why": "local"
+    }
+  ],
+  "src/components/audit-export/AuditExportTab.tsx": [
+    {
+      "in": "handleEdit",
+      "guards": "const full = await fetchAuditExportDestination(destination.id); setEdi",
+      "why": "shown by the callee"
+    }
+  ],
+  "src/components/compliance/ChainPanel.tsx": [
+    {
+      "in": "loader",
+      "guards": "parent = await gatewayClient.getEvidenceRecord(link.parentRecordId); }",
+      "why": "probe"
+    }
+  ],
+  "src/components/compliance/RecordDialog.tsx": [
+    {
+      "in": "copyStatement",
+      "guards": "await navigator.clipboard.writeText(detail.statement_b64 ?? ''); setCo",
+      "why": "local"
+    }
+  ],
+  "src/components/compliance/complianceSections.ts": [
+    {
+      "in": "readStoredFramework",
+      "guards": "return window.localStorage.getItem(FRAMEWORK_STORAGE_KEY); }",
+      "why": "local"
+    },
+    {
+      "in": "storeFramework",
+      "guards": "window.localStorage.setItem(FRAMEWORK_STORAGE_KEY, id); }",
+      "why": "local"
+    }
+  ],
+  "src/components/compliance/useFrameworkCatalog.ts": [
+    {
+      "in": "loader",
+      "guards": "pending",
+      "why": "follow-up"
+    }
+  ],
+  "src/components/groups/GroupDetailsPanel.tsx": [
+    {
+      "in": "GroupDetailsPanel",
+      "guards": "const saved = localStorage.getItem(TAB_STORAGE_KEY); if (saved && tabs",
+      "why": "local"
+    },
+    {
+      "in": "GroupDetailsPanel",
+      "guards": "const savedSub = localStorage.getItem(GOV_SUB_TAB_STORAGE_KEY); if (sa",
+      "why": "local"
+    },
+    {
+      "in": "GroupDetailsPanel",
+      "guards": "localStorage.setItem(TAB_STORAGE_KEY, activeTab); }",
+      "why": "local"
+    },
+    {
+      "in": "GroupDetailsPanel",
+      "guards": "localStorage.setItem(GOV_SUB_TAB_STORAGE_KEY, governanceSubTab); }",
+      "why": "local"
+    },
+    {
+      "in": "GroupDetailsPanel",
+      "guards": "const savedSub = localStorage.getItem(RESOURCE_SUB_TAB_STORAGE_KEY); i",
+      "why": "local"
+    },
+    {
+      "in": "GroupDetailsPanel",
+      "guards": "localStorage.setItem(RESOURCE_SUB_TAB_STORAGE_KEY, resourceSubTab); }",
+      "why": "local"
+    }
+  ],
+  "src/components/groups/ResourceGroupsTab.tsx": [
+    {
+      "in": "handleUpdate",
+      "guards": "const data = await fetchResourceGroup(selectedGroupId, { stats: true, ",
+      "why": "follow-up"
+    }
+  ],
+  "src/components/groups/subtabs/GroupGuardrailsPanel.tsx": [
+    {
+      "in": "GroupGuardrailsPanel",
+      "guards": "const saved = localStorage.getItem(SUB_TAB_STORAGE_KEY); if (saved && ",
+      "why": "local"
+    },
+    {
+      "in": "GroupGuardrailsPanel",
+      "guards": "localStorage.setItem(SUB_TAB_STORAGE_KEY, activeSubTab); }",
+      "why": "local"
+    }
+  ],
+  "src/components/groups/subtabs/GroupResourceGovernanceTab.tsx": [
+    {
+      "in": "GroupResourceGovernanceTab",
+      "guards": "const saved = localStorage.getItem(SUB_TAB_STORAGE_KEY); if (saved && ",
+      "why": "local"
+    },
+    {
+      "in": "GroupResourceGovernanceTab",
+      "guards": "localStorage.setItem(SUB_TAB_STORAGE_KEY, activeSubTab); }",
+      "why": "local"
+    }
+  ],
+  "src/components/groups/subtabs/GroupResourceLimitsTab.tsx": [
+    {
+      "in": "GroupResourceLimitsTab",
+      "guards": "const saved = localStorage.getItem(SUB_TAB_STORAGE_KEY); if (saved && ",
+      "why": "local"
+    },
+    {
+      "in": "GroupResourceLimitsTab",
+      "guards": "localStorage.setItem(SUB_TAB_STORAGE_KEY, activeSubTab); }",
+      "why": "local"
+    }
+  ],
+  "src/components/guardrails/GuardrailForm.tsx": [
+    {
+      "in": "handleSubmit",
+      "guards": "new RegExp(p); }",
+      "why": "local"
+    }
+  ],
+  "src/components/idp/IdPServerForm.tsx": [
+    {
+      "in": "validateForm",
+      "guards": "new URL(value.trim()); }",
+      "why": "local"
+    }
+  ],
+  "src/components/llm/config/LLMCatalogTree.tsx": [
+    {
+      "in": "handleImport",
+      "guards": "await onImport(entry); }",
+      "why": "shown by the caller"
+    }
+  ],
+  "src/components/llm/config/LLMProxyEndpointModal.tsx": [
+    {
+      "in": "handleCopyEndpoint",
+      "guards": "await navigator.clipboard.writeText(proxyUrl); setCopied(true); setTim",
+      "why": "local"
+    }
+  ],
+  "src/components/llm/config/LLMSearchModal.tsx": [
+    {
+      "in": "handleImport",
+      "guards": "await onImportModel(entry); }",
+      "why": "shown by the caller"
+    }
+  ],
+  "src/components/llm/config/LLModelForm.tsx": [
+    {
+      "in": "LLModelForm",
+      "guards": "Promise.resolve() .then(() => client.listLLMCatalog({ provider_key: pr",
+      "why": "probe"
+    },
+    {
+      "in": "LLModelForm",
+      "guards": "cloudMetadata = modelMetadata.trim() ? (JSON.parse(modelMetadata) as u",
+      "why": "local"
+    },
+    {
+      "in": "parseJSON",
+      "guards": "return JSON.parse(value); }",
+      "why": "local"
+    }
+  ],
+  "src/components/llm/config/LLModelStatsModal.tsx": [
+    {
+      "in": "formatDate",
+      "guards": "return new Date(dateStr).toLocaleString(); }",
+      "why": "local"
+    },
+    {
+      "in": "formatDuration",
+      "guards": "const diffMs = Date.now() - new Date(dateStr).getTime(); const diffMin",
+      "why": "local"
+    }
+  ],
+  "src/components/llm/config/formValidationRules.ts": [
+    {
+      "in": "validateJSON",
+      "guards": "JSON.parse(value); return undefined; }",
+      "why": "local"
+    }
+  ],
+  "src/components/llm/config/providerConnection.ts": [
+    {
+      "in": "isServiceAccountKey",
+      "guards": "const parsed: unknown = JSON.parse(text); return getString(parsed, 'ty",
+      "why": "local"
+    },
+    {
+      "in": "localAddressHint",
+      "guards": "host = new URL(apiUrl.trim()).hostname.toLowerCase(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/llm/router/RoutingGroupForm.tsx": [
+    {
+      "in": "handleSubmit",
+      "guards": "const { _fallback_models, _context_window_fallbacks, _content_policy_f",
+      "why": "shown by the caller"
+    }
+  ],
+  "src/components/mcp/config/server/CapabilityViewerDialog.tsx": [
+    {
+      "in": "copyCurl",
+      "guards": "await navigator.clipboard.writeText(curl); setCopied(toolName); setTim",
+      "why": "local"
+    }
+  ],
+  "src/components/mcp/config/server/EndpointModal.tsx": [
+    {
+      "in": "copyToClipboard",
+      "guards": "await navigator.clipboard.writeText(proxyUrl); setCopied(true); setTim",
+      "why": "local"
+    }
+  ],
+  "src/components/mcp/config/server/ProxyUrlGenerator.tsx": [
+    {
+      "in": "copyToClipboard",
+      "guards": "await navigator.clipboard.writeText(url); setCopied(prev => ({ ...prev",
+      "why": "local"
+    }
+  ],
+  "src/components/mcp/config/server/ServerForm.tsx": [
+    {
+      "in": "handleImportedServer",
+      "guards": "const url = new URL(serverInfo.url); base_url = `${url.protocol}//${ur",
+      "why": "local"
+    },
+    {
+      "in": "validateForm",
+      "guards": "new URL(formData.base_url); }",
+      "why": "local"
+    }
+  ],
+  "src/components/mcp/config/server/ServerIcon.tsx": [
+    {
+      "in": "handleUrlUpload",
+      "guards": "new URL(inputIconUrl); }",
+      "why": "local"
+    }
+  ],
+  "src/components/mcp/config/server/ServersTab.tsx": [
+    {
+      "in": "loadServers",
+      "guards": "const serversData = await fetchServers(); setServers(serversData || []",
+      "why": "shown by the callee"
+    },
+    {
+      "in": "confirmDeleteServer",
+      "guards": "const freshServers = await fetchServers(); setServers(freshServers); s",
+      "why": "follow-up"
+    },
+    {
+      "in": "handleIconChange",
+      "guards": "await loadServers(); if (editingServer) { const serversData = await fe",
+      "why": "follow-up"
+    }
+  ],
+  "src/components/mcp/virtual/VirtualServerForm.tsx": [
+    {
+      "in": "handleSubmit",
+      "guards": "// Build the capabilities payload including the // tool overrides. The",
+      "why": "shown by the caller"
+    }
+  ],
+  "src/components/mcp/virtual/VirtualServersTab.tsx": [
+    {
+      "in": "loadData",
+      "guards": "if (virtualServersProp === undefined) { const vs = await fetchVirtualS",
+      "why": "shown by the callee"
+    },
+    {
+      "in": "handleRetryError",
+      "guards": "switch (error.context?.operation) { case 'refresh_virtual_servers': aw",
+      "why": "shown by the callee"
+    }
+  ],
+  "src/components/monitoring/FacetSidebar.tsx": [
+    {
+      "in": "readCollapseMap",
+      "guards": "const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : ",
+      "why": "local"
+    },
+    {
+      "in": "writeCollapseMap",
+      "guards": "localStorage.setItem(key, JSON.stringify(map)); }",
+      "why": "local"
+    }
+  ],
+  "src/components/monitoring/MissionControlCharts.tsx": [
+    {
+      "in": "makeTimeFormatter",
+      "guards": "const d = new Date(value); if (spanHours <= 6) { // Short window: just",
+      "why": "local"
+    }
+  ],
+  "src/components/monitoring/MissionControlDashboard.tsx": [
+    {
+      "in": "loadCardMetricPrefs",
+      "guards": "const raw = localStorage.getItem(CARD_METRICS_KEY); if (raw) return { ",
+      "why": "local"
+    },
+    {
+      "in": "updateMetricPrefs",
+      "guards": "localStorage.setItem(CARD_METRICS_KEY, JSON.stringify(next)); }",
+      "why": "local"
+    },
+    {
+      "in": "MissionControlDashboard",
+      "guards": "const r = await fetchMissionControlExplainers(); if (!cancelled) { set",
+      "why": "help text"
+    },
+    {
+      "in": "handleAcknowledgeSystem",
+      "guards": "const res = await acknowledgeSystemAlert(alertId); setSystemAlerts((pr",
+      "why": "shown by the callee"
+    },
+    {
+      "in": "handleResolveSystem",
+      "guards": "await resolveSystemAlert(alertId); setSystemAlerts((prev) => prev.filt",
+      "why": "shown by the callee"
+    }
+  ],
+  "src/components/monitoring/ProxyLogDetailsModal.tsx": [
+    {
+      "in": "prettyJsonOrText",
+      "guards": "return JSON.stringify(JSON.parse(trimmed), null, 2); }",
+      "why": "local"
+    },
+    {
+      "in": "parsedHeaders",
+      "guards": "const obj = JSON.parse(raw) as Record<string, unknown>; return Object.",
+      "why": "local"
+    },
+    {
+      "in": "fmtTimestamp",
+      "guards": "return new Date(ts).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/monitoring/ProxyLogsViewer.tsx": [
+    {
+      "in": "ProxyLogsViewer",
+      "guards": "const parsed = JSON.parse(localStorage.getItem('brutor.proxylogs.colwi",
+      "why": "local"
+    }
+  ],
+  "src/components/system/SystemAuditPane.tsx": [
+    {
+      "in": "json",
+      "guards": "return JSON.stringify(data, null, 2); }",
+      "why": "local"
+    },
+    {
+      "in": "formatTs",
+      "guards": "return new Date(iso).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/system/SystemCachesPane.tsx": [
+    {
+      "in": "formatTimestamp",
+      "guards": "return new Date(iso).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/system/SystemConnectionsPane.tsx": [
+    {
+      "in": "formatTimestamp",
+      "guards": "return new Date(iso).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/system/SystemCountersPane.tsx": [
+    {
+      "in": "formatTimestamp",
+      "guards": "return new Date(iso).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/system/SystemLogsPane.tsx": [
+    {
+      "in": "attach",
+      "guards": "const parsed = JSON.parse(ev.data); if (parsed && parsed.type === 'hel",
+      "why": "local"
+    },
+    {
+      "in": "SystemLogsPane",
+      "guards": "ws?.close(); }",
+      "why": "local"
+    },
+    {
+      "in": "SystemLogsPane",
+      "guards": "ws.send(JSON.stringify({ op: paused ? 'pause' : 'resume' })); }",
+      "why": "local"
+    },
+    {
+      "in": "ts",
+      "guards": "return new Date(line.ts).toLocaleTimeString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/system/SystemMaintenancePane.tsx": [
+    {
+      "in": "formatTimestamp",
+      "guards": "return new Date(iso).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/system/SystemOverviewPane.tsx": [
+    {
+      "in": "formatTimestamp",
+      "guards": "return new Date(iso).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/system/SystemSessionsPane.tsx": [
+    {
+      "in": "formatTimestamp",
+      "guards": "return new Date(iso).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/system/SystemTasksPane.tsx": [
+    {
+      "in": "formatTimestamp",
+      "guards": "return new Date(iso).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/users/EndUsersListTab.tsx": [
+    {
+      "in": "formatDate",
+      "guards": "return new Date(dateString).toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/components/users/TenantAdminSessions.tsx": [
+    {
+      "in": "fmt",
+      "guards": "const d = new Date(iso); return d.toLocaleString(); }",
+      "why": "local"
+    }
+  ],
+  "src/context/TenantThemeContext.tsx": [
+    {
+      "in": "loadTheme",
+      "guards": "const parsed: TenantThemeVariantsBundle = JSON.parse(cached); setBundl",
+      "why": "local"
+    },
+    {
+      "in": "loadTheme",
+      "guards": "const cacheKey = `tenant-theme-bundle-${tenantId}`; const cached = loc",
+      "why": "appearance"
+    },
+    {
+      "in": "setTheme",
+      "guards": "localStorage.setItem(`tenant-theme-${tenantId}`, JSON.stringify(newThe",
+      "why": "local"
+    },
+    {
+      "in": "resetTheme",
+      "guards": "localStorage.removeItem(`tenant-theme-${tenantId}`); }",
+      "why": "local"
+    }
+  ],
+  "src/hooks/useAdminUsername.ts": [
+    {
+      "in": "useAdminUsername",
+      "guards": "return useAuth().user?.username ?? null; }",
+      "why": "local"
+    }
+  ],
+  "src/hooks/useAuth.tsx": [
+    {
+      "in": "checkSession",
+      "guards": "const payload = JSON.parse(atob(token.split('.')[1])); const now = Mat",
+      "why": "local"
+    },
+    {
+      "in": "logout",
+      "guards": "// Use gateway client for logout (handles server-side logout) await ga",
+      "why": "follow-up"
+    }
+  ],
+  "src/hooks/useColumnWidths.ts": [
+    {
+      "in": "read",
+      "guards": "const raw = localStorage.getItem(storageKey); if (!raw) return { ...de",
+      "why": "local"
+    },
+    {
+      "in": "useColumnWidths",
+      "guards": "localStorage.setItem(storageKey, JSON.stringify(widths)); }",
+      "why": "local"
+    }
+  ],
+  "src/hooks/useErrorHandler.ts": [
+    {
+      "in": "addError",
+      "guards": "reportError(errorDetails); }",
+      "why": "local"
+    },
+    {
+      "in": "retryTimeoutId",
+      "guards": "await operation(); // Success - dismiss error dismissError(errorId); }",
+      "why": "follow-up"
+    },
+    {
+      "in": "retryError",
+      "guards": "await retryAttempt.operation(); dismissError(errorId); return true; }",
+      "why": "follow-up"
+    }
+  ],
+  "src/hooks/useLocalStorage.ts": [
+    {
+      "in": "useLocalStorage",
+      "guards": "const item = localStorage.getItem(key); if (item === null) { return de",
+      "why": "local"
+    },
+    {
+      "in": "useLocalStorage",
+      "guards": "localStorage.setItem(key, JSON.stringify(value)); }",
+      "why": "local"
+    },
+    {
+      "in": "useLocalStorageString",
+      "guards": "const item = localStorage.getItem(key); return item !== null ? item : ",
+      "why": "local"
+    },
+    {
+      "in": "useLocalStorageString",
+      "guards": "localStorage.setItem(key, value); }",
+      "why": "local"
+    }
+  ],
+  "src/hooks/useTimespanPreference.ts": [
+    {
+      "in": "readRaw",
+      "guards": "return localStorage.getItem(TIMESPAN_STORAGE_KEY) ?? ''; }",
+      "why": "local"
+    },
+    {
+      "in": "writeRaw",
+      "guards": "localStorage.setItem(TIMESPAN_STORAGE_KEY, value); }",
+      "why": "local"
+    }
+  ],
+  "src/lib/argumentPolicyOperands.ts": [
+    {
+      "in": "fromStoredLine",
+      "guards": "parsed = JSON.parse(line); }",
+      "why": "local"
+    }
+  ],
+  "src/lib/compositionView.ts": [
+    {
+      "in": "readStoredView",
+      "guards": "const v = window.localStorage.getItem(COMPOSITION_VIEW_STORAGE_KEY); r",
+      "why": "local"
+    },
+    {
+      "in": "storeView",
+      "guards": "window.localStorage.setItem(COMPOSITION_VIEW_STORAGE_KEY, view); }",
+      "why": "local"
+    }
+  ],
+  "src/lib/gatewayApi/base.ts": [
+    {
+      "in": "isJwtExpired",
+      "guards": "const payload = JSON.parse(atob(token.split('.')[1])); const now = Mat",
+      "why": "local"
+    },
+    {
+      "in": "attemptRequest",
+      "guards": "errorData = JSON.parse(errorBody); }",
+      "why": "local"
+    },
+    {
+      "in": "attemptRequest",
+      "guards": "errorDetails = JSON.parse(errorBody); // Extract a string error messag",
+      "why": "local"
+    },
+    {
+      "in": "attemptRequest",
+      "guards": "const errorBody = await processedResponse.text(); if (errorBody) { try",
+      "why": "local"
+    }
+  ],
+  "src/lib/narrow.ts": [
+    {
+      "in": "parseJson",
+      "guards": "return JSON.parse(text) as unknown; }",
+      "why": "local"
+    }
+  ]
+}

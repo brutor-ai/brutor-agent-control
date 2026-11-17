@@ -1,0 +1,55 @@
+{
+  "_comment": "Canonical MCP ToolAnnotations for Brutor's own system MCP servers, one section per server. Both planes define these tools (core: services/system_server.rs, services/search_server.rs; control plane: app/constants/system_server.py + app/database/seed_system_servers.py) and tests in both pin them to this file. The gateway classifies risk (autonomy levels, deny_tool_risk, evidence) from the control plane's stored copy; agents see the core's live tools/list. An unannotated tool is side-effecting, so a read without hints is blocked by approval_required / restricted autonomy. skills__run_script is NOT read-only and deliberately claims no destructiveHint=false: a skill script can do anything its sandbox allows.",
+  "agent_skills": {
+    "skills__list": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "skills__load": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "skills__read_resource": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "skills__render_template": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "skills__run_script": {
+      "readOnlyHint": false
+    },
+    "skill__<name>": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  "web_search": {
+    "search__web": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "search__news": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "search__extract": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "search__images": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  }
+}

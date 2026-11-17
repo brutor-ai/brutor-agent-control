@@ -1,0 +1,355 @@
+# Copyright 2026 Brutor AI Ltd.
+# SPDX-License-Identifier: Apache-2.0
+
+# The Core Gateway (core-gateway/): format, Clippy and the lint ratchet, the
+# test suite on a throwaway PostgreSQL and Redis, cargo-deny, the wasm32
+# build of the verifier, the test-schema drift check, the Community-alone
+# job, and the Community image built and started. No repository secret: the
+# jobs only read the repository. The image is built through
+# package/docker-bake.hcl; publishing it is publish-images.yml, by hand.
+
+name: Core Gateway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "core-gateway/**"
+      - "control-plane/tests/fixtures/**"
+      - ".github/workflows/core-gateway.yml"
+      - "package/docker-bake.hcl"
+  pull_request:
+    paths:
+      - "core-gateway/**"
+      - "control-plane/tests/fixtures/**"
+      - ".github/workflows/core-gateway.yml"
+      - "package/docker-bake.hcl"
+  workflow_dispatch:
+
+# One run per ref at a time. A newer push cancels the superseded run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege: every job only reads the repository.
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+defaults:
+  run:
+    working-directory: core-gateway
+
+jobs:
+  test:
+    timeout-minutes: 45
+    name: Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: brutor
+          POSTGRES_PASSWORD: throwaway
+          POSTGRES_DB: brutor_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      # The cross-replica MCP session store tests need a real Redis.
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://brutor:throwaway@localhost:5432/brutor_test
+      TEST_REDIS_URL: redis://localhost:6379/15
+      JWT_SECRET: ci-test-jwt-secret-must-be-at-least-32-characters
+      ENCRYPTION_KEY: ci-test-encryption-key-32chars!!
+      # The crypto interoperability fixtures are the Control Plane's: in this
+      # repository it is the sibling directory, no second checkout.
+      BRUTOR_CONTROL_REPO: ${{ github.workspace }}/control-plane
+      CARGO_PROFILE_DEV_DEBUG: line-tables-only
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Remove local Cargo overrides
+        run: rm -f .cargo/config.toml
+
+      - name: Install Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install && rustc -V
+
+      - name: Cache Cargo registry + build artifacts
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: core-gateway
+
+      - name: Raise Postgres lock table for parallel schema replays
+        run: |
+          docker exec ${{ job.services.postgres.id }} psql -U brutor -d brutor_test -c "ALTER SYSTEM SET max_locks_per_transaction = 512"
+          docker restart ${{ job.services.postgres.id }}
+          for _ in $(seq 1 30); do docker exec ${{ job.services.postgres.id }} pg_isready -U brutor && break; sleep 1; done
+          docker exec ${{ job.services.postgres.id }} psql -U brutor -d brutor_test -tc "SHOW max_locks_per_transaction" | grep -q 512
+
+      - name: Stamp the test schema into template1
+        env:
+          BRUTOR_TEST_DB_IS_DISPOSABLE: "1"
+        run: |
+          command -v psql >/dev/null || sudo apt-get install -y postgresql-client
+          tests/schema/prepare-test-template.sh
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@9114bf4d891761788c546334fd37538eae1bf8b3 # v2.87.16
+        with:
+          tool: cargo-nextest@0.9.145
+
+      - name: Run tests (lib + all test targets, incl. db-tests)
+        run: cargo nextest run --locked --workspace --lib --tests --features db-tests --profile ci
+
+      - name: Upload test results (JUnit)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: junit-tests
+          path: core-gateway/target/nextest/ci/junit.xml
+          if-no-files-found: warn
+
+      - name: Compile benchmarks
+        if: ${{ !cancelled() }}
+        run: cargo bench --locked --no-run
+
+  clippy:
+    timeout-minutes: 30
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Remove local Cargo overrides
+        run: rm -f .cargo/config.toml
+
+      - name: Install Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install && rustc -V
+
+      - name: Cache Cargo registry + build artifacts
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: core-gateway
+
+      - name: Run Clippy
+        run: cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
+
+      # No new lint suppressions: counts per lint may only go down.
+      - name: Lint-suppression ratchet
+        run: scripts/lint-ratchet.sh
+
+  verify-wasm:
+    timeout-minutes: 30
+    name: brutor-verify (wasm32)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Remove local Cargo overrides
+        run: rm -f .cargo/config.toml
+
+      - name: Install Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install && rustc -V
+
+      - name: Cache Cargo registry + build artifacts
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: core-gateway
+
+      - name: Build brutor-verify for wasm32
+        run: cargo build --locked -p brutor-verify --lib --target wasm32-unknown-unknown --no-default-features --features wasm
+
+  fmt:
+    timeout-minutes: 30
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Remove local Cargo overrides
+        run: rm -f .cargo/config.toml
+
+      - name: Install Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install && rustc -V
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  test-schema-superset:
+    timeout-minutes: 30
+    name: Test schema superset drift
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.13"
+
+      - name: Check the superset matches the fixture
+        run: ./tests/schema/gen-test-superset.py --check
+
+  deny:
+    timeout-minutes: 30
+    name: Deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Remove local Cargo overrides
+        run: rm -f .cargo/config.toml
+      - name: Install Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install && rustc -V
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@9114bf4d891761788c546334fd37538eae1bf8b3 # v2.87.16
+        with:
+          tool: cargo-deny@0.20.2
+      - name: cargo deny check
+        run: cargo deny --locked check
+
+  # The Community workspace alone: one script runs every gate and the whole
+  # suite (scripts/ci-community-alone.sh), with no sibling directory, so a
+  # test that needs the Control Plane's fixtures is skipped and listed.
+  community-alone:
+    timeout-minutes: 60
+    name: Community alone
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: brutor
+          POSTGRES_PASSWORD: throwaway
+          POSTGRES_DB: brutor_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://brutor:throwaway@localhost:5432/brutor_test
+      TEST_REDIS_URL: redis://localhost:6379/15
+      JWT_SECRET: ci-test-jwt-secret-must-be-at-least-32-characters
+      ENCRYPTION_KEY: ci-test-encryption-key-32chars!!
+      CARGO_PROFILE_DEV_DEBUG: line-tables-only
+      BRUTOR_TEST_DB_IS_DISPOSABLE: "1"
+      NEXTEST_PROFILE: ci
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      # adapted: this repository has no Enterprise workspace to remove; the step asserts that instead of deleting it
+      - name: The Enterprise workspace is not here
+        run: test ! -e enterprise && rm -f .cargo/config.toml
+
+      - name: Install Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install && rustc -V
+
+      - name: Cache Cargo registry + build artifacts
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: core-gateway
+
+      - name: Install cargo-nextest and cargo-deny
+        uses: taiki-e/install-action@9114bf4d891761788c546334fd37538eae1bf8b3 # v2.87.16
+        with:
+          tool: cargo-nextest@0.9.145,cargo-deny@0.20.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.13"
+
+      - name: Raise Postgres lock table for parallel schema replays
+        run: |
+          docker exec ${{ job.services.postgres.id }} psql -U brutor -d brutor_test -c "ALTER SYSTEM SET max_locks_per_transaction = 512"
+          docker restart ${{ job.services.postgres.id }}
+          for _ in $(seq 1 30); do docker exec ${{ job.services.postgres.id }} pg_isready -U brutor && break; sleep 1; done
+          docker exec ${{ job.services.postgres.id }} psql -U brutor -d brutor_test -tc "SHOW max_locks_per_transaction" | grep -q 512
+          command -v psql >/dev/null || sudo apt-get install -y postgresql-client
+
+      - name: Every gate and the suite, Community alone
+        run: scripts/ci-community-alone.sh --prepare-template
+
+      - name: Upload test results (JUnit)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: junit-tests-community-alone
+          path: core-gateway/target/nextest/ci/junit.xml
+          if-no-files-found: warn
+
+  # The Community image: built with no token and started (no licence key, a
+  # Postgres holding the schema, a Redis; /health answers 200).
+  community-image:
+    timeout-minutes: 60
+    name: Community image (no secret)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      # adapted: the image is built through package/docker-bake.hcl, as publish-images.yml builds it, under a local tag (the bake file is the one place the published names are written)
+      - name: Build the Community image
+        working-directory: .
+        run: docker buildx bake -f package/docker-bake.hcl core-gateway --load --set core-gateway.tags=core-gateway:ci
+
+      # adapted: the image under its local tag (the build step above)
+      - name: Start the Community image and ask /health
+        run: |
+          docker network create smoke
+          docker run -d --name smoke-pg --network smoke \
+            -e POSTGRES_USER=brutor -e POSTGRES_PASSWORD=throwaway -e POSTGRES_DB=brutor_smoke \
+            postgres:16 -c max_locks_per_transaction=512
+          docker run -d --name smoke-redis --network smoke redis:7.4-alpine
+          for _ in $(seq 1 60); do
+            docker exec smoke-pg pg_isready -U brutor -d brutor_smoke >/dev/null 2>&1 && break
+            sleep 1
+          done
+          docker exec -i smoke-pg psql -q -v ON_ERROR_STOP=1 -U brutor -d brutor_smoke \
+            < tests/migrations/00000000000000_schema.sql >/dev/null
+          SMOKE_DOCKER_ARGS="--network smoke" \
+          SMOKE_DATABASE_URL="postgresql://brutor:throwaway@smoke-pg:5432/brutor_smoke" \
+          SMOKE_REDIS_URL="redis://smoke-redis:6379/0" \
+            scripts/image-smoke.sh community core-gateway:ci

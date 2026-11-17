@@ -1,0 +1,51 @@
+Brutor Agent Control Community Edition
+Copyright 2026 Brutor AI Ltd.
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes the Brutor Agent Control core gateway, control plane,
+Admin Console and skill runner, and the Community package that starts them.
+
+Trademarks
+
+"Brutor" and the Brutor logos and mascot images are trademarks of Brutor AI
+Ltd. The Apache License does not grant permission to use them (Section 6).
+
+The provider icons in control-plane/app/database/provider_icons/ show the
+names and logos of third parties. They are the trademarks of their respective
+owners. They are used only to identify the providers that Brutor Agent Control
+can connect to. Their use does not imply any affiliation with, sponsorship by
+or endorsement by those owners. The Apache License does not grant any right
+to these names and logos.
+
+Third-party material in this repository
+
+  MCP catalog entries
+    control-plane/app/database/catalog_data/ is adapted from the Obot MCP
+    Catalog. Apache License, Version 2.0.
+
+  Agent Action Capsule test vectors and registry text
+    core-gateway/crates/brutor-aac/vectors/. Copyright Action State Group,
+    Inc. BSD 3-Clause License; see LICENSE-upstream-BSD-3-Clause in that
+    directory.
+
+Software started by the Community package (package/)
+
+The package is a Docker Compose file and the scripts around it. It starts
+container images, each under its own license:
+
+  Brutor witness
+    Packages capsule-anchor, unmodified
+    (https://github.com/action-state-group/capsule-anchor).
+    Copyright 2024-2026 Action State Group, Inc.
+    Apache License, Version 2.0. The upstream LICENSE and NOTICE files are
+    in the image at /usr/share/licenses/capsule-anchor/.
+
+  PostgreSQL (image postgres)
+    PostgreSQL License. https://www.postgresql.org/about/licence/
+
+  Valkey (image valkey/valkey)
+    Copyright (c) 2024-present, Valkey contributors.
+    Copyright (c) 2006-2020, Redis Ltd.
+    BSD 3-Clause License.
+    https://github.com/valkey-io/valkey/blob/unstable/COPYING

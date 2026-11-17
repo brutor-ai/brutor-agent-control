@@ -1,0 +1,70 @@
+{
+  "action_id": "mcp/pl-0003",
+  "action_type": "decide",
+  "ai.brutor": {
+    "attestation": {
+      "numbers_canonicalized": false,
+      "observation": "in_path"
+    },
+    "context": {
+      "proxy_log_id": "pl-0003",
+      "root_task_id": "task-9f2",
+      "surface": "mcp",
+      "turn_id": "turn-3"
+    },
+    "lossy": [
+      "attestation_tier_not_projected",
+      "payload_digests_opaque"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "f16b6a10c7e662cb555825737dd36f43c6ff149ca41c55c749fa21f1bcfdcc95",
+    "record_schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "sys-claims-triage",
+      "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+      "contract_version": 3
+    },
+    "verdict": "blocked"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "not_applicable",
+    "ledger_mode": "standalone"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "cb5ef6cebc55a29f3cdbdb3d0bee7d971a11d22ff7b107bb4743040eae464e21",
+  "constraints": [
+    {
+      "blocking": true,
+      "check_type": "ai.brutor.guardrail",
+      "id": "ai.brutor.guardrail.prompt_injection",
+      "result": "fail",
+      "severity": "high"
+    }
+  ],
+  "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+  "disposition": {
+    "approver": "policy",
+    "decision": "reject",
+    "human_disposed": false,
+    "verdict_class": "blocked"
+  },
+  "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+  "format_version": "4",
+  "model_attestation": {
+    "compute_attestation": {
+      "ai.brutor.input_digest": "aa6e42b5647341dba1807030aef00c0b7a881f0ecfa7f64b74809441d7bf3b7a",
+      "runtime": "brutor-gateway"
+    }
+  },
+  "operator": "tenant-acme",
+  "references": [
+    {
+      "digest": "d56aa689432c8a763e1d0a11971a618086d81029e2de1f9a6ec6e893b3c58896",
+      "digest_alg": "SHA-256",
+      "type": "ai.brutor.proxy-log-row"
+    }
+  ],
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-19T10:00:02.000Z"
+}

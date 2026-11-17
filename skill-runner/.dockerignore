@@ -1,0 +1,5 @@
+target/
+THREAT-MODEL.md
+tests/
+README.md
+.git/

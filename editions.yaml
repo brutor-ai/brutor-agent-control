@@ -1,0 +1,919 @@
+# Edition boundary (Community and Enterprise Editions).
+#
+# This is the one place the boundary is written down. The boundary guards of
+# each component read it, and so does the docs-site Enterprise tag.
+# check_editions.py, beside this file, checks it against the code.
+#
+# Rules:
+#   - Everything not listed as enterprise is Community.
+#   - The database schema is NOT split. Every table and migration is Community.
+#     Community leaves the Enterprise tables empty.
+#   - `split` entries are surfaces that hold both editions: one prefix, with the
+#     listed Enterprise part served by a router or module of its own.
+
+version: 1
+
+editions:
+  community:
+    licence: Apache-2.0
+    repository: brutor-agent-control
+    tenants: single default tenant
+    licence_key: none
+  enterprise:
+    licence: proprietary
+    repository: private (the enterprise/ directory of each component)
+    composes: community
+
+# ---------------------------------------------------------------------------
+# Features
+# ---------------------------------------------------------------------------
+enterprise_features:
+  deployment:        Model and MCP server deployment (Docker, Kubernetes, ECS, KServe, llm-d, model runner)
+  traffic_import:    Provider traffic data import
+  response_cache:    Exact and semantic response cache, including the LLM router's exact-match cache
+  prompt_cache:      Prompt cache policies and marker injection
+  mcp_registry:      Self-hosted MCP Registry instance and external registry search
+  knowledge_base:    KB collections, documents, connectors, retrieval
+  policy_as_code:    Policy bundles and templates
+  batch_jobs:        Asynchronous batch jobs
+  multi_tenant:      Tenant management and system administration (new Tenant Console)
+  portal:            End-user Portal API and portal-only settings
+  discovery:         Shadow-AI discovery and collector ingest
+  clustering:        Running more than one core or control-plane instance. Core gateway paths are listed (core_gateway.clustering); control-plane and Admin Console paths are not listed yet
+
+# Features that look adjacent but are Community.
+community_clarifications:
+  - Ollama and LM Studio as LLM providers (only running models on a compute plane is Enterprise)
+  - MCP catalog and LLM catalog (administered with the platform_admin capability)
+  - OIDC identity providers for MCP OAuth, and agent workload identity
+  - Argument, semantic and agent policies (not Policy-as-Code)
+  - Video generation and its jobs screen
+  - Unified agent registry (/v1/admin/agent-registry) and the Asset Register
+  - OTel ingest (/v1/ingest/otel)
+  - Cached-token accounting reported by providers
+  - Files, images and audio surfaces (S3/MinIO optional; in-memory by default)
+  - Human approvals (decision screen moves from the portal to the Admin Console)
+  - The whole Compliance console, except the portal transparency notice
+
+# ---------------------------------------------------------------------------
+# Control plane API (brutor-gateway-control)
+# ---------------------------------------------------------------------------
+control_plane:
+  enterprise_route_prefixes:
+    deployment:     [/v1/admin/deployments, /v1/admin/llm-runner]
+    traffic_import: [/v1/admin/usage-import]
+    response_cache: [/v1/admin/semantic-cache]
+    prompt_cache:   [/v1/admin/prompt-cache]
+    mcp_registry:   [/v1/admin/mcp-registries, /v1/internal]
+    knowledge_base: [/v1/admin/knowledge-base, /v1/admin/kb-connectors, /v1/admin/kb-connector-identities, /v1/assets/connector-icons]    # /v1/assets/connector-icons: the connector catalog's brand icons, files and router of the knowledge-base package (the connectors are Enterprise, so their icons are too); the other /v1/assets routes are Community
+    policy_as_code: [/v1/admin/policies]
+    batch_jobs:     [/v1/admin/batch-jobs]
+    multi_tenant:   [/v1/admin/platform, /v1/admin/licence]    # /v1/admin/licence: what the licence grants and how much is used
+    portal:         [/v1/public, /v1/admin/user-notifications]
+    discovery:      [/v1/admin/discovery, /v1/discovery]
+  # 180 operations sit under the prefixes above (check_editions.py prints the count and the total).
+
+  # The licence flag every route under a prefix needs: the
+  # prefixes above of the features that have a flag in the licence, each with
+  # its flag. The Enterprise package gates its routers from the same table
+  # (enterprise/brutor_enterprise/licence/features.py GATED_ROUTE_PREFIXES;
+  # check_editions.py holds the two equal, and that every prefix of a flagged
+  # feature is here). The features with no flag (response_cache, prompt_cache,
+  # batch_jobs, multi_tenant, portal, discovery) are granted by any valid
+  # licence.
+  licence_gated_route_prefixes:
+    mcp_server_deployment: [/v1/admin/deployments]
+    ai_model_deployment:   [/v1/admin/llm-runner]
+    model_traffic_import:  [/v1/admin/usage-import]
+    mcp_registry:          [/v1/admin/mcp-registries, /v1/internal]
+    knowledge_base:        [/v1/admin/knowledge-base, /v1/admin/kb-connectors, /v1/admin/kb-connector-identities, /v1/assets/connector-icons]
+    policies:              [/v1/admin/policies]
+  licence_flagged_features: [deployment, traffic_import, mcp_registry, knowledge_base, policy_as_code]
+
+  split:
+    # Two routers on the one prefix. check_editions.py
+    # holds the routers' tags, that the Community operations are exactly
+    # `community_operations`, and that the unsplit module is gone.
+    - prefix: /v1/admin/tenants
+      community: "the installation's own tenant, router tenant_settings: GET /current, PATCH /current (display fields, the two-factor policy mfa_policy, data residency, retention, KMS key, assurance capture interval, default approval window, gate policy, default models; its model forbids every other field), GET /current/theme and GET /current/theme-variants (the console reads the theme it draws itself in)"
+      enterprise: "router tenant_management (multi_tenant, system administrator only): list, get, create, PATCH /{id} (every field, any tenant), suspend, unsuspend, delete, statistics, platform summary, and theme editing (reads by id, writes, preview). Also under the prefix: the public theme (portal); kb-stats and re-embed-kb (knowledge_base, a router of their own: tenant_knowledge_base.py)."
+      community_router: tenant_settings
+      community_module: app/api/v1/endpoints/admin/tenant_settings.py
+      enterprise_router: tenant_management
+      removed_module: app/api/v1/endpoints/admin/tenants.py
+      community_operations:
+        - GET /v1/admin/tenants/current
+        - PATCH /v1/admin/tenants/current
+        - GET /v1/admin/tenants/current/theme
+        - GET /v1/admin/tenants/current/theme-variants
+    - prefix: /v1/admin/llm-router
+      community: routing groups and rules
+      enterprise: router cache configuration (response_cache)
+    - prefix: /v1/admin/idps
+      community: OIDC identity providers (SAML single sign-on is not in the first release; no edition offers it)
+    - prefix: /v1/auth
+      community: admin login
+      enterprise: system-admin login (multi_tenant)
+    - prefix: /v1/admin/llm-catalog
+      community: "all of it, with writes moved from require_system_admin to platform_admin"
+    - prefix: /v1/admin/mcp-catalog
+      community: "all of it, with writes moved to platform_admin; the containerised install step is enterprise (deployment)"
+    - prefix: /v1/admin/mcp-servers
+      community: all of it
+      enterprise: deployment teardown on delete (deployment)
+    - prefix: /v1/admin/providers
+      community: "all of it, including the provider-icon endpoints now filed under traffic import"
+    - prefix: /v1/admin/resource-groups
+      community: all governance
+      enterprise: "effective-kb endpoints (knowledge_base); cache bindings (response_cache, prompt_cache); portal_visible (portal)"
+    - prefix: /v1/admin/users
+      community: "admins of the default tenant; sign-in, the 2FA code step and the 2FA enrolment at sign-in the tenant's two-factor policy can require (POST /login/2fa/enroll/setup, POST /login/2fa/enroll/verify)"
+      enterprise: system admins (multi_tenant)
+
+  enterprise_modules:
+    deployment:
+      - enterprise/brutor_enterprise/deployment/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/admin/docker_deployments.py -> endpoints/docker_deployments.py
+      #   app/api/v1/endpoints/admin/kubernetes_deployments.py -> endpoints/kubernetes_deployments.py
+      #   app/api/v1/endpoints/admin/llm_models_runner.py -> endpoints/llm_models_runner.py
+      #   app/api/v1/endpoints/admin/deployment_capabilities.py -> endpoints/deployment_capabilities.py
+      #   app/services/mcp/deploy/ -> services/mcp_deploy/
+      #   app/services/llm/adapter/deploy/ -> services/llm_adapter/deploy/
+      #   app/services/k8s/ -> services/k8s/
+      #   app/api/v1/models/admin/docker_deploy.py -> models/docker_deploy.py   (imported by this feature only)
+      #   app/api/v1/models/admin/kubernetes_deployment.py -> models/kubernetes_deployment.py   (imported by this feature only)
+      #   app/api/v1/models/admin/llm_model_runner.py -> models/llm_model_runner.py   (imported by this feature only)
+      #   app/services/llm/license_checker.py -> services/license_checker.py   (imported by this feature only)
+    traffic_import:
+      - enterprise/brutor_enterprise/traffic_import/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/admin/usage_import.py -> endpoints/usage_import.py
+      #   app/services/usage_import/ -> services/usage_import/
+      #   app/services/traffic_import/ -> services/traffic_import/   (provider_catalog.py stamps the import columns of the provider catalog, behind a behaviour hook)
+      #   app/api/v1/models/admin/usage_import.py -> models/usage_import.py   (imported by this feature only)
+    response_cache:
+      - enterprise/brutor_enterprise/response_cache/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/admin/semantic_cache.py -> endpoints/semantic_cache.py
+      #   app/api/v1/endpoints/admin/llm_router_cache_config.py -> endpoints/llm_router_cache_config.py   (GET/PATCH /v1/admin/llm-router/cache-config, out of llm_routing_groups.py; also the service behind them, out of llm_router_service.py)
+      #   app/services/semantic_cache_service.py -> services/semantic_cache_service.py
+      #   app/database/seed_semantic_cache.py -> seed_semantic_cache.py
+      #   app/api/v1/models/admin/semantic_cache.py -> models/semantic_cache.py   (imported by this feature only)
+    prompt_cache:
+      - enterprise/brutor_enterprise/prompt_cache/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/admin/prompt_cache.py -> endpoints/prompt_cache.py
+      #   app/services/prompt_cache_capabilities.py -> services/prompt_cache_capabilities.py
+      #   app/database/seed_prompt_cache.py -> seed_prompt_cache.py
+    mcp_registry:
+      - enterprise/brutor_enterprise/mcp_registry/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/admin/mcp_registries.py -> endpoints/mcp_registries.py
+      #   app/api/v1/endpoints/admin/mcp_registry_instance.py -> endpoints/mcp_registry_instance.py
+      #   app/api/v1/endpoints/admin/registry_governance.py -> endpoints/registry_governance.py
+      #   app/services/mcp/registry/ -> services/registry/
+      #   app/database/seed_mcp_registries.py -> seed_mcp_registries.py
+      #   app/api/v1/models/admin/mcp_registry.py -> models/mcp_registry.py   (imported by this feature only)
+    knowledge_base:
+      - enterprise/brutor_enterprise/knowledge_base/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/admin/knowledge_base.py -> endpoints/knowledge_base.py
+      #   app/api/v1/endpoints/admin/kb_connectors.py -> endpoints/kb_connectors.py
+      #   app/api/v1/endpoints/admin/kb_connector_identities.py -> endpoints/kb_connector_identities.py
+      #   app/api/v1/endpoints/public_assets.py (the connector-icons route) -> endpoints/connector_icons.py; app/assets/connector_icons/ -> assets/connector_icons/   (the connectors are Enterprise, so their icons are too)
+      #   app/api/v1/endpoints/admin/tenant_knowledge_base.py -> endpoints/tenant_knowledge_base.py
+      #   app/api/v1/endpoints/admin/resource_group_knowledge_base.py -> endpoints/resource_group_knowledge_base.py   (effective-kb-collections and effective-kb-connectors, out of resource_groups.py (paths unchanged))
+      #   app/services/knowledge_base_service.py -> services/knowledge_base_service.py
+      #   app/services/qdrant_auth.py -> services/qdrant_auth.py
+      #   app/services/qdrant_system_ops.py -> services/qdrant_system_ops.py   (the Qdrant probe and connections entry, behind behaviour hooks)
+      #   app/services/kb_connector_identity/ -> services/kb_connector_identity/
+      #   app/api/v1/models/admin/kb_connector.py -> models/kb_connector.py   (imported by this feature only)
+      #   app/api/v1/models/admin/kb_connector_identity.py -> models/kb_connector_identity.py   (imported by this feature only)
+      #   app/api/v1/models/admin/knowledge_base.py -> models/knowledge_base.py   (imported by this feature only)
+      #   app/core/tenant/ -> tenant/   (imported by this feature only)
+    policy_as_code:
+      - enterprise/brutor_enterprise/policy_as_code/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/admin/policies.py -> endpoints/policies.py
+      #   app/services/policy/ -> services/policy/   (the whole package: its __init__ re-exports the engine, and nothing else is in it)
+      #   app/api/v1/models/admin/policy.py -> models/policy.py
+      #   app/database/seed_policy_templates.py -> seed_policy_templates.py
+    batch_jobs:
+      - enterprise/brutor_enterprise/batch_jobs/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/admin/batch_jobs.py -> endpoints/batch_jobs.py
+      #   app/api/v1/models/admin/batch_job.py -> models/batch_job.py   (imported by this feature only)
+    multi_tenant:
+      - enterprise/brutor_enterprise/licence/   # the control plane's half of the licence (verification, the feature gate, the count limits, GET /v1/admin/licence). It belongs to tenant management, as the quotas do.
+      - enterprise/brutor_enterprise/multi_tenant/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/admin/system_dashboard.py -> endpoints/system_dashboard.py
+      #   app/api/v1/endpoints/admin/system_admin_login.py -> endpoints/system_admin_login.py
+      #   app/core/admin_user/system_principal.py -> system_principal.py
+      #   app/api/v1/endpoints/admin/tenant_management.py -> endpoints/tenant_management.py
+      #   app/api/v1/models/admin/tenant.py -> models/tenant.py
+      #   app/services/sysadmin_secret_rotation.py -> services/sysadmin_secret_rotation.py
+    portal:
+      - enterprise/brutor_enterprise/portal/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/public_tenant_theme.py -> endpoints/public_tenant_theme.py
+      #   app/api/v1/endpoints/admin/notifications.py -> endpoints/notifications.py   (the portal inbox's send / sent)
+    discovery:
+      - enterprise/brutor_enterprise/discovery/   # the feature's package. Before the move:
+      #   app/api/v1/endpoints/admin/discovery.py -> endpoints/discovery.py
+      #   app/services/discovery/ -> services/discovery/
+      #   app/api/v1/models/admin/discovery.py -> models/discovery.py   (imported by this feature only)
+
+  # Seed steps that belong to an Enterprise feature. `install` is
+  # the INSTALL_SEED list in app/composition/seeding.py, `tenant_provisioning`
+  # the TENANT_PROVISIONING list in app/composition/provisioning.py. A step not
+  # listed here is Community. Nothing acts on the tags yet: every step runs.
+  enterprise_seed_steps:
+    install:
+      licence: multi_tenant    # no valid licence, no install; then every tenant inside the licence
+      system_admin: multi_tenant
+      # The read-only administrator of the default tenant is seeded by the
+      # Enterprise extension; Community seeds one account, the administrator.
+      read_only_admin: multi_tenant
+      semantic_cache_binding: response_cache
+      prompt_cache_policy: prompt_cache
+      default_portal_user: portal
+      policy_templates: policy_as_code
+    tenant_provisioning:
+      licence: multi_tenant    # the tenant's features and quotas inside the licence
+      mcp_registries: mcp_registry
+      semantic_cache: response_cache
+      prompt_cache: prompt_cache
+      portal_user: portal
+
+  # The permissions of the Enterprise Edition features, as tagged
+  # in app/composition/permissions.py, each with the default tenant roles the
+  # registry grants it to (Tenant Admin holds every permission and is not
+  # listed). A permission not listed here is Community, also when Enterprise
+  # code requires it. Nothing acts on the tags yet: every permission is
+  # registered in both editions.
+  enterprise_permissions:
+    mcp_registry:
+      "registry:read": [Tenant Read-Only]
+      "registry:config": []
+      "registry:search": [Tenant Read-Only]
+      "registry:health": [Tenant Read-Only]
+    deployment:
+      "docker:images:read": [Tenant Read-Only]
+      "docker:images:write": []
+      "docker:images:delete": []
+      "docker:containers:read": [Tenant Read-Only]
+      "docker:containers:write": []
+      "docker:containers:delete": []
+      "docker:system:read": [Tenant Read-Only]
+      "docker:system:write": []
+      "llm:runner:machine:read": [Tenant Read-Only]
+      "llm:runner:machine:create": []
+      "llm:runner:machine:update": []
+      "llm:runner:machine:delete": []
+      "llm:runner:model:catalog:read": [Tenant Read-Only]
+      "llm:runner:model:deployed:read": [Tenant Read-Only]
+      "llm:runner:model:pull": []
+      "llm:runner:model:start": []
+      "llm:runner:model:stop": []
+      "llm:runner:model:delete": []
+    knowledge_base:
+      "knowledge_base:read": []
+      "knowledge_base:create": []
+      "knowledge_base:update": []
+      "knowledge_base:delete": []
+    batch_jobs:
+      "batch_jobs:read": [Tenant Read-Only]
+      "batch_jobs:manage": []
+    prompt_cache:
+      "prompt_cache:read": [Tenant Read-Only]
+      "prompt_cache:manage": []
+    discovery:
+      "discovery:read": [Tenant Read-Only]
+      "discovery:write": []
+    policy_as_code:
+      "policy:read": [Tenant Read-Only]
+      "policy:validate": []
+      "policy:apply": []
+      "policy:rollback": []
+      "policy:export": []
+      "policy:template:read": [Tenant Read-Only]
+      "policy:template:manage": []
+
+  # Models and tables stay in Community (one schema). This list only records
+  # which tables Community never writes, for documentation and for a guard
+  # that Community code does not query them.
+  enterprise_only_tables:
+    deployment:     [docker_images, docker_deployments, ecs_deployments, kubernetes_deployments, kubernetes_clusters, llm_runner_machines, resource_group_deployment_machines]
+    traffic_import: [usage_import_checkpoints, usage_import_run_logs]
+    response_cache: [semantic_cache_configs, resource_group_cache_configs, semantic_cache_tool_rules, router_cache_configs]
+    prompt_cache:   [prompt_cache_policies, resource_group_prompt_cache_policies]
+    mcp_registry:   [mcp_registry_configs]
+    knowledge_base: [kb_collections, kb_documents, kb_chunks, kb_connectors, resource_group_kb_collections, resource_group_kb_connectors, kb_connector_identity_mappings]
+    policy_as_code: [policy_bundles, policy_bundle_events, policy_templates]
+    batch_jobs:     [batch_jobs, batch_requests]
+    multi_tenant:   [system_admins, system_admin_sessions, system_admin_audit_logs, platform_settings]
+    discovery:      [collector_keys, discovered_assets, discovery_evidence, discovery_events, observed_agent_events]
+
+  # The Community modules that may read or delete
+  # rows of the Enterprise-only tables above, each with its reason. Nothing
+  # else in Community code may; the control plane's table guard
+  # (tests/test_edition_table_guard.py) holds every other use to a list that
+  # only shrinks, and marks exactly these files as permanent. With the tables
+  # empty, as a Community Edition leaves them, each of these does nothing.
+  enterprise_table_readers:
+    app/services/ai_system_closure.py: "AI System closure: lists the knowledge-base collections bound to the system's groups; one closure implementation for both editions, and with empty tables the section is empty and the hash is the same"
+    app/services/ai_system_coverage.py: "Coverage: reads discovered assets and collector keys to tell governed traffic from what was only observed; the same report in both editions, empty where discovery never ran"
+    app/services/governance_metrics_service.py: "Governance metrics: counts discovered assets for the same coverage figures"
+    app/services/data_erasure.py: "Erasure: a data-subject erasure must clear the subject's content from every table that can hold it, batch requests included, whichever edition wrote the rows"
+    app/services/data_retention/sweeper.py: "Retention: the sweep must expire stored request and response bodies in every table that can hold them, batch requests included"
+    app/services/tenant/tenant_purge.py: "Tenant purge: deletes a tenant's rows from every table that has a tenant column, read from the schema and not by name (the scan does not see it; listed so that the reach is written down)"
+    app/services/edition/guard.py: "Edition guard: a Community start looks for rows in every Enterprise-only table and refuses when it finds one"
+    app/services/edition/reset.py: "Edition reset: the operator's command that deletes the Enterprise data so that a Community Edition can start"
+    # Four more read-only governance readers of the same kind as the closure.
+    app/services/ai_system_connection_status.py: "AI System connection status: names the knowledge-base collections among the resources of a system when it reports whether each is reachable; the same view in both editions, and with no collection there is nothing to name"
+    app/services/iso42001_service.py: "ISO/IEC 42001 coverage: a discovered asset counts as evidence that the tenant documents its AI resources (A.4.2); one derivation for both editions, false where discovery never ran"
+    app/services/registry_service.py: "Unified agent registry: lists the discovered assets that are not governed yet beside the governed agents; the same coverage view in both editions, an empty second list where discovery never ran"
+    app/services/system_model_bindings.py: "System model bindings: reads which groups have a semantic cache configuration or a knowledge-base collection bound, to bind the embedding model those need; it writes Community binding rows only, and with the tables empty it adds none"
+
+  tenant_feature_flags:
+    enterprise: [mcp_server_deployment, ai_model_deployment, model_traffic_import, mcp_registry, knowledge_base]
+    community:  [mcp_servers, virtual_mcp_servers, models, model_routing, agent_skills, a2a, guardrails, compliance]
+    split:
+      policies: "today gates Policy-as-Code and the Community argument and semantic policies; split into two flags"
+
+  # The Community Edition does not start on a
+  # database the Enterprise Edition has used. The check and the reset command
+  # are Community code and read the two lists above (`enterprise_only_tables`,
+  # `tenant_feature_flags.enterprise`); a test in the control plane holds its
+  # copy of them equal to this file. The marker table is Community schema and
+  # is not Enterprise data.
+  edition_guard:
+    contract: the edition-install contract (kept with the edition records, outside this repository)
+    marker_table: edition_marker
+    map_module: app/composition/edition.py
+    modules: [app/services/edition/guard.py, app/services/edition/reset.py, app/services/edition/cli.py]
+    reset_command: python main.py edition-reset
+    direct_checks: [rows in enterprise_only_tables, more than one tenant, tenant_feature_flags.enterprise switched on]
+
+  # Packaging. Two distributions from
+  # the one repository: the root is the Community package, `enterprise/` the
+  # Enterprise one, which depends on it. The repository root holds one entry
+  # point, the Community one (it is also where `edition-reset` is run from:
+  # the operator who needs it holds the Community package). The root
+  # Dockerfile builds the Community image from a context without
+  # `enterprise/`; the published image is built from `enterprise/Dockerfile`.
+  # check_editions.py holds every line of this block
+  # against the files; the control plane's packaging tests
+  # (tests/test_packaging.py, enterprise/tests/test_packaging.py) hold the
+  # dependency lists against the imports.
+  packaging:
+    community:
+      distribution: brutor-agent-control-plane
+      project: pyproject.toml
+      python_package: app
+      factory: "app.app:create_app"
+      entry_point: main.py
+      console_script: "brutor-agent-control-plane = app.cli:main"
+      dockerfile: Dockerfile
+      dockerignore: .dockerignore
+    enterprise:
+      distribution: brutor-agent-control-plane-enterprise
+      project: enterprise/pyproject.toml
+      python_package: brutor_enterprise
+      factory: "brutor_enterprise.app:create_app"
+      entry_point: enterprise/main.py
+      console_script: "brutor-agent-control-plane-enterprise = brutor_enterprise.cli:main"
+      dockerfile: enterprise/Dockerfile
+      dockerignore: enterprise/Dockerfile.dockerignore
+    # Distributions only Enterprise code imports: dependencies of the
+    # Enterprise package, never of the Community one.
+    enterprise_only_distributions: [docker, kubernetes, qdrant-client, aiohttp, croniter, python-dateutil]
+    removed_files: [main_community.py, enterprise/brutor_enterprise/openapi_names.py]
+    published_image_dockerfile: enterprise/Dockerfile
+    publish_workflow: .github/workflows/docker-build.yml
+    smoke_script: scripts/smoke_images.sh
+
+# ---------------------------------------------------------------------------
+# Core gateway (brutor-gateway-core)
+# ---------------------------------------------------------------------------
+core_gateway:
+  enterprise_route_prefixes:
+    batch_jobs: [/v1/proxy/batch]
+    portal:
+      - /v1/public/tenants
+      - /v1/portal/auth
+      - /v1/portal/alerts
+      - /v1/portal/evidence
+      - /v1/portal/models
+      - /v1/portal/skills
+      - /v1/portal/servers
+      - /v1/portal/mcp-apps
+      - /v1/portal/notifications
+      - /v1/portal/settings
+    knowledge_base:    # portal pages, mounted by the knowledge-base extension, which requires the portal extension
+      - /v1/portal/knowledgebases
+      - /v1/portal/kb-identities
+      - /v1/assets/connector-icons     # the connector icons, served by the knowledge-base extension
+
+  # Community routes that lived under /v1/portal and moved. No alias is kept: backward compatibility is not required.
+  # The checker asserts the old mount is gone and the new one is present.
+  moved_to_community:
+    - from: /v1/portal/approvals
+      to: /v1/approvals
+      module: src/routes/approvals.rs
+      note: decision API, agent poll route, expiry task
+    - from: /v1/portal (run feedback)
+      to: /v1/runs
+      module: src/routes/run_feedback.rs
+      note: merged into routes::runs::router(); the run-ledger finalizer reads ai_system_run_feedback
+
+  enterprise_modules:
+    response_cache: [enterprise/src/semantic_cache.rs, enterprise/src/semantic_response_cache.rs, enterprise/src/dispatch_exact_cache.rs]
+    prompt_cache:   [enterprise/src/prompt_cache.rs, enterprise/src/prompt_cache/anthropic_cache.rs, enterprise/src/prompt_cache/openai_cache.rs, enterprise/src/prompt_cache/gemini_cache.rs]
+    knowledge_base: [enterprise/src/knowledge_base.rs, enterprise/src/bm25.rs, enterprise/src/qdrant_auth.rs, enterprise/src/routes/portal_kb.rs, enterprise/src/routes/portal_kb_identities.rs, enterprise/src/routes/connector_icons.rs]
+    batch_jobs:     [enterprise/src/batch/routes.rs, enterprise/src/batch/]    # in the Enterprise workspace
+    portal:         [enterprise/src/portal.rs, enterprise/src/routes.rs, enterprise/src/routes/portal_common.rs, enterprise/src/portal_session.rs, enterprise/src/routes/portal_auth.rs, enterprise/src/routes/portal_alerts.rs, enterprise/src/routes/portal_notifications.rs, enterprise/src/routes/portal_models.rs, enterprise/src/routes/portal_mcps.rs, enterprise/src/routes/portal_mcp_apps.rs, enterprise/src/routes/portal_skills.rs, enterprise/src/routes/portal_evidence.rs, enterprise/src/routes/public_tenant_theme.rs]
+    licence:        [enterprise/src/licence.rs, "brutor-license dependency"]    # in the Enterprise workspace; the dependency is enterprise/Cargo.toml's only
+    multi_tenant:   [enterprise/src/system_admin.rs, enterprise/src/trial.rs]    # the session check of admin tokens with admin_type system; the trial gate (a tenant whose trial is over is refused)
+    clustering:     [enterprise/src/clustering.rs]    # allows more than one instance; owns the cache-statistics fan-out (the reply that carries replica_id)
+
+  # Features that are extensions: an `Extension` the
+  # distribution's main.rs composes with `.extension(...)`. The checker
+  # verifies each: the type is in its module and implements the trait at
+  # interface version 1, main.rs composes it, the feature's route prefixes are
+  # mounted by the module and no longer by src/app.rs, and the background
+  # tasks the module lists are tagged with the feature and are no longer in
+  # src/tasks.rs.
+  extensions_built:
+    licence:
+      module: enterprise/src/licence.rs
+      type: LicenceGate
+      tasks: [licence_check]
+    batch_jobs:
+      module: enterprise/src/batch/extension.rs
+      type: BatchJobs
+      tasks: [batch_submitter, batch_poller]
+    portal:
+      module: enterprise/src/portal.rs
+      type: Portal
+      tasks: [portal_revocation_prune]
+    prompt_cache:
+      module: enterprise/src/prompt_cache.rs
+      type: PromptCaching
+      invalidation_handlers: [prompt_cache_policy, prompt_cache_binding]   # registered by the extension, no longer built in
+      cache_layers: [response]    # the System Operations console layer (src/services/cache/layers.rs), registered by the extension
+    response_cache:
+      module: enterprise/src/semantic_response_cache.rs
+      type: ResponseCaching
+      tasks: [response_cache_cleanup]    # sweeps the exact-match store (router_state_cleanup swept it while it was a map of RouterState)
+      invalidation_handlers: [guardrail_cached_responses, semantic_cache, router_cache_config]
+      cache_layers: [semantic]
+      group_loader: CacheGroupConfigLoader    # the group's cache policy, loaded inside the group load (src/services/cache/group_cache.rs GroupLoader)
+    knowledge_base:
+      module: enterprise/src/knowledge_base.rs
+      type: KnowledgeBase
+      requires: portal    # the assembly refuses it unless the portal extension is composed before it
+      invalidation_handlers: [knowledge_base]
+      group_loader: KbGroupConfigLoader
+    multi_tenant:
+      module: enterprise/src/system_admin.rs
+      type: SystemAdministrators    # registers the verifier of admin_type system; a core composed without it refuses those tokens
+      invalidation_handlers: [platform_settings]    # drops the cached platform_settings read (the tenants a shared key may act for)
+    clustering:
+      module: enterprise/src/clustering.rs
+      type: Clustering    # allows_multiple_instances() is true, so the builder takes no instance lease; installs the per-replica answer to the cache-statistics request
+
+  # Clustering in the core gateway. Community is one
+  # instance: the builder takes an instance lease in Redis at start and a
+  # second instance is refused with a message that names the Enterprise
+  # Edition. The checker verifies: the lease module exists and defines the key
+  # once; no Community source names `replica_id`, and only the files listed
+  # under community_replica_env_readers read BRUTOR_REPLICA_ID; the Community
+  # statistics reply is one reply with no instance name, answered by the
+  # responder seam; the extension is the only one that allows several
+  # instances and it carries the replica_id reply.
+  clustering:
+    lease_module: src/services/instance_lease.rs
+    lease_key: "brutor:instance:core"
+    statistics_listener: src/services/system_notify.rs
+    statistics_seam: CacheStatsResponder    # Community: nobody installed, one reply for the one instance; the extension installs its own
+    extension: enterprise/src/clustering.rs
+    community_replica_env_readers: [src/services/audit_chain.rs]    # the audit chain's label (chain_id), not the fan-out
+    guard: tests/clustering_guard.rs
+
+  # The invalidation handlers of the Enterprise Edition features,
+  # as tagged in src/services/cache/invalidation.rs. A handler not listed here
+  # is Community. Nothing acts on the tags yet: every handler is registered.
+  enterprise_invalidation_handlers:
+    guardrail_cached_responses: response_cache
+    knowledge_base: knowledge_base
+    semantic_cache: response_cache
+    prompt_cache_policy: prompt_cache
+    prompt_cache_binding: prompt_cache
+    router_cache_config: response_cache
+    platform_settings: multi_tenant
+
+  # Invalidation types the control plane publishes that no handler is
+  # registered for. They get the broad eviction for an unregistered type (the
+  # tenant's models, groups, MCP servers, skills, agent cards and guardrails),
+  # which is more than either needs: the KB retrieval cache keys on the user's
+  # principals, read from the database per query, so nothing is stale. Listed
+  # so that a NEW published type without a handler fails the check. Whether
+  # these two get a handler of their own is not decided yet.
+  published_without_handler: [kb_connector, kb_connector_identity]
+
+  # Fields of CacheInvalidator that belong to an Enterprise feature. A Community
+  # handler, the broad eviction for an unregistered type and the reconnect flush
+  # do not touch them.
+  enterprise_invalidator_fields: {}    # none: an extension's handlers reach its caches through the extension state
+
+  hooks:   # Community trait with a no-op default; Enterprise implements it
+    ResponseCache:     response_cache
+    PromptCachePolicy: prompt_cache
+    ContextEnricher:   knowledge_base
+    CredentialVerifier: portal    # portal JWT; Community verifies API keys, workload identity, OAuth
+    TenantGate:        multi_tenant    # a reason other than suspension to refuse a tenant; Community has none, Enterprise installs the trial gate
+
+  # Hooks that exist in the code. The checker verifies each: the
+  # trait and its default are in the Community module, the default is what a
+  # state built without an extension holds, and no LLM route names the
+  # Enterprise implementation.
+  hooks_built:
+    ResponseCache:
+      module: src/services/response_cache.rs          # Community: trait, session, StorePlan
+      default: NoResponseCache                         # every lookup misses, nothing is planned
+      enterprise_impl: enterprise/src/semantic_response_cache.rs
+      enterprise_type: SemanticResponseCache
+      dispatch_layer: enterprise/src/dispatch_exact_cache.rs   # the router's exact-match cache, behind DispatchCache
+      still_in_community_files: "nothing in production code: the response cache is an extension (extensions_built.response_cache); the two maps of the dispatch layer are its DispatchStore (enterprise/src/dispatch_exact_cache.rs), CacheHit is plain data of the Community hook module, and the group's cache policy is a GroupLoader extra. The DispatchCache trait still hands the layer the router's state, which this implementation ignores. The unit tests of services/cache/mod.rs install it to record what the full composition evicts"
+    PromptCachePolicy:
+      module: src/services/prompt_caching.rs           # Community: PromptCachePolicy (installation), PromptCacheSession (request), PromptCacheDecision
+      default: NoPromptCaching                         # nothing is marked, no model is pinned
+      enterprise_impl: enterprise/src/prompt_cache.rs
+      enterprise_type: ProviderPromptCache
+      community_accounting: src/services/prompt_cache_usage.rs    # cached-token usage, saving and context size, read whoever asked for the caching
+      still_in_community_files: "nothing in production code: prompt caching is an extension (extensions_built.prompt_cache) whose service lives in the extension state; its invalidation handlers, reconnect flush and console layer are registered by it. The unit tests of services/cache/mod.rs and services/system_notify.rs still install it to record what the full composition evicts and reports (listed in tests/prompt_cache_guard.rs; they are to move to the Enterprise workspace). enterprise/src/prompt_cache/openai_cache.rs holds no code (its usage reader moved to the accounting module)"
+
+    ContextEnricher:
+      module: src/services/context_enrichment.rs       # Community: ContextEnricher (installation), ContextEnrichmentSession (request), enrich_chat (the one place a request is changed), EnrichmentRecord (what the audit row records)
+      default: NoContextEnrichment                     # no group is grounded, nothing is retrieved or injected, zero bytes reserved at admission
+      enterprise_impl: enterprise/src/knowledge_base.rs
+      enterprise_type: KnowledgeBaseEnricher
+      still_in_community_files: "only the installation settings (AppConfig kb_*, qdrant_*, embedding_model in src/config/mod.rs, read by the extension's prepare; listed in tests/context_enricher_guard.rs). The knowledge base is an extension (extensions_built.knowledge_base): the group settings are a GroupLoader extra, and the invalidation handler, the kb_vector_dim_mismatch alert and the two portal mounts are in enterprise/src/knowledge_base.rs. The unit tests of services/cache/mod.rs install it to record what the full composition evicts"
+
+    CredentialVerifier:
+      module: src/services/credential_verifier.rs      # Community: CredentialVerifier (one token type), CredentialVerifiers (the typ -> verifier registry in AppState), VerifiedCredential, the admin and gateway verifiers
+      default: RefuseUnregistered                      # a typ nobody registered, and a token with no typ, is refused; Community registers admin and gateway only
+      enterprise_impl: enterprise/src/portal_session.rs
+      enterprise_type: PortalSessionVerifier
+      matrix: tests/integration/credential_surface_matrix.rs    # every route x every credential kind, recorded before the registry; a Community assembly answers 401 to a portal session
+      still_in_community_files: "nothing: the portal is an extension (extensions_built.portal) that installs the verifier, mounts the routes and owns portal_revocation_prune; the group-membership helper approvals use moved to routes/request.rs::get_user_group_ids. routes/request.rs::extract_portal_user (Community helper used by the approve / reject routes and run feedback) asks for the token type by name (TOKEN_TYPE_PORTAL) and names nothing of the verifier. The file, image, audio and video routes ask routes/request.rs::extract_media_caller: an API key of the request's tenant, governed as on the chat routes, a workload-identity token of an agent that is a member of a resource group (as on the chat routes), or a portal session where the Portal is composed; pinned by tests/integration/media_api_key.rs and by the credential matrix's list of the routes that accept an API key. Listed with reasons in tests/credential_verifier_guard.rs. An administrator session is verified by the verifier registered for its admin_type (CredentialVerifiers.admin_types); Community registers tenant only, and src/services/auth.rs names no session table. services/service_auth.rs still names the principal ServicePrincipal::SystemAdmin (it reads the claim of an accepted token)"
+
+    TenantGate:
+      module: src/services/tenant_gate.rs              # Community: TenantGate (asked by the tenant layer after its own suspension check, and by the A2A protocol routes), TenantBlock (wire code and message)
+      default: NoTenantGate                            # gates nothing and is not asked: only tenants.suspended blocks a tenant; no trial column is read and no "contact sales" message exists in Community code (tests/community_source_guard.rs)
+      enterprise_impl: enterprise/src/trial.rs
+      enterprise_type: TrialGate                       # installed by the multi_tenant extension; reads tenants.is_trial and tenants.trial_ends_at, wire error trial_expired
+      matrix: tests/integration/tenant_resolution_matrix.rs    # every route x every way to name a tenant; a suspension is tenant_suspended in both editions, a trial that is over blocks only where the gate is composed
+      still_in_community_files: "nothing: the tenant layer selects suspended and suspension_reason only"
+
+  # The edition guard in the core: the check `control_plane.edition_guard`
+  # describes, made by the core from the same contract. Community code. The
+  # core only reads: it never writes the marker, in either edition.
+  edition_guard:
+    module: src/services/edition_guard.rs          # the marker read, the 42 direct checks, the wording of the refusal
+    composition: src/services/edition.rs           # which edition a process is: the Enterprise pieces installed on its state
+    start: "GatewayBuilder::assemble_checked in src/builder.rs: after the assembly, before any other read, any background task and the listener"
+    contract_test: tests/edition_guard_contract.rs # holds the module equal to the edition-install contract and to the two control_plane lists
+    tests: [tests/integration/edition_guard_start.rs, tests/edition_start_guard.rs]
+
+  # The tenant layer's path rules. Community: the
+  # registry, the Community Edition's paths and the default for a path nobody
+  # registered (the most restrictive rule: a tenant is required and a
+  # suspended tenant is blocked). An Enterprise piece registers its paths when
+  # it is installed; the Community middleware names none of them.
+  tenant_paths:
+    registry: src/services/tenant_paths.rs
+    enterprise_paths:
+      portal: [/v1/portal/, /v1/public/]           # registered by enterprise/src/portal_session.rs with the portal's verifier
+    matrix: tests/integration/tenant_resolution_matrix.rs   # every route x every way a request names a tenant, recorded before the registry
+    guard: tests/tenant_paths_guard.rs
+
+  shared_helpers_to_move_first:   # live in portal modules, used by Community routes
+    - portal_common::extract_portal_user
+    - portal_auth::extract_client_ip
+    - portal_auth::portal_headers
+
+  # Stay in Community so the hash-chained record is byte-identical per edition.
+  evidence_fields_kept: [rag_collection_ids, llm_cache_hit, llm_cache_layer, prompt_cache_read_tokens, prompt_cache_write_tokens]
+
+  community_runtime_requirements:
+    required: [postgres, redis]
+    optional: [s3 or minio for the Files API, presidio, otel collector, skill-runner, witness]
+    not_used: [qdrant, embedding model, licence key]
+
+# ---------------------------------------------------------------------------
+# Admin Console (brutor-gateway-admin)
+# ---------------------------------------------------------------------------
+admin_console:
+  # The Enterprise Edition of the Admin Console is one extension of the
+  # Community console: a root beside src/ and, in it, one file
+  # per registry. The Community registries (src/app/screens.tsx,
+  # navigation.tsx, builtinSlots.tsx, src/lib/gatewayApi/modules.ts,
+  # src/hooks/gateway/modules.ts) hold nothing of an Enterprise feature;
+  # check_editions.py holds both sides to the lists below. There are
+  # two packages and two entry points: src/index.tsx mounts the console with
+  # no extension and nothing under src/ loads from the Enterprise tree;
+  # enterprise/src/index.tsx mounts it with the extension entry.
+  extension:
+    root: enterprise
+    entry: enterprise/src/extension.tsx
+    # The Enterprise package: an npm workspace of the Community package, one lockfile.
+    # `npm ci` in a tree without enterprise/ installs none of its packages.
+    package: enterprise/package.json
+    package_name: brutor-agent-control-enterprise-admin-console
+    app_entry: enterprise/src/index.tsx          # mountConsole([enterpriseExtension])
+    index_html: enterprise/index.html
+    vite_config: enterprise/vite.config.ts       # the Community configuration plus the obfuscator and the Monaco chunk
+    vitest_config: enterprise/vitest.config.ts   # the tests under enterprise/, and the Community guards that take the edition under test, run again
+    tsconfig: enterprise/tsconfig.json
+    eslint_config: enterprise/eslint.config.js   # the Community rules, minus the block that forbids src/ to load from enterprise/
+    dockerfile: enterprise/Dockerfile            # context: the repository root; the root Dockerfile builds the Community image without enterprise/
+    enterprise_only_packages: ["@monaco-editor/react", javascript-obfuscator, monaco-editor, react-markdown, remark-gfm]   # not in the Community package.json
+    screens: enterprise/src/screens.tsx          # the screens tagged with a feature
+    navigation: enterprise/src/navigation.tsx    # the entries of enterprise_nav_ids and tenant_console_nav_ids, each placed among the Community ones
+    slots: enterprise/src/slots.tsx              # the rows of `slots` that carry an id
+    api_modules: enterprise/src/apiModules.ts    # the modules of enterprise_api_modules
+    hook: enterprise/src/hooks/useEnterpriseGateway.ts   # the gateway hook of the Enterprise features; useGateway is Community-only
+    hook_modules: enterprise/src/hooks/modules.ts        # the domain hooks of enterprise_hook_modules, which that hook calls
+    # Where the files of each Enterprise feature are: <features_root>/<feature's directory>/<the path the file had under src/>.
+    # Every file of an Enterprise feature is there: its components, its API client module, its gateway hook module, the
+    # type modules only it uses, and its tests. Nothing of an Enterprise feature is under src/. This root and the map
+    # below replace the lists of directories and files that stood here while the features were under src/
+    # (enterprise_component_dirs, enterprise_component_files). check_editions.py holds: the directories under the root
+    # are the ones named here; a file there has no twin at the same path under src/; the extension's slot items, API
+    # modules and hook modules are imported from the directory of their feature; and no file under src/ (application,
+    # test or test helper) loads from the extension's root.
+    features_root: enterprise/src/features
+    feature_dirs:   # the features that have files in the Admin Console, and each one's directory under features_root
+      traffic_import: traffic_import
+      batch_jobs: batch_jobs
+      portal: portal
+      discovery: discovery
+      policy_as_code: policy_as_code
+      knowledge_base: knowledge_base
+      response_cache: cache      # the two caches share files (the group cache tab, the Caching tab), so they share a directory
+      prompt_cache: cache
+      multi_tenant: multi_tenant   # incl. the system administrator's screens, which stay mounted by the Enterprise extension until the Tenant Console exists
+      mcp_registry: mcp_registry
+      deployment: deployment
+
+  # The scan of the unobfuscated Community build: none of control_plane.enterprise_route_prefixes and none of
+  # the navigation ids below (enterprise_nav_ids, tenant_console_nav_ids) is in it. The admin tree keeps its own copy
+  # of those lists (it builds without this repository beside it); check_editions.py holds the copy to them. An id that
+  # is an ordinary word Community code also has as a string is found as the Enterprise entry (its id with its label)
+  # or as a tab id a screen claims.
+  bundle_scan:
+    script: scripts/scan-community-bundle.mjs
+    denylist: scripts/community-bundle-denylist.json
+    shared_nav_ids: [policies, cache, messages]
+
+  # The API contract per edition. The control plane records one OpenAPI document per edition; each
+  # package of the Admin Console is held to the document of its own: the route list its API client modules are checked
+  # against (vendored: the admin tree builds without the control plane beside it) and the TypeScript types they are
+  # written with. `documents` is the one file in the admin tree that names these paths. check_editions.py holds: the
+  # files exist, the Enterprise ones under the extension's root and the Community ones outside it; `documents` names
+  # each; a vendored route list is the operations of its control document; the Community list has no route under
+  # control_plane.enterprise_route_prefixes and is contained in the Enterprise one.
+  api_contract:
+    documents: scripts/control-plane-documents.mjs
+    community:
+      control_document: tests/fixtures/openapi_snapshot_community.json
+      routes: src/lib/__tests__/fixtures/control-plane-routes.json
+      types: src/lib/generated/control-plane-api.d.ts
+    enterprise:
+      control_document: enterprise/tests/fixtures/openapi_snapshot.json
+      routes: enterprise/src/host/lib/__tests__/fixtures/control-plane-routes.json
+      types: enterprise/src/lib/generated/control-plane-api.d.ts
+
+  enterprise_nav_ids:
+    deployment:     [llm-deployment, mcp-deployment]
+    traffic_import: [traffic-import]
+    response_cache: [cache, semantic-cache]
+    prompt_cache:   [prompt-cache]
+    mcp_registry:   [mcp-registry-instance]
+    knowledge_base: [knowledge-base, kb-collections, kb-connectors]
+    policy_as_code: [policies]
+    batch_jobs:     [batch-jobs]
+    portal:         [messages]
+    multi_tenant:   [tenant-licence]   # Administration → License: what the licence gives the tenant administrator's tenant and how much is used (GET /v1/admin/licence)
+
+  # Leaves the Admin Console entirely and is rebuilt in the new Enterprise
+  # Tenant Console (a separate app).
+  tenant_console_nav_ids: [platform-overview, tenants, system-admins, platform-licence, platform-settings, my-profile]   # system-admins: the system administrators and the unlock of a locked one (GET /v1/admin/users/system). platform-licence: the licence itself and one tenant beside it (the same screen as tenant-licence). platform-settings: the installation's settings (GET/PATCH /v1/admin/platform/settings, system administrator only)
+  tenant_console_also_mounts: [llm-catalog-admin, mcp-catalog-admin]   # Community screens, reused
+
+  community_nav_changes:
+    - "async-jobs keeps only video-gen-jobs"
+    - "llm-catalog-admin and mcp-catalog-admin: gate changes from requiresSystemAdmin to platform_admin"
+    - "new: approvals inbox on /v1/admin/approvals"
+    - "login: no system/tenant toggle, no tenant id field"
+
+  slots:   # Enterprise pieces embedded in Community pages today. A row with `id` is built:
+           # it is that item of that slot in the extension's slot file (extension.slots
+           # above). check_editions.py compares.
+    resource-group.tabs:
+      - {item: Cache stats, feature: response_cache, id: cache}
+    resource-group.resource-tabs:
+      - {item: Knowledge Base, feature: knowledge_base, id: kb}
+    resource-group.header:
+      - {item: Managed-by-policy banner, feature: policy_as_code, id: policy-bundle}
+    resource-group.member-actions:   # the action bar of a Resource Group's Members tab
+      - {item: Send Message (to the group's members), feature: portal, id: send-message}
+    resource-group.model-columns:
+      - {item: Show in Portal column, feature: portal, id: portal}
+    mission-control.tabs:
+      - {item: Caching (VPT, Response Cache, Prompt Cache), feature: response_cache, id: caching}
+    mission-control.performance-tiles:
+      - {item: Cache Hit Rate tile, feature: response_cache, id: cache-hit-rate}
+    mission-control.governance-sections:   # on the Governance tab, above Compliance Coverage
+      - {item: Discovery Coverage (tiles, top ungoverned assets, Onboard and Dismiss), feature: discovery, id: discovery-coverage}
+    mission-control.alert-actions:
+      - {item: Rebuild KB vector index, feature: knowledge_base, id: kb-index-rebuild}
+    llm-routing.tabs:
+      - {item: Routing group cache, feature: response_cache, id: cache}
+    settings.tabs:
+      - {item: MCP Registry, feature: mcp_registry, id: registry}
+    tenant-settings.tabs:   # sub-tabs of Settings → Tenant
+      - {item: Portal (the Google Drive picker of the Portal's chat; saves itself), feature: portal, id: portal}
+      - {item: Quotas, feature: multi_tenant, id: quotas}
+      - {item: Features, feature: multi_tenant, id: features}
+      - {item: Billing, feature: multi_tenant, id: billing}
+    tenant-settings.model-sections:   # above the judge model on Settings → Tenant → Default Models
+      - {item: Embedding model (with the KB volume and re-embed), feature: knowledge_base, id: embedding}
+    asset-register.views:
+      - {item: Devices (Brutor Scout endpoint estate), feature: discovery, id: devices}
+      - {item: Discovery Integrations, feature: discovery, id: discovery-integrations}
+    asset-register.coverage:
+      - {item: Coverage scorecard and the Discovered Ungoverned (shadow-AI) table, feature: discovery, id: discovery}
+    end-users.actions:   # the action bar of Users → End Users
+      - {item: Send Message (to the Portal inbox), feature: portal, id: send-message}
+    mcp-server-form.import:
+      - {item: Registry search, feature: mcp_registry, id: registry}
+    mcp-catalog-import.steps:   # what installs catalog entries of a runtime; without it the wizard imports as configuration and asks for no deployment capabilities
+      - {item: "Containerised install (deploy_container on the import, its timeout, and the gate on the tenant flag and the driver)", feature: deployment, id: container}
+    llm-models.import:   # on the LLM Models page, not in the model form
+      - {item: Hugging Face model search, feature: deployment, id: huggingface}
+    compliance.transparency:
+      - {item: Portal notice text, feature: portal}
+    app.nav-gates:   # what a sidebar entry can require of the deployment
+      - {item: Registry instance gate (the MCP Registry entry shows when the registry answers), feature: mcp_registry, id: registry-instance}
+    app.banners:
+      - {item: Trial banner and trial analytics, feature: multi_tenant, id: trial}
+    feature-disabled.reason:   # on the page shown in place of a screen whose feature is off for the tenant: why (GET /v1/admin/licence, tenant.feature_states); without it the page says only that the feature is not enabled
+      - {item: "Why a feature is off for the tenant (not in the licence, or switched off for this tenant)", feature: multi_tenant, id: license}
+    app.sign-in:   # what a console of more than one tenant adds to the sign-in; Community asks for a user name and a password
+      - {item: "Tenant sign-in (the tenant id field and the Multi-Tenant Edition line of the sign-in form, and the hosted tenant's form for ?saas, ?tenant= and any host but the local machine)", feature: multi_tenant, id: tenant}
+    app.links:   # pages that Community pages link to when they are there; unanswered, the Community page shows no link
+      - {item: Cache policies page (the Composition tab's cache policy nodes open Response Cache), feature: response_cache, id: cache-policies}
+      - {item: Knowledge bases page (the Composition tab's knowledge base nodes open KB Collections), feature: knowledge_base, id: knowledge-bases}
+    app.principals:   # who can sign in beside the tenant administrator: the auth provider, the sign-in form, the sidebar and the profile page read it
+      - {item: "System administrator (its sign-in and option on the sign-in form, every permission, the landing tab, the profile notes)", feature: multi_tenant, id: system}
+
+  # Modules of the API client (src/lib/gatewayApi) that belong to an
+  # Enterprise feature; the other 29 are Community. A module holds the methods
+  # whose routes are the feature's (enterprise_route_prefixes above) or that
+  # the `split` rows name for it. check_editions.py compares with the extension's
+  # list (extension.api_modules above; modules.ts is Community-only).
+  enterprise_api_modules:
+    multi_tenant:   [multiTenant]   # tenants, their administrators and themes, the platform overview
+    portal:         [portal]        # public theme, portal messages, portal_visible
+    discovery:      [discovery]
+    mcp_registry:   [mcpRegistry]
+    deployment:     [deployment]
+    traffic_import: [trafficImport]
+    batch_jobs:     [batchJobs]
+    policy_as_code: [policyAsCode]
+    prompt_cache:   [promptCache]   # incl. the prompt-cache statistics the Caching tab reads
+    response_cache: [responseCache] # incl. the routing-group cache configuration
+    knowledge_base: [knowledgeBase] # incl. KB connectors and the effective-kb endpoints
+
+  # The hook modules (src/hooks/gateway/*.ts) tagged Enterprise:
+  # called by the Enterprise gateway hook, not by useGateway.
+  # A hook module may wrap API client methods of its own feature or of
+  # Community modules only; check_editions.py compares with the Enterprise
+  # list (extension.hook_modules above; src/hooks/gateway/modules.ts is
+  # Community-only) and with enterprise_api_modules above.
+  enterprise_hook_modules:
+    multi_tenant:   [multiTenant]   # the tenants list, fetchTenant/updateTenant that refresh it, platform overview
+    portal:         [portal]        # updateLLMModelPortalVisibility
+    mcp_registry:   [mcpRegistry]   # registries and registry search state
+    knowledge_base: [knowledgeBase]
+
+# ---------------------------------------------------------------------------
+# Services and images
+# ---------------------------------------------------------------------------
+services:
+  community:  [control-plane, core-gateway, admin-console, skill-runner, witness, postgres, redis]
+  enterprise: [kb-uploader, kb-connectors, user-portal, tenant-console, mcp-registry, qdrant, minio]
+  removed_from_community_deploy: [ollama compute-plane profile, localstack, vault]
+
+# ---------------------------------------------------------------------------
+# docs.brutor.ai: the site documents both editions. Enterprise pages and
+# sections carry an "Enterprise" badge (Starlight sidebar badge + page banner).
+# ---------------------------------------------------------------------------
+docs:
+  enterprise_sections:      # every page in the section is tagged
+    - knowledge-bases       # 8 pages
+    - chat-client           # 8 pages (Portal API)
+    - mcp-registry          # 6 pages
+  enterprise_pages:
+    - what-is-brutor/user-portal
+    - what-is-brutor/mcp-registry
+    - oauth/user-portal
+    - observability/shadow-ai-discovery
+    - observability/traffic-data-import
+    - agent-skills/portal-and-export
+    - reference/portal-api
+    - installation/enterprise-trial      # the Enterprise trial quickstart; badge and banner applied
+    - installation/licence               # the Enterprise licence (both components); badge and banner applied
+    - administration/system-administration
+    - administration/tenants
+    - governance/policy-as-code
+    - installation/mcp-server-deployment
+    - governance/response-cache
+    - governance/prompt-cache
+    - administration/portal-messages
+    - installation/model-deployment      # badge and banner applied
+    - installation/production-aws        # multi-instance ECS, Portal, Qdrant, KB services
+  enterprise_callouts:      # Community pages with an Enterprise section to mark inline
+    - page: getting-started/llm-policy-limits
+      features: [response_cache, prompt_cache, policy_as_code]
+    - page: what-is-brutor/ai-gateway
+      features: [response_cache, prompt_cache, policy_as_code, deployment, clustering]
+    - page: what-is-brutor/control-plane
+      features: [policy_as_code, clustering]
+    - page: what-is-brutor/overview
+      features: [policy_as_code]
+    - page: governance/policies
+      features: [policy_as_code]
+    - page: governance/users-and-api-keys
+      features: [multi_tenant]
+    - page: governance/approvals
+      features: [portal]            # approval in the portal; Admin Console inbox is Community
+    - page: compliance/transparency
+      features: [portal]
+    - page: observability/tokenomics
+      features: [response_cache, prompt_cache]
+    - page: reference/llm-proxy-api
+      features: [batch_jobs, response_cache]   # callout on the Batch API section
+    - page: governance/llm-routing           # callout applied
+      features: [response_cache]
+    - page: governance/data-handling         # callout applied
+      features: [batch_jobs]
+    - page: agent-skills/governance          # text mention only
+      features: [portal]
+    - page: connect-tools/mcp-clients        # text mention only
+      features: [portal]
+    # Pages found documenting an Enterprise feature:
+    - page: getting-started/first-llm-call
+      features: [portal]
+    - page: getting-started/first-mcp-call
+      features: [portal]
+    - page: getting-started/mcp-policy-limits
+      features: [portal]
+    - page: getting-started/first-assured-ai-system
+      features: [portal]
+    - page: getting-started/observability-tour
+      features: [response_cache, traffic_import]
+    - page: build-an-agent/human-oversight
+      features: [portal]
+    - page: build-an-agent/reference/surfaces
+      features: [portal, batch_jobs]
+    - page: observability/alerts
+      features: [portal]
+    - page: observability/mission-control
+      features: [response_cache, traffic_import]
+    - page: governance/ai-asset-registry
+      features: [traffic_import, discovery]
+    - page: governance/resource-groups
+      features: [knowledge_base, response_cache, portal]
+    - page: agent-skills/api-reference
+      features: [portal]
+    - page: compliance/api
+      features: [portal]
+    - page: oauth/index
+      features: [portal]
+    - page: connect-tools/register-mcp-server
+      features: [portal]
+    - page: reference/ports-and-services
+      features: [portal, knowledge_base, mcp_registry]
+    - page: reference/admin-api
+      features: [response_cache, multi_tenant, batch_jobs]
+    - page: reference/environment-variables
+      features: [response_cache, multi_tenant, clustering]
+    - page: installation/configuration
+      features: [response_cache, multi_tenant, clustering, batch_jobs]
+    - page: installation/docker-compose
+      features: [response_cache, knowledge_base]
+    - page: governance/agent-identity
+      features: [batch_jobs]
+    - page: installation/quickstart
+      features: [clustering]
+
+  installation_pages_to_rewrite:   # today they describe the licensed trial bundle
+    - installation/quickstart
+    - installation/docker-compose
+    - installation/upgrades

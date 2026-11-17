@@ -1,0 +1,224 @@
+<!doctype html>
+<!--
+  Copyright 2026 Brutor AI Ltd.
+  SPDX-License-Identifier: Apache-2.0
+-->
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Primary Meta Tags -->
+    <title>Brutor Agent Control Admin Console</title>
+    <meta name="title" content="Brutor Agent Control Admin Console" />
+    <meta name="description" content="Administration console for Brutor Agent Control" />
+    <meta name="keywords" content="MCP, Model Context Protocol, Gateway, Admin, Server Management" />
+    <meta name="author" content="Brutor Agent Control Admin Console" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon-96x96.png?v=2" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="shortcut icon" href="/favicon.ico?v=2" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2" />
+    <link rel="manifest" href="/site.webmanifest?v=2" />
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#0284c7" />
+    <meta name="msapplication-TileColor" content="#0284c7" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Brutor Agent Control Admin Console" />
+    <meta property="og:description" content="Administration console for Brutor Agent Control" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:site_name" content="Brutor Agent Control Admin Console" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Brutor Agent Control Admin Console" />
+    <meta name="twitter:description" content="Administration console for Brutor Agent Control" />
+    <meta name="twitter:image" content="/twitter-image.png" />
+
+    <!-- Theme flash prevention.
+         Runs before first paint, so it cannot import anything. It reads the
+         stored preference, the JSON object the shared ThemeProvider writes
+         ({"theme":"dark","fontSize":"medium"}), and applies its theme when
+         it is one the console offers.
+         No stored preference (first login) or anything else is dark, the
+         console's default theme. -->
+    <script>
+        (function() {
+            try {
+                var raw = localStorage.getItem('admin-theme');
+                var theme = raw ? (JSON.parse(raw) || {}).theme : 'dark';
+                if (theme !== 'light' && theme !== 'dark') {
+                    theme = 'dark';
+                }
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/styles/globals.css" as="style" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- DNS Prefetch for external resources -->
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
+
+    <!-- Inline critical CSS to prevent FOUC -->
+    <style>
+        /* Critical CSS for loading state */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+        }
+
+        #root {
+            min-height: 100vh;
+        }
+
+        /* Loading spinner styles */
+        .app-loading {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9fafb;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .loading-text {
+            color: #6b7280;
+        }
+
+        /* Hide loading once React takes over */
+        .react-loaded .app-loading {
+            display: none;
+        }
+
+        /* Dark mode loading screen */
+        /* These literals are unavoidable: this block styles the splash that
+           shows BEFORE the bundle (and therefore the token stylesheet) has
+           loaded, so `var(--color-*)` is not available yet. Values mirror
+           brutor-ui-style's dark theme — surface #111827, text #f9fafb,
+           secondary #d1d5db — so the splash does not flash a different
+           shade of dark than the app it hands over to. */
+        [data-theme="dark"] body,
+        [data-theme="dark"] .app-loading { background-color: #111827; }
+        [data-theme="dark"] .loading-title { color: #f9fafb; }
+        [data-theme="dark"] .loading-text { color: #d1d5db; }
+        [data-theme="dark"] .loading-spinner { border-color: #374151; border-top-color: #3b82f6; }
+    </style>
+</head>
+<body>
+<!-- No JavaScript fallback -->
+<noscript>
+    <div style="padding: 40px; text-align: center; font-family: sans-serif;">
+        <h1 style="color: #dc2626;">JavaScript Required</h1>
+        <p>Brutor Agent Control Admin Console requires JavaScript to function properly.</p>
+        <p>Please enable JavaScript in your browser settings and refresh the page.</p>
+    </div>
+</noscript>
+
+<!-- Main app container -->
+<div id="root">
+    <!-- Loading state shown until React loads -->
+    <div class="app-loading">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2 class="loading-title">Brutor Agent Control Admin Console</h2>
+            <p class="loading-text">Loading application...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Environment detection script -->
+<script>
+    // Set environment class for conditional styling
+    document.documentElement.className += ' env-' + (location.hostname === 'localhost' ? 'development' : 'production');
+
+    // Mark when React has loaded
+    window.addEventListener('load', function() {
+        document.body.classList.add('react-loaded');
+    });
+
+    // Performance monitoring
+    if ('performance' in window) {
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var timing = performance.timing;
+                var loadTime = timing.loadEventEnd - timing.navigationStart;
+                console.info('Page load time:', loadTime + 'ms');
+            }, 0);
+        });
+    }
+</script>
+
+<!-- Environment var script, this must load before React -->
+<script src="/env-config.js"></script>
+
+<!-- Main application script -->
+<script type="module" src="/src/index.tsx"></script>
+
+<!-- Service Worker registration (production only) -->
+<script>
+    if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(registration) {
+                    console.info('SW registered: ', registration);
+                })
+                .catch(function(registrationError) {
+                    console.error('SW registration failed: ', registrationError);
+                });
+        });
+    }
+</script>
+
+<!-- Error tracking for production -->
+<script>
+    // Global error handler
+    window.addEventListener('error', function(e) {
+        console.error('Global error:', e.error);
+    });
+
+    // Unhandled promise rejection handler
+    window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled promise rejection:', e.reason);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{
+  "action_id": "declaration/profile-1",
+  "action_type": "fyi",
+  "ai.brutor": {
+    "context": {
+      "catalog_version": "2026.09",
+      "framework_id": "eu-ai-act",
+      "record_type": "ai.brutor.declaration"
+    },
+    "lossy": [
+      "attestation_tier_not_projected",
+      "reference_purpose_untranslated",
+      "verdict_unregistered"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "79796e83714298882ae4d57bf3df7d9d0ab3f7eeff587dcc31fd4f4a52d197a5",
+    "record_schema": "ai.brutor/action-record/v1",
+    "reference_purposes": [
+      "declared_text"
+    ],
+    "system": {
+      "ai_system_id": "sys-claims-triage",
+      "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+      "contract_version": 3
+    },
+    "verdict": "recorded"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "not_applicable",
+    "ledger_mode": "standalone"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "abae615cdeb5f37c4d680f5fc4a9c221f22c5b2239cdfe6c6ee1214bff12a42f",
+  "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+  "disposition": {
+    "approver": "policy",
+    "decision": "accept",
+    "human_disposed": false,
+    "verdict_class": "ai.brutor.recorded"
+  },
+  "format_version": "4",
+  "operator": "tenant-acme",
+  "references": [
+    {
+      "digest": "9368a7d21e018f64ae3327d2f25cd4d7693b2d85328e4bb680bcfcbd4c26b90e",
+      "digest_alg": "SHA-256",
+      "type": "ai.brutor.notice-text"
+    }
+  ],
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-19T12:30:00.000Z"
+}

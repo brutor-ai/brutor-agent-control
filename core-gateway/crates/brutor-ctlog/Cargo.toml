@@ -1,0 +1,20 @@
+[package]
+name = "brutor-ctlog"
+version = "0.1.0"
+edition = "2024"
+description = "Append-only RFC 6962 Merkle log over a pluggable node store, with signed tree heads"
+license = "Apache-2.0"
+publish = false
+authors = ["Brutor AI Ltd"]
+
+[dependencies]
+brutor-cose = { path = "../brutor-cose" }
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+hex = "0.4"
+thiserror = "2"
+
+[dev-dependencies]
+
+# Evidence crates contain no unsafe Rust and never may.
+[lints.rust]
+unsafe_code = "forbid"

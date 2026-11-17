@@ -1,0 +1,2845 @@
+{
+  "components": {
+    "schemas": {
+      "A2ACardDiscoveryResponse": {
+        "description": "Response shape for the public discovery endpoint.\n\nBrutor-specific wrapper around the v1.0 Agent Card. The wrapper\ncarries registry metadata (stable `id`, `trust_tier`, detected\ndialect) that the spec doesn't cover — external verifiers that\nonly understand the v1.0 spec body read the `card` field and\nignore the wrapper.\n\nThe `card` field is **always** a v1.0-shaped AgentCard (see\n[`a2a_v1::AgentCard`]). Cards stored in the v0.3 form are\ntranslated on-the-fly via [`a2a_v1::translator::translate_v03_to_v1`],\nso a partner never sees the dialect the gateway happens to have\nat rest.",
+        "properties": {
+          "a2a_version": {
+            "description": "`\"1.0\"` if the card was either stored as or translated into v1.0\nshape. `\"0.3\"` if translation was skipped (never surfaces today —\nwe always translate — but kept in the schema for forward-compat).",
+            "type": "string"
+          },
+          "card": {
+            "description": "The v1.0 Agent Card body. Verifiers consume only this field."
+          },
+          "id": {
+            "description": "Stable ULID — external agents pass this back as `target_card_id`\nwhen invoking capabilities, so they never need to resolve names.",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "signature": {
+            "deprecated": true,
+            "description": "Legacy v0.3 flat signature fields — still populated from the\nstored row during the v1.0 rollout so pre-v1.0 consumers don't\nbreak. Under v1.0 rules the authoritative signatures live in\n`card.signatures[]` and partners should key on those.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "signature_algorithm": {
+            "deprecated": true,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "signed_at": {
+            "deprecated": true,
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "signed_by": {
+            "deprecated": true,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "trust_tier": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tenant_id",
+          "name",
+          "version",
+          "trust_tier",
+          "a2a_version",
+          "card"
+        ],
+        "type": "object"
+      },
+      "A2AInboundRequest": {
+        "properties": {
+          "capability": {
+            "description": "Dotted capability name, e.g. `billing.refund`.",
+            "type": "string"
+          },
+          "group_id": {
+            "description": "Optional group override for skill dispatch. Ignored by `noop`.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "description": "Opaque message body passed to the handler. For `handler_type=skill`\nthis is mapped into `SkillExecuteRequest.input_params`."
+          },
+          "target_card_id": {
+            "description": "Stable card ID (not name). External callers get this from the\ndiscovery response.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_card_id",
+          "capability",
+          "message"
+        ],
+        "type": "object"
+      },
+      "A2AOutboundRequest": {
+        "properties": {
+          "capability": {
+            "description": "Dotted A2A capability name, e.g. `billing.refund`. Must match\none of the capabilities advertised on the card.",
+            "type": "string"
+          },
+          "message": {
+            "description": "The A2A message body forwarded verbatim to the remote agent."
+          },
+          "target_card_id": {
+            "description": "The gateway's internal ID of the target Agent Card.\n(Not the card's `id` field — the DB primary key.)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_card_id",
+          "capability",
+          "message"
+        ],
+        "type": "object"
+      },
+      "ChatChoice": {
+        "properties": {
+          "finish_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "index": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "message": {
+            "$ref": "#/components/schemas/ChatMessage"
+          }
+        },
+        "required": [
+          "index",
+          "message"
+        ],
+        "type": "object"
+      },
+      "ChatCompletionRequest": {
+        "additionalProperties": {
+          "description": "Catch-all for provider-specific params"
+        },
+        "properties": {
+          "frequency_penalty": {
+            "format": "double",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "max_tokens": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatMessage"
+            },
+            "type": "array"
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "n": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "presence_penalty": {
+            "format": "double",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "stop": {},
+          "stream": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "temperature": {
+            "format": "double",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "tool_choice": {},
+          "tools": {},
+          "top_p": {
+            "format": "double",
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "messages"
+        ],
+        "type": "object"
+      },
+      "ChatCompletionResponse": {
+        "properties": {
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/ChatChoice"
+            },
+            "type": "array"
+          },
+          "created": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string"
+          },
+          "system_fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "usage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UsageInfo"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "object",
+          "created",
+          "model",
+          "choices"
+        ],
+        "type": "object"
+      },
+      "ChatMessage": {
+        "properties": {
+          "content": {},
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": "string"
+          },
+          "tool_call_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tool_calls": {}
+        },
+        "required": [
+          "role"
+        ],
+        "type": "object"
+      },
+      "CompletionRequest": {
+        "additionalProperties": {},
+        "properties": {
+          "max_tokens": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "stream": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "temperature": {
+            "format": "double",
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "type": "object"
+      },
+      "EmbeddingData": {
+        "properties": {
+          "embedding": {
+            "items": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "index": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "object": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "object",
+          "embedding",
+          "index"
+        ],
+        "type": "object"
+      },
+      "EmbeddingRequest": {
+        "properties": {
+          "dimensions": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "encoding_format": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "input": {},
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "input"
+        ],
+        "type": "object"
+      },
+      "EmbeddingResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EmbeddingData"
+            },
+            "type": "array"
+          },
+          "model": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/UsageInfo"
+          }
+        },
+        "required": [
+          "object",
+          "data",
+          "model",
+          "usage"
+        ],
+        "type": "object"
+      },
+      "EndRunRequest": {
+        "properties": {
+          "outcome_id": {
+            "description": "The outcome the run ended in, as declared in the AI\nSystem's contract: `<outcome>` or `<outcome>.<variant>`, each part\n`[a-z0-9_-]{1,48}`. Judged against the active contract's catalogue;\na malformed value is refused with 400.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "description": "How the run ended. Omit to let the gateway infer it.\n\nThe one value worth sending is `exhausted`: it is the canonical\n\"my agent looped until it ran out of iterations\" signal and the\ngateway has no way to observe it.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "ExportResponse": {
+        "properties": {
+          "accepted": {
+            "description": "GenAI spans turned into step rows.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "aiSystemId": {
+            "description": "The AI System the runs were attributed to, if any.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "partialSuccess": {
+            "$ref": "#/components/schemas/PartialSuccess"
+          },
+          "runs": {
+            "description": "Run ids (`otel:<trace id>`) the accepted spans belong to.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "skipped": {
+            "description": "Spans in the export that were not GenAI evidence (kept as topology).",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "partialSuccess",
+          "accepted",
+          "skipped",
+          "runs"
+        ],
+        "type": "object"
+      },
+      "GatewayInfo": {
+        "properties": {
+          "features": {},
+          "service": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "service",
+          "version",
+          "features"
+        ],
+        "type": "object"
+      },
+      "HealthResponse": {
+        "description": "Health check response.",
+        "properties": {
+          "components": {},
+          "service": {
+            "type": "string"
+          },
+          "stats": {},
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "components",
+          "stats"
+        ],
+        "type": "object"
+      },
+      "PartialSuccess": {
+        "description": "OTLP's own partial-success envelope, so a collector treats the inlet\nlike any other OTLP endpoint.",
+        "properties": {
+          "errorMessage": {
+            "type": "string"
+          },
+          "rejectedSpans": {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rejectedSpans",
+          "errorMessage"
+        ],
+        "type": "object"
+      },
+      "RecordProbeResultBody": {
+        "properties": {
+          "latency_ms": {
+            "format": "double",
+            "type": "number"
+          },
+          "probe_type": {
+            "description": "One of `\"catalog\"`, `\"endpoint\"`, `\"synthetic\"`. Drives the\n`endpoint_category` tag on the proxy_metric row so the\nper-category breakdown attributes probe traffic correctly.",
+            "type": "string"
+          },
+          "status_code": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "status_code",
+          "latency_ms",
+          "probe_type"
+        ],
+        "type": "object"
+      },
+      "ResponsesRequest": {
+        "additionalProperties": {},
+        "properties": {
+          "input": {},
+          "max_output_tokens": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stream": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "input"
+        ],
+        "type": "object"
+      },
+      "RunResponse": {
+        "properties": {
+          "action_count": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "ai_system_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "chain_integrity": {
+            "type": "string"
+          },
+          "error_cause": {
+            "description": "Why an `errored` / `exhausted` run failed.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outcome_conformance": {
+            "description": "`declared` | `undeclared` | `unreported`.",
+            "type": "string"
+          },
+          "outcome_id": {
+            "description": "The reported outcome, as stored.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reopened": {
+            "description": "True when this call re-closed an already-finalized run, which\nhappens when a step arrives late. Surfaced rather than hidden so a\nclient that double-sends can tell.",
+            "type": "boolean"
+          },
+          "root_task_id": {
+            "type": "string"
+          },
+          "run_class": {
+            "description": "`success` | `no_work` | `deviation` | `failed` | `not_decisive`.",
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "terminal_state": {
+            "type": "string"
+          },
+          "total_cost_usd": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "run_id",
+          "root_task_id",
+          "terminal_state",
+          "chain_integrity",
+          "action_count",
+          "total_cost_usd",
+          "reopened",
+          "outcome_conformance",
+          "run_class"
+        ],
+        "type": "object"
+      },
+      "SkillExecuteRequest": {
+        "properties": {
+          "approval_token": {
+            "description": "One-time approval token(s) for retrying a skill execution that was\nheld for a person, for a caller that cannot set the\n`X-Approval-Token` header. Several tokens are separated by commas.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "correlation_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "input_params": {},
+          "parent_execution_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "skill_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "skill_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "SkillExecuteResponse": {
+        "properties": {
+          "allowed_tools": {
+            "description": "Pre-approved tools for this skill execution.\nThe calling agent should restrict LLM tool use to this list.",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "correlation_id": {
+            "type": "string"
+          },
+          "execution_id": {
+            "type": "string"
+          },
+          "execution_status": {
+            "type": "string"
+          },
+          "group_id": {
+            "type": "string"
+          },
+          "group_name": {
+            "type": "string"
+          },
+          "max_tool_calls_per_execution": {
+            "description": "Maximum tool calls allowed per execution (from group governance).\nThe calling agent should enforce this limit during execution.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "output": {
+            "description": "Output produced by the skill's scripts when the gateway dispatched the\nexecution to the runner inline (REST path). Present only when the\nexecution actually ran to completion; absent for a pure agent-handoff. Governed by skill_output\nguardrails before it reaches this field.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recommended_model": {
+            "description": "Recommended LLM model for this skill execution.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "skill_description": {
+            "description": "Skill description for context.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "skill_id": {
+            "type": "string"
+          },
+          "skill_name": {
+            "type": "string"
+          },
+          "skill_prompt": {
+            "description": "Expanded skill prompt (SKILL.md content).\nInject this into the LLM conversation as system/user context.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "skill_version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "execution_id",
+          "skill_id",
+          "skill_name",
+          "skill_version",
+          "execution_status",
+          "correlation_id",
+          "message",
+          "group_id",
+          "group_name"
+        ],
+        "type": "object"
+      },
+      "UsageInfo": {
+        "properties": {
+          "completion_tokens": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "prompt_tokens": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "total_tokens": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens"
+        ],
+        "type": "object"
+      },
+      "VersionResponse": {
+        "description": "Version/info response.",
+        "properties": {
+          "edition": {
+            "description": "Which edition answers: `community` or `enterprise`. What the process\nis composed of (`services::edition::Composition`), not a build flag.",
+            "type": "string"
+          },
+          "features": {},
+          "runtime": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "service",
+          "version",
+          "runtime",
+          "edition",
+          "features"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "api_key": {
+        "in": "header",
+        "name": "X-API-Key",
+        "type": "apiKey"
+      },
+      "bearer": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "name": "Brutor AI",
+      "url": "https://brutor.ai"
+    },
+    "description": "The Core Gateway of Brutor Agent Control: LLM routing, MCP proxying, OAuth, and skill execution.",
+    "license": {
+      "identifier": "Apache-2.0",
+      "name": "Apache License 2.0"
+    },
+    "title": "Brutor Agent Control Core Gateway",
+    "version": "0.11.32"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/.well-known/a2a-jwks/{tenant_id}": {
+      "get": {
+        "description": "Unauthenticated. Returns an RFC 7517 JWK Set containing the tenant's Ed25519 public signing key, keyed by tenant id (used as `kid`). External verifiers resolve Agent Card signatures by matching the `kid` in the JWS protected header to the `kid` field on a key in this set.",
+        "operationId": "discover_jwks",
+        "parameters": [
+          {
+            "description": "Tenant ID",
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JWK Set"
+          },
+          "404": {
+            "description": "Tenant unknown, A2A disabled, or no signing key yet"
+          }
+        },
+        "summary": "Public JWK Set for a tenant's Agent Card signatures",
+        "tags": [
+          "A2A"
+        ]
+      }
+    },
+    "/.well-known/agent-card/{tenant_id}/{card_name}": {
+      "get": {
+        "description": "Unauthenticated. Returns the verbatim card JSON + signature block for external verifiers. 404 if the tenant has A2A disabled, the card is disabled, or the card has been revoked.",
+        "operationId": "discover_card",
+        "parameters": [
+          {
+            "description": "Tenant ID",
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Agent card name (unique per tenant)",
+            "in": "path",
+            "name": "card_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/A2ACardDiscoveryResponse"
+                }
+              }
+            },
+            "description": "Agent card document"
+          },
+          "404": {
+            "description": "Card not available for public discovery"
+          }
+        },
+        "summary": "Public Agent Card discovery",
+        "tags": [
+          "A2A"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Health status"
+          }
+        },
+        "summary": "Health check with component status",
+        "tags": [
+          "Gateway"
+        ]
+      }
+    },
+    "/v1/ingest/otel/v1/traces": {
+      "post": {
+        "description": "OTLP/HTTP **JSON** `ExportTraceServiceRequest`. Spans carrying GenAI semantic-convention attributes (`gen_ai.operation.name` = chat | text_completion | generate_content | embeddings | execute_tool | invoke_agent) become step rows of a run keyed on the trace id; every other span is skipped. Ingested evidence is recorded as *reported* (`source = otel`, `chain_integrity = observed_external`): the gateway did not witness it and applied no control. Attribute the run with `X-Brutor-AI-System` or the `brutor.ai_system` resource attribute. Protobuf bodies are refused with 415.",
+        "operationId": "export_traces",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportResponse"
+                }
+              }
+            },
+            "description": "Export accepted"
+          },
+          "400": {
+            "description": "Body is not an OTLP JSON export"
+          },
+          "401": {
+            "description": "Missing or invalid API key"
+          },
+          "413": {
+            "description": "Too many spans in one request"
+          },
+          "415": {
+            "description": "Protobuf is not accepted; use http/json"
+          }
+        },
+        "summary": "Ingest OpenTelemetry GenAI spans as run evidence",
+        "tags": [
+          "Ingest"
+        ]
+      }
+    },
+    "/v1/media/{key}": {
+      "get": {
+        "description": "Serves one stored file through a link the gateway signed. Clients do not build these links: `GET /v1/proxy/files/{file_id}/url` returns one (when the gateway's media store is the filesystem one; with the S3 store it returns a presigned bucket URL instead), and the client fetches it as it is, path and query unchanged. The link is opaque.\n\nNo credential is sent: the link is the credential. It names one file, is bound to that file's tenant, and stops working at `expires`; changing any part of it invalidates it.\n\nEvery link that does not open a file (unsigned, tampered, expired, malformed, a key outside the store, a file that is gone, or a gateway whose media store is not the filesystem one) answers the same `404` with no body that tells the cases apart.",
+        "operationId": "download_media",
+        "parameters": [
+          {
+            "description": "The stored file's key, as the link carries it (several path segments).",
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "When the link stops working, in Unix seconds, as the link carries it.",
+            "in": "query",
+            "name": "expires",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The gateway's signature over the link, as the link carries it.",
+            "in": "query",
+            "name": "signature",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The file. `Content-Type` is the type recorded when the file was stored. Images (except SVG), audio and video are served `inline` so that `<img>`, `<audio>` and `<video>` render them; every other type is an `attachment`.",
+            "headers": {
+              "Cache-Control": {
+                "description": "`private, max-age=` the seconds left until the link expires",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "`inline; filename=\"…\"` for images (not SVG), audio and video; `attachment; filename=\"…\"` otherwise",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Length": {
+                "description": "The file's size in bytes",
+                "schema": {
+                  "format": "int64",
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "Content-Security-Policy": {
+                "description": "`sandbox`",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "description": "`no-referrer`",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "`nosniff`",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The link does not open a file. One answer for every reason (see the description)."
+          },
+          "500": {
+            "description": "The file exists and the link is valid, but the store could not read it."
+          }
+        },
+        "summary": "Download a file through a signed link",
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/v1/messages": {
+      "post": {
+        "description": "Anthropic Messages API endpoint. Translates to OpenAI format internally and routes through the same LLM pipeline. Supports streaming via SSE in Anthropic event format.",
+        "operationId": "messages",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Anthropic message response (or SSE stream if stream=true)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "429": {
+            "description": "Rate/usage limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Messages (Anthropic-compatible)",
+        "tags": [
+          "Anthropic"
+        ]
+      }
+    },
+    "/v1/messages/count_tokens": {
+      "post": {
+        "description": "Token counting endpoint for Anthropic Messages API format.",
+        "operationId": "count_tokens",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Token count"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count tokens (Anthropic-compatible)",
+        "tags": [
+          "Anthropic"
+        ]
+      }
+    },
+    "/v1/proxy/a2a/inbound": {
+      "post": {
+        "description": "Accept a capability invocation from a remote agent and dispatch it to the configured local handler.",
+        "operationId": "inbound",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/A2AInboundRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Handler result"
+          },
+          "202": {
+            "description": "Handler accepted (async dispatch)"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Blocked by policy or feature flag"
+          },
+          "404": {
+            "description": "Card or capability not found"
+          },
+          "501": {
+            "description": "Handler not configured"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Inbound A2A invocation",
+        "tags": [
+          "A2A"
+        ]
+      }
+    },
+    "/v1/proxy/a2a/outbound": {
+      "post": {
+        "description": "Invoke a capability on a remote A2A agent, enforcing tenant outbound policy and signing the delegation chain.",
+        "operationId": "outbound",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/A2AOutboundRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Remote agent response (relayed)"
+          },
+          "400": {
+            "description": "Malformed request or card"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Blocked by outbound policy"
+          },
+          "404": {
+            "description": "Agent card or capability not found"
+          },
+          "502": {
+            "description": "Remote agent returned an error"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Outbound A2A invocation",
+        "tags": [
+          "A2A"
+        ]
+      }
+    },
+    "/v1/proxy/llm/admin/{model_id}/invalidate-cache": {
+      "post": {
+        "description": "Drops the given model from the gateway's in-process model cache and flushes the tenant's group cache so the next request reloads fresh DB state. Called by the admin after create/update/copy/assign flows to eliminate the pub/sub race against immediate follow-up calls like health-check.",
+        "operationId": "invalidate_model_cache",
+        "parameters": [
+          {
+            "description": "LLModel id",
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cache entries cleared"
+          },
+          "401": {
+            "description": "Missing tenant context"
+          },
+          "404": {
+            "description": "Model not found for tenant"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Synchronously invalidate the in-memory model cache (admin only)",
+        "tags": [
+          "LLM"
+        ]
+      }
+    },
+    "/v1/proxy/llm/admin/{model_id}/probe-catalog": {
+      "post": {
+        "description": "Hits the provider's /models endpoint with the model's API key and verifies the configured model_name appears. Used by the Python health checker. Returns a structured CatalogProbeResult.",
+        "operationId": "probe_catalog",
+        "parameters": [
+          {
+            "description": "LLModel id",
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Probe ran (whether or not the provider succeeded)"
+          },
+          "401": {
+            "description": "Tenant context required"
+          },
+          "404": {
+            "description": "Model not found for this tenant"
+          },
+          "422": {
+            "description": "Provider has no models_api_url configured (caller should fall back to real-inference probe)"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Catalog-probe health check",
+        "tags": [
+          "LLM"
+        ]
+      }
+    },
+    "/v1/proxy/llm/admin/{model_id}/record-probe-result": {
+      "post": {
+        "description": "Centralized probe accounting — writes proxy_metrics + usage_logs + model_metrics exactly once for the supplied model_id. Called by gateway-control after every health probe.",
+        "operationId": "record_probe_result",
+        "parameters": [
+          {
+            "description": "LLModel id",
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordProbeResultBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded"
+          },
+          "401": {
+            "description": "Tenant context required"
+          },
+          "404": {
+            "description": "Model not found for this tenant"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Record a probe outcome",
+        "tags": [
+          "LLM"
+        ]
+      }
+    },
+    "/v1/proxy/llm/admin/{model_id}/reset-resilience": {
+      "post": {
+        "description": "Clears the in-memory circuit breaker, probe throttle, and router cooldown for the given model, and flips DB health_status back to 'healthy'. Used by the admin Test Connection flow so an operator can immediately unstick a model after verifying it's up.",
+        "operationId": "reset_resilience",
+        "parameters": [
+          {
+            "description": "LLModel id",
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resilience state reset"
+          },
+          "401": {
+            "description": "No credential, or one that does not stand"
+          },
+          "403": {
+            "description": "Not the platform service key"
+          },
+          "404": {
+            "description": "Model not found for the current tenant"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reset resilience state for a model (admin only)",
+        "tags": [
+          "LLM"
+        ]
+      }
+    },
+    "/v1/proxy/llm/chat/completions": {
+      "post": {
+        "description": "OpenAI-compatible chat completion endpoint with full SSE streaming support. Supports all major providers via automatic format translation.",
+        "operationId": "chat_completions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatCompletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Chat completion response (or SSE stream if stream=true)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "429": {
+            "description": "Rate/usage limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Chat completions (OpenAI-compatible)",
+        "tags": [
+          "LLM"
+        ]
+      }
+    },
+    "/v1/proxy/llm/completions": {
+      "post": {
+        "operationId": "completions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Completion response"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Text completions (legacy)",
+        "tags": [
+          "LLM"
+        ]
+      }
+    },
+    "/v1/proxy/llm/embeddings": {
+      "post": {
+        "operationId": "embeddings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmbeddingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Embedding vectors"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Generate embeddings",
+        "tags": [
+          "LLM"
+        ]
+      }
+    },
+    "/v1/proxy/llm/models": {
+      "get": {
+        "description": "Returns the list of models available to the authenticated user based on their resource group assignments. Compatible with the OpenAI GET /v1/models endpoint.",
+        "operationId": "list_models",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "List of available models"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List available models (OpenAI-compatible)",
+        "tags": [
+          "LLM"
+        ]
+      }
+    },
+    "/v1/proxy/llm/models/{model_id}": {
+      "get": {
+        "description": "Returns details for a specific model if the authenticated user has access to it via their resource group. Compatible with the OpenAI GET /v1/models/{model} endpoint.",
+        "operationId": "get_model",
+        "parameters": [
+          {
+            "description": "Model ID or model name",
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Model details"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "Model not found or not accessible"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Retrieve a model (OpenAI-compatible)",
+        "tags": [
+          "LLM"
+        ]
+      }
+    },
+    "/v1/proxy/llm/responses": {
+      "post": {
+        "operationId": "responses",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResponsesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Structured response"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Responses API (structured output)",
+        "tags": [
+          "LLM"
+        ]
+      }
+    },
+    "/v1/proxy/mcp/{server_id}": {
+      "delete": {
+        "description": "\n**Canonical entrypoint** for talking to a registered MCP server through the\ngateway. This is the URL that MCP clients should use for normal operation.\n\n### What it does\n\n- Proxies JSON-RPC methods (`initialize`, `tools/list`, `tools/call`,\n  `prompts/list`, `resources/read`, …).\n- Supports Streamable HTTP transport — the gateway negotiates between a one-shot\n  JSON response and an SSE stream based on the `Accept` header.\n- Injects credentials. If the MCP server is registered with `auth_type=oauth`\n  and a refresh token, the gateway attaches a fresh Bearer token to the upstream\n  call. Clients do **not** need to manage MCP-server credentials themselves.\n- Enforces group access and usage quotas (call count, daily budget).\n- Logs every call to `proxy_logs` with tenant, group, method, capability,\n  upstream latency, and result.\n\n### Endpoint-path handling\n\nThe gateway **automatically appends** the server's configured `mcp_endpoint_path`\n(set at registration time) when forwarding to the upstream. Clients **must not**\ninclude it in the URL — doing so produces a doubled path on the upstream and\ntypically returns 404/405.\n\nExample: a server registered with `base_url=https://upstream.example.com`\nand `mcp_endpoint_path=/mcp` is reached at:\n\n| Client sends             | Gateway forwards to             |\n|--------------------------|---------------------------------|\n| `/v1/proxy/mcp/{id}`     | `https://upstream.example.com/mcp` |\n\n### Required headers\n\n| Header | Value | Notes |\n|---|---|---|\n| `Authorization` | `Bearer sk_brutor_api_…` | Group-scoped API key |\n| `X-Tenant-ID` | `<tenant-slug>` | Required for tenant routing |\n| `Accept` | `application/json, text/event-stream` | Streamable HTTP requires **both** — sending only `application/json` may produce 405/406 |\n| `Content-Type` | `application/json` | For JSON-RPC bodies |\n\n### Related endpoints\n\n- For OAuth discovery (`.well-known/*`) or REST-style sub-paths, see\n  `POST /v1/proxy/mcp/{server_id}/{path}`.\n\n### Example: initialize handshake\n\n```bash\ncurl -X POST \"https://gateway.example.com/v1/proxy/mcp/{server_id}\" \\\n  -H \"Authorization: Bearer sk_brutor_api_…\" \\\n  -H \"X-Tenant-ID: my-tenant\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Accept: application/json, text/event-stream\" \\\n  -d '{\n    \"jsonrpc\": \"2.0\",\n    \"id\": 1,\n    \"method\": \"initialize\",\n    \"params\": {\n      \"protocolVersion\": \"2025-06-18\",\n      \"clientInfo\": {\"name\": \"my-client\", \"version\": \"1.0\"},\n      \"capabilities\": {}\n    }\n  }'\n```\n",
+        "operationId": "proxy_root",
+        "parameters": [
+          {
+            "description": "MCP server ID (e.g. `mcp-01KR…`)",
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MCP server response (JSON or SSE stream)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Access denied — user's group does not have access to this MCP server"
+          },
+          "404": {
+            "description": "MCP server not found or disabled"
+          },
+          "413": {
+            "description": "Request body over the MCP payload limit (`data.max_payload_size_mb`, never above 10 MiB)"
+          },
+          "429": {
+            "description": "MCP usage limit exceeded — a quota, a frequency limit or a concurrency allowance (JSON-RPC error, `error.data.limit_type`), or the limits cannot be read (`limits_unavailable`)"
+          },
+          "502": {
+            "description": "The MCP server's answer is over the payload limit (JSON-RPC `payload_too_large`) or broke off"
+          },
+          "504": {
+            "description": "The MCP server did not answer within the call's timeout"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "MCP server proxy (canonical client URL)",
+        "tags": [
+          "MCP"
+        ]
+      },
+      "get": {
+        "description": "\n**Canonical entrypoint** for talking to a registered MCP server through the\ngateway. This is the URL that MCP clients should use for normal operation.\n\n### What it does\n\n- Proxies JSON-RPC methods (`initialize`, `tools/list`, `tools/call`,\n  `prompts/list`, `resources/read`, …).\n- Supports Streamable HTTP transport — the gateway negotiates between a one-shot\n  JSON response and an SSE stream based on the `Accept` header.\n- Injects credentials. If the MCP server is registered with `auth_type=oauth`\n  and a refresh token, the gateway attaches a fresh Bearer token to the upstream\n  call. Clients do **not** need to manage MCP-server credentials themselves.\n- Enforces group access and usage quotas (call count, daily budget).\n- Logs every call to `proxy_logs` with tenant, group, method, capability,\n  upstream latency, and result.\n\n### Endpoint-path handling\n\nThe gateway **automatically appends** the server's configured `mcp_endpoint_path`\n(set at registration time) when forwarding to the upstream. Clients **must not**\ninclude it in the URL — doing so produces a doubled path on the upstream and\ntypically returns 404/405.\n\nExample: a server registered with `base_url=https://upstream.example.com`\nand `mcp_endpoint_path=/mcp` is reached at:\n\n| Client sends             | Gateway forwards to             |\n|--------------------------|---------------------------------|\n| `/v1/proxy/mcp/{id}`     | `https://upstream.example.com/mcp` |\n\n### Required headers\n\n| Header | Value | Notes |\n|---|---|---|\n| `Authorization` | `Bearer sk_brutor_api_…` | Group-scoped API key |\n| `X-Tenant-ID` | `<tenant-slug>` | Required for tenant routing |\n| `Accept` | `application/json, text/event-stream` | Streamable HTTP requires **both** — sending only `application/json` may produce 405/406 |\n| `Content-Type` | `application/json` | For JSON-RPC bodies |\n\n### Related endpoints\n\n- For OAuth discovery (`.well-known/*`) or REST-style sub-paths, see\n  `POST /v1/proxy/mcp/{server_id}/{path}`.\n\n### Example: initialize handshake\n\n```bash\ncurl -X POST \"https://gateway.example.com/v1/proxy/mcp/{server_id}\" \\\n  -H \"Authorization: Bearer sk_brutor_api_…\" \\\n  -H \"X-Tenant-ID: my-tenant\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Accept: application/json, text/event-stream\" \\\n  -d '{\n    \"jsonrpc\": \"2.0\",\n    \"id\": 1,\n    \"method\": \"initialize\",\n    \"params\": {\n      \"protocolVersion\": \"2025-06-18\",\n      \"clientInfo\": {\"name\": \"my-client\", \"version\": \"1.0\"},\n      \"capabilities\": {}\n    }\n  }'\n```\n",
+        "operationId": "proxy_root",
+        "parameters": [
+          {
+            "description": "MCP server ID (e.g. `mcp-01KR…`)",
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MCP server response (JSON or SSE stream)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Access denied — user's group does not have access to this MCP server"
+          },
+          "404": {
+            "description": "MCP server not found or disabled"
+          },
+          "413": {
+            "description": "Request body over the MCP payload limit (`data.max_payload_size_mb`, never above 10 MiB)"
+          },
+          "429": {
+            "description": "MCP usage limit exceeded — a quota, a frequency limit or a concurrency allowance (JSON-RPC error, `error.data.limit_type`), or the limits cannot be read (`limits_unavailable`)"
+          },
+          "502": {
+            "description": "The MCP server's answer is over the payload limit (JSON-RPC `payload_too_large`) or broke off"
+          },
+          "504": {
+            "description": "The MCP server did not answer within the call's timeout"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "MCP server proxy (canonical client URL)",
+        "tags": [
+          "MCP"
+        ]
+      },
+      "post": {
+        "description": "\n**Canonical entrypoint** for talking to a registered MCP server through the\ngateway. This is the URL that MCP clients should use for normal operation.\n\n### What it does\n\n- Proxies JSON-RPC methods (`initialize`, `tools/list`, `tools/call`,\n  `prompts/list`, `resources/read`, …).\n- Supports Streamable HTTP transport — the gateway negotiates between a one-shot\n  JSON response and an SSE stream based on the `Accept` header.\n- Injects credentials. If the MCP server is registered with `auth_type=oauth`\n  and a refresh token, the gateway attaches a fresh Bearer token to the upstream\n  call. Clients do **not** need to manage MCP-server credentials themselves.\n- Enforces group access and usage quotas (call count, daily budget).\n- Logs every call to `proxy_logs` with tenant, group, method, capability,\n  upstream latency, and result.\n\n### Endpoint-path handling\n\nThe gateway **automatically appends** the server's configured `mcp_endpoint_path`\n(set at registration time) when forwarding to the upstream. Clients **must not**\ninclude it in the URL — doing so produces a doubled path on the upstream and\ntypically returns 404/405.\n\nExample: a server registered with `base_url=https://upstream.example.com`\nand `mcp_endpoint_path=/mcp` is reached at:\n\n| Client sends             | Gateway forwards to             |\n|--------------------------|---------------------------------|\n| `/v1/proxy/mcp/{id}`     | `https://upstream.example.com/mcp` |\n\n### Required headers\n\n| Header | Value | Notes |\n|---|---|---|\n| `Authorization` | `Bearer sk_brutor_api_…` | Group-scoped API key |\n| `X-Tenant-ID` | `<tenant-slug>` | Required for tenant routing |\n| `Accept` | `application/json, text/event-stream` | Streamable HTTP requires **both** — sending only `application/json` may produce 405/406 |\n| `Content-Type` | `application/json` | For JSON-RPC bodies |\n\n### Related endpoints\n\n- For OAuth discovery (`.well-known/*`) or REST-style sub-paths, see\n  `POST /v1/proxy/mcp/{server_id}/{path}`.\n\n### Example: initialize handshake\n\n```bash\ncurl -X POST \"https://gateway.example.com/v1/proxy/mcp/{server_id}\" \\\n  -H \"Authorization: Bearer sk_brutor_api_…\" \\\n  -H \"X-Tenant-ID: my-tenant\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Accept: application/json, text/event-stream\" \\\n  -d '{\n    \"jsonrpc\": \"2.0\",\n    \"id\": 1,\n    \"method\": \"initialize\",\n    \"params\": {\n      \"protocolVersion\": \"2025-06-18\",\n      \"clientInfo\": {\"name\": \"my-client\", \"version\": \"1.0\"},\n      \"capabilities\": {}\n    }\n  }'\n```\n",
+        "operationId": "proxy_root",
+        "parameters": [
+          {
+            "description": "MCP server ID (e.g. `mcp-01KR…`)",
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MCP server response (JSON or SSE stream)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Access denied — user's group does not have access to this MCP server"
+          },
+          "404": {
+            "description": "MCP server not found or disabled"
+          },
+          "413": {
+            "description": "Request body over the MCP payload limit (`data.max_payload_size_mb`, never above 10 MiB)"
+          },
+          "429": {
+            "description": "MCP usage limit exceeded — a quota, a frequency limit or a concurrency allowance (JSON-RPC error, `error.data.limit_type`), or the limits cannot be read (`limits_unavailable`)"
+          },
+          "502": {
+            "description": "The MCP server's answer is over the payload limit (JSON-RPC `payload_too_large`) or broke off"
+          },
+          "504": {
+            "description": "The MCP server did not answer within the call's timeout"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "MCP server proxy (canonical client URL)",
+        "tags": [
+          "MCP"
+        ]
+      },
+      "put": {
+        "description": "\n**Canonical entrypoint** for talking to a registered MCP server through the\ngateway. This is the URL that MCP clients should use for normal operation.\n\n### What it does\n\n- Proxies JSON-RPC methods (`initialize`, `tools/list`, `tools/call`,\n  `prompts/list`, `resources/read`, …).\n- Supports Streamable HTTP transport — the gateway negotiates between a one-shot\n  JSON response and an SSE stream based on the `Accept` header.\n- Injects credentials. If the MCP server is registered with `auth_type=oauth`\n  and a refresh token, the gateway attaches a fresh Bearer token to the upstream\n  call. Clients do **not** need to manage MCP-server credentials themselves.\n- Enforces group access and usage quotas (call count, daily budget).\n- Logs every call to `proxy_logs` with tenant, group, method, capability,\n  upstream latency, and result.\n\n### Endpoint-path handling\n\nThe gateway **automatically appends** the server's configured `mcp_endpoint_path`\n(set at registration time) when forwarding to the upstream. Clients **must not**\ninclude it in the URL — doing so produces a doubled path on the upstream and\ntypically returns 404/405.\n\nExample: a server registered with `base_url=https://upstream.example.com`\nand `mcp_endpoint_path=/mcp` is reached at:\n\n| Client sends             | Gateway forwards to             |\n|--------------------------|---------------------------------|\n| `/v1/proxy/mcp/{id}`     | `https://upstream.example.com/mcp` |\n\n### Required headers\n\n| Header | Value | Notes |\n|---|---|---|\n| `Authorization` | `Bearer sk_brutor_api_…` | Group-scoped API key |\n| `X-Tenant-ID` | `<tenant-slug>` | Required for tenant routing |\n| `Accept` | `application/json, text/event-stream` | Streamable HTTP requires **both** — sending only `application/json` may produce 405/406 |\n| `Content-Type` | `application/json` | For JSON-RPC bodies |\n\n### Related endpoints\n\n- For OAuth discovery (`.well-known/*`) or REST-style sub-paths, see\n  `POST /v1/proxy/mcp/{server_id}/{path}`.\n\n### Example: initialize handshake\n\n```bash\ncurl -X POST \"https://gateway.example.com/v1/proxy/mcp/{server_id}\" \\\n  -H \"Authorization: Bearer sk_brutor_api_…\" \\\n  -H \"X-Tenant-ID: my-tenant\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Accept: application/json, text/event-stream\" \\\n  -d '{\n    \"jsonrpc\": \"2.0\",\n    \"id\": 1,\n    \"method\": \"initialize\",\n    \"params\": {\n      \"protocolVersion\": \"2025-06-18\",\n      \"clientInfo\": {\"name\": \"my-client\", \"version\": \"1.0\"},\n      \"capabilities\": {}\n    }\n  }'\n```\n",
+        "operationId": "proxy_root",
+        "parameters": [
+          {
+            "description": "MCP server ID (e.g. `mcp-01KR…`)",
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MCP server response (JSON or SSE stream)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Access denied — user's group does not have access to this MCP server"
+          },
+          "404": {
+            "description": "MCP server not found or disabled"
+          },
+          "413": {
+            "description": "Request body over the MCP payload limit (`data.max_payload_size_mb`, never above 10 MiB)"
+          },
+          "429": {
+            "description": "MCP usage limit exceeded — a quota, a frequency limit or a concurrency allowance (JSON-RPC error, `error.data.limit_type`), or the limits cannot be read (`limits_unavailable`)"
+          },
+          "502": {
+            "description": "The MCP server's answer is over the payload limit (JSON-RPC `payload_too_large`) or broke off"
+          },
+          "504": {
+            "description": "The MCP server did not answer within the call's timeout"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "MCP server proxy (canonical client URL)",
+        "tags": [
+          "MCP"
+        ]
+      }
+    },
+    "/v1/proxy/mcp/{server_id}/{path}": {
+      "delete": {
+        "description": "\nProxies requests to a **sub-path** on a registered MCP server.\n\n> ⚠ For normal JSON-RPC + Streamable HTTP calls, use the canonical endpoint\n> `POST /v1/proxy/mcp/{server_id}` — the gateway appends the server's configured\n> `mcp_endpoint_path` itself, so clients **must not** include it in the URL.\n\nThis endpoint exists for **two specific use cases**, picked apart by the first\ncharacter of `{path}`:\n\n### 1. OAuth discovery (primary use case)\n\nPaths beginning with `.` (e.g. `.well-known/oauth-protected-resource`,\n`.well-known/oauth-authorization-server`) are rewritten to hit the MCP\nserver's **origin**, *dropping* the configured `mcp_endpoint_path`.\n\nThis is mandated by:\n- [RFC 8414](https://www.rfc-editor.org/rfc/rfc8414) — OAuth 2.0 Authorization\n  Server Metadata\n- [RFC 9728](https://www.rfc-editor.org/rfc/rfc9728) — OAuth 2.0 Protected\n  Resource Metadata\n\nDiscovery metadata is a **resource-level** concept and must live at the server\norigin. For an MCP server with `base_url=https://example.com/api/mcp` and\n`mcp_endpoint_path=/mcp`, the discovery document is fetched from\n`https://example.com/.well-known/oauth-protected-resource` — never from\n`…/api/mcp/.well-known/...`.\n\n**Examples:**\n- `GET /v1/proxy/mcp/{server_id}/.well-known/oauth-protected-resource`\n- `GET /v1/proxy/mcp/{server_id}/.well-known/oauth-authorization-server`\n\n### 2. REST-style MCP servers (escape hatch)\n\nAny other sub-path is appended to `base_url` verbatim. Used by non-standard\nMCP implementations that expose plain HTTP endpoints rather than (or in\naddition to) the JSON-RPC entrypoint. Rarely needed — modern Streamable HTTP\nclients should target `/v1/proxy/mcp/{server_id}` instead.\n\n**Example:** `GET /v1/proxy/mcp/{server_id}/tools/list-rest`\n\n### Required headers\n\n| Header | Value | Notes |\n|---|---|---|\n| `Authorization` | `Bearer sk_brutor_api_…` | Group-scoped API key |\n| `X-Tenant-ID` | `<tenant-slug>` | Required for tenant routing |\n| `Accept` | `application/json, text/event-stream` | Streamable HTTP requires **both** |\n| `Content-Type` | `application/json` | For JSON-RPC bodies |\n",
+        "operationId": "proxy_with_path",
+        "parameters": [
+          {
+            "description": "MCP server ID (e.g. `mcp-01KR…`)",
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sub-path. Starts with `.` → OAuth discovery (rewritten to server origin). Otherwise → appended to `base_url` verbatim.",
+            "in": "path",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MCP server response (JSON or SSE stream)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Access denied — user's group does not have access to this MCP server"
+          },
+          "404": {
+            "description": "MCP server not found or disabled"
+          },
+          "413": {
+            "description": "Request body over the MCP payload limit (`data.max_payload_size_mb`, never above 10 MiB)"
+          },
+          "429": {
+            "description": "MCP usage limit exceeded — a quota, a frequency limit or a concurrency allowance (JSON-RPC error, `error.data.limit_type`), or the limits cannot be read (`limits_unavailable`)"
+          },
+          "502": {
+            "description": "The MCP server's answer is over the payload limit (JSON-RPC `payload_too_large`) or broke off"
+          },
+          "504": {
+            "description": "The MCP server did not answer within the call's timeout"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "MCP server proxy (sub-path: OAuth discovery and REST passthrough)",
+        "tags": [
+          "MCP"
+        ]
+      },
+      "get": {
+        "description": "\nProxies requests to a **sub-path** on a registered MCP server.\n\n> ⚠ For normal JSON-RPC + Streamable HTTP calls, use the canonical endpoint\n> `POST /v1/proxy/mcp/{server_id}` — the gateway appends the server's configured\n> `mcp_endpoint_path` itself, so clients **must not** include it in the URL.\n\nThis endpoint exists for **two specific use cases**, picked apart by the first\ncharacter of `{path}`:\n\n### 1. OAuth discovery (primary use case)\n\nPaths beginning with `.` (e.g. `.well-known/oauth-protected-resource`,\n`.well-known/oauth-authorization-server`) are rewritten to hit the MCP\nserver's **origin**, *dropping* the configured `mcp_endpoint_path`.\n\nThis is mandated by:\n- [RFC 8414](https://www.rfc-editor.org/rfc/rfc8414) — OAuth 2.0 Authorization\n  Server Metadata\n- [RFC 9728](https://www.rfc-editor.org/rfc/rfc9728) — OAuth 2.0 Protected\n  Resource Metadata\n\nDiscovery metadata is a **resource-level** concept and must live at the server\norigin. For an MCP server with `base_url=https://example.com/api/mcp` and\n`mcp_endpoint_path=/mcp`, the discovery document is fetched from\n`https://example.com/.well-known/oauth-protected-resource` — never from\n`…/api/mcp/.well-known/...`.\n\n**Examples:**\n- `GET /v1/proxy/mcp/{server_id}/.well-known/oauth-protected-resource`\n- `GET /v1/proxy/mcp/{server_id}/.well-known/oauth-authorization-server`\n\n### 2. REST-style MCP servers (escape hatch)\n\nAny other sub-path is appended to `base_url` verbatim. Used by non-standard\nMCP implementations that expose plain HTTP endpoints rather than (or in\naddition to) the JSON-RPC entrypoint. Rarely needed — modern Streamable HTTP\nclients should target `/v1/proxy/mcp/{server_id}` instead.\n\n**Example:** `GET /v1/proxy/mcp/{server_id}/tools/list-rest`\n\n### Required headers\n\n| Header | Value | Notes |\n|---|---|---|\n| `Authorization` | `Bearer sk_brutor_api_…` | Group-scoped API key |\n| `X-Tenant-ID` | `<tenant-slug>` | Required for tenant routing |\n| `Accept` | `application/json, text/event-stream` | Streamable HTTP requires **both** |\n| `Content-Type` | `application/json` | For JSON-RPC bodies |\n",
+        "operationId": "proxy_with_path",
+        "parameters": [
+          {
+            "description": "MCP server ID (e.g. `mcp-01KR…`)",
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sub-path. Starts with `.` → OAuth discovery (rewritten to server origin). Otherwise → appended to `base_url` verbatim.",
+            "in": "path",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MCP server response (JSON or SSE stream)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Access denied — user's group does not have access to this MCP server"
+          },
+          "404": {
+            "description": "MCP server not found or disabled"
+          },
+          "413": {
+            "description": "Request body over the MCP payload limit (`data.max_payload_size_mb`, never above 10 MiB)"
+          },
+          "429": {
+            "description": "MCP usage limit exceeded — a quota, a frequency limit or a concurrency allowance (JSON-RPC error, `error.data.limit_type`), or the limits cannot be read (`limits_unavailable`)"
+          },
+          "502": {
+            "description": "The MCP server's answer is over the payload limit (JSON-RPC `payload_too_large`) or broke off"
+          },
+          "504": {
+            "description": "The MCP server did not answer within the call's timeout"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "MCP server proxy (sub-path: OAuth discovery and REST passthrough)",
+        "tags": [
+          "MCP"
+        ]
+      },
+      "post": {
+        "description": "\nProxies requests to a **sub-path** on a registered MCP server.\n\n> ⚠ For normal JSON-RPC + Streamable HTTP calls, use the canonical endpoint\n> `POST /v1/proxy/mcp/{server_id}` — the gateway appends the server's configured\n> `mcp_endpoint_path` itself, so clients **must not** include it in the URL.\n\nThis endpoint exists for **two specific use cases**, picked apart by the first\ncharacter of `{path}`:\n\n### 1. OAuth discovery (primary use case)\n\nPaths beginning with `.` (e.g. `.well-known/oauth-protected-resource`,\n`.well-known/oauth-authorization-server`) are rewritten to hit the MCP\nserver's **origin**, *dropping* the configured `mcp_endpoint_path`.\n\nThis is mandated by:\n- [RFC 8414](https://www.rfc-editor.org/rfc/rfc8414) — OAuth 2.0 Authorization\n  Server Metadata\n- [RFC 9728](https://www.rfc-editor.org/rfc/rfc9728) — OAuth 2.0 Protected\n  Resource Metadata\n\nDiscovery metadata is a **resource-level** concept and must live at the server\norigin. For an MCP server with `base_url=https://example.com/api/mcp` and\n`mcp_endpoint_path=/mcp`, the discovery document is fetched from\n`https://example.com/.well-known/oauth-protected-resource` — never from\n`…/api/mcp/.well-known/...`.\n\n**Examples:**\n- `GET /v1/proxy/mcp/{server_id}/.well-known/oauth-protected-resource`\n- `GET /v1/proxy/mcp/{server_id}/.well-known/oauth-authorization-server`\n\n### 2. REST-style MCP servers (escape hatch)\n\nAny other sub-path is appended to `base_url` verbatim. Used by non-standard\nMCP implementations that expose plain HTTP endpoints rather than (or in\naddition to) the JSON-RPC entrypoint. Rarely needed — modern Streamable HTTP\nclients should target `/v1/proxy/mcp/{server_id}` instead.\n\n**Example:** `GET /v1/proxy/mcp/{server_id}/tools/list-rest`\n\n### Required headers\n\n| Header | Value | Notes |\n|---|---|---|\n| `Authorization` | `Bearer sk_brutor_api_…` | Group-scoped API key |\n| `X-Tenant-ID` | `<tenant-slug>` | Required for tenant routing |\n| `Accept` | `application/json, text/event-stream` | Streamable HTTP requires **both** |\n| `Content-Type` | `application/json` | For JSON-RPC bodies |\n",
+        "operationId": "proxy_with_path",
+        "parameters": [
+          {
+            "description": "MCP server ID (e.g. `mcp-01KR…`)",
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sub-path. Starts with `.` → OAuth discovery (rewritten to server origin). Otherwise → appended to `base_url` verbatim.",
+            "in": "path",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MCP server response (JSON or SSE stream)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Access denied — user's group does not have access to this MCP server"
+          },
+          "404": {
+            "description": "MCP server not found or disabled"
+          },
+          "413": {
+            "description": "Request body over the MCP payload limit (`data.max_payload_size_mb`, never above 10 MiB)"
+          },
+          "429": {
+            "description": "MCP usage limit exceeded — a quota, a frequency limit or a concurrency allowance (JSON-RPC error, `error.data.limit_type`), or the limits cannot be read (`limits_unavailable`)"
+          },
+          "502": {
+            "description": "The MCP server's answer is over the payload limit (JSON-RPC `payload_too_large`) or broke off"
+          },
+          "504": {
+            "description": "The MCP server did not answer within the call's timeout"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "MCP server proxy (sub-path: OAuth discovery and REST passthrough)",
+        "tags": [
+          "MCP"
+        ]
+      },
+      "put": {
+        "description": "\nProxies requests to a **sub-path** on a registered MCP server.\n\n> ⚠ For normal JSON-RPC + Streamable HTTP calls, use the canonical endpoint\n> `POST /v1/proxy/mcp/{server_id}` — the gateway appends the server's configured\n> `mcp_endpoint_path` itself, so clients **must not** include it in the URL.\n\nThis endpoint exists for **two specific use cases**, picked apart by the first\ncharacter of `{path}`:\n\n### 1. OAuth discovery (primary use case)\n\nPaths beginning with `.` (e.g. `.well-known/oauth-protected-resource`,\n`.well-known/oauth-authorization-server`) are rewritten to hit the MCP\nserver's **origin**, *dropping* the configured `mcp_endpoint_path`.\n\nThis is mandated by:\n- [RFC 8414](https://www.rfc-editor.org/rfc/rfc8414) — OAuth 2.0 Authorization\n  Server Metadata\n- [RFC 9728](https://www.rfc-editor.org/rfc/rfc9728) — OAuth 2.0 Protected\n  Resource Metadata\n\nDiscovery metadata is a **resource-level** concept and must live at the server\norigin. For an MCP server with `base_url=https://example.com/api/mcp` and\n`mcp_endpoint_path=/mcp`, the discovery document is fetched from\n`https://example.com/.well-known/oauth-protected-resource` — never from\n`…/api/mcp/.well-known/...`.\n\n**Examples:**\n- `GET /v1/proxy/mcp/{server_id}/.well-known/oauth-protected-resource`\n- `GET /v1/proxy/mcp/{server_id}/.well-known/oauth-authorization-server`\n\n### 2. REST-style MCP servers (escape hatch)\n\nAny other sub-path is appended to `base_url` verbatim. Used by non-standard\nMCP implementations that expose plain HTTP endpoints rather than (or in\naddition to) the JSON-RPC entrypoint. Rarely needed — modern Streamable HTTP\nclients should target `/v1/proxy/mcp/{server_id}` instead.\n\n**Example:** `GET /v1/proxy/mcp/{server_id}/tools/list-rest`\n\n### Required headers\n\n| Header | Value | Notes |\n|---|---|---|\n| `Authorization` | `Bearer sk_brutor_api_…` | Group-scoped API key |\n| `X-Tenant-ID` | `<tenant-slug>` | Required for tenant routing |\n| `Accept` | `application/json, text/event-stream` | Streamable HTTP requires **both** |\n| `Content-Type` | `application/json` | For JSON-RPC bodies |\n",
+        "operationId": "proxy_with_path",
+        "parameters": [
+          {
+            "description": "MCP server ID (e.g. `mcp-01KR…`)",
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sub-path. Starts with `.` → OAuth discovery (rewritten to server origin). Otherwise → appended to `base_url` verbatim.",
+            "in": "path",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MCP server response (JSON or SSE stream)"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Access denied — user's group does not have access to this MCP server"
+          },
+          "404": {
+            "description": "MCP server not found or disabled"
+          },
+          "413": {
+            "description": "Request body over the MCP payload limit (`data.max_payload_size_mb`, never above 10 MiB)"
+          },
+          "429": {
+            "description": "MCP usage limit exceeded — a quota, a frequency limit or a concurrency allowance (JSON-RPC error, `error.data.limit_type`), or the limits cannot be read (`limits_unavailable`)"
+          },
+          "502": {
+            "description": "The MCP server's answer is over the payload limit (JSON-RPC `payload_too_large`) or broke off"
+          },
+          "504": {
+            "description": "The MCP server did not answer within the call's timeout"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "MCP server proxy (sub-path: OAuth discovery and REST passthrough)",
+        "tags": [
+          "MCP"
+        ]
+      }
+    },
+    "/v1/proxy/oauth/{mcp_server_id}/{idp_server_id}/.well-known/oauth-protected-resource": {
+      "get": {
+        "description": "Returns OAuth discovery metadata with gateway-rewritten URLs.",
+        "operationId": "oauth_protected_resource",
+        "parameters": [
+          {
+            "description": "MCP server ID",
+            "in": "path",
+            "name": "mcp_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Identity Provider ID",
+            "in": "path",
+            "name": "idp_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth protected resource metadata"
+          },
+          "404": {
+            "description": "Server or IdP not found"
+          }
+        },
+        "summary": "OAuth Protected Resource metadata",
+        "tags": [
+          "OAuth"
+        ]
+      }
+    },
+    "/v1/proxy/oauth/{mcp_server_id}/{idp_server_id}/.well-known/openid-configuration": {
+      "get": {
+        "description": "Returns OIDC discovery metadata with token_endpoint rewritten to the gateway.",
+        "operationId": "openid_configuration",
+        "parameters": [
+          {
+            "description": "MCP server ID",
+            "in": "path",
+            "name": "mcp_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Identity Provider ID",
+            "in": "path",
+            "name": "idp_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OIDC configuration"
+          },
+          "404": {
+            "description": "Server or IdP not found"
+          }
+        },
+        "summary": "OpenID Connect discovery",
+        "tags": [
+          "OAuth"
+        ]
+      }
+    },
+    "/v1/proxy/oauth/{mcp_server_id}/{idp_server_id}/revoke": {
+      "post": {
+        "description": "Revokes the stored OAuth token for the authenticated user.",
+        "operationId": "revoke_token",
+        "parameters": [
+          {
+            "description": "MCP server ID",
+            "in": "path",
+            "name": "mcp_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Identity Provider ID",
+            "in": "path",
+            "name": "idp_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token revoked"
+          },
+          "401": {
+            "description": "Invalid or missing token"
+          },
+          "404": {
+            "description": "No token found to revoke"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revoke OAuth token",
+        "tags": [
+          "OAuth"
+        ]
+      }
+    },
+    "/v1/proxy/oauth/{mcp_server_id}/{idp_server_id}/token": {
+      "post": {
+        "description": "Exchanges an authorization code for tokens, stores encrypted tokens, and returns an MCP JWT.",
+        "operationId": "token_exchange",
+        "parameters": [
+          {
+            "description": "MCP server ID",
+            "in": "path",
+            "name": "mcp_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Identity Provider ID",
+            "in": "path",
+            "name": "idp_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token exchange result with MCP JWT"
+          },
+          "400": {
+            "description": "Invalid request or grant type"
+          },
+          "404": {
+            "description": "Server, IdP, or OAuth client not found"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "OAuth token exchange",
+        "tags": [
+          "OAuth"
+        ]
+      }
+    },
+    "/v1/proxy/oauth/{mcp_server_id}/{idp_server_id}/tokens": {
+      "get": {
+        "description": "Returns metadata about stored OAuth tokens for the authenticated user.",
+        "operationId": "list_tokens",
+        "parameters": [
+          {
+            "description": "MCP server ID",
+            "in": "path",
+            "name": "mcp_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Identity Provider ID",
+            "in": "path",
+            "name": "idp_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of token metadata"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "summary": "List OAuth tokens for user",
+        "tags": [
+          "OAuth"
+        ]
+      }
+    },
+    "/v1/proxy/skills/catalog": {
+      "get": {
+        "description": "Lightweight catalog for skill discovery (Progressive Disclosure Level 1). Returns published, enabled skills accessible to the authenticated user's group. ~50-100 tokens per entry — designed for agent context injection.",
+        "operationId": "get_catalog",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Skill catalog"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List available skills",
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/v1/proxy/skills/execute": {
+      "post": {
+        "description": "Resolves the skill by ID or name, applies group-based access control, checks permissions, creates an execution record, and runs the skill. Answers 200 when the run has ended (`execution_status` is `COMPLETED` or `FAILED`), and 202 when the call is held for a person: the body is then the approval envelope (`approval_required: true`, no `execution_id`), and the same call is retried with the approval token.",
+        "operationId": "execute_skill",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillExecuteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillExecuteResponse"
+                }
+              }
+            },
+            "description": "The run has ended; `execution_status` says how"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Held for approval (the approval envelope), or a run still in progress"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "404": {
+            "description": "Skill or group not found"
+          },
+          "410": {
+            "description": "The skill is in the progressive disclosure mode: use the Agent Skills MCP flow"
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Held for approval, for an interactive caller (the approval envelope)"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Execute an agent skill",
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/v1/proxy/skills/executions/{execution_id}": {
+      "get": {
+        "description": "The status of a skill execution, for the caller that started it (the end user, or the resource group a key without an end user or an agent acts in). Any other caller is answered as for an execution that does not exist.",
+        "operationId": "get_execution",
+        "parameters": [
+          {
+            "description": "Execution ID",
+            "in": "path",
+            "name": "execution_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Execution status"
+          },
+          "404": {
+            "description": "No such execution, or not the caller's"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get skill execution status",
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/v1/proxy/skills/executions/{execution_id}/cancel": {
+      "post": {
+        "description": "Cancel a running skill execution. Only the caller that started it can.",
+        "operationId": "cancel_execution",
+        "parameters": [
+          {
+            "description": "Execution ID",
+            "in": "path",
+            "name": "execution_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Cancellation result"
+          },
+          "404": {
+            "description": "No such execution, or not the caller's"
+          },
+          "409": {
+            "description": "The execution is not running"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel a skill execution",
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/v1/proxy/vmcp/{virtual_server_id}": {
+      "post": {
+        "description": "Routes MCP JSON-RPC requests to the appropriate source server based on tool/resource/prompt name.",
+        "operationId": "proxy",
+        "parameters": [
+          {
+            "description": "Virtual server ID",
+            "in": "path",
+            "name": "virtual_server_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Aggregated MCP response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "Virtual server not found"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Virtual MCP server proxy",
+        "tags": [
+          "Virtual MCP"
+        ]
+      }
+    },
+    "/v1/runs/{root_task_id}": {
+      "get": {
+        "description": "The finalized rollup for a run the caller can see. Returns 404 while the run is still open — a run that has not been finalized has no rollup yet.",
+        "operationId": "get_run",
+        "parameters": [
+          {
+            "description": "The run's root task id",
+            "in": "path",
+            "name": "root_task_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Run rollup"
+          },
+          "404": {
+            "description": "Run not finalized or not found"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Inspect a run",
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/v1/runs/{root_task_id}/end": {
+      "post": {
+        "description": "Close a run explicitly and record how it ended. Preferred over waiting for the idle sweeper: a swept run is recorded as `abandoned`, and `exhausted` can only ever be reported this way.",
+        "operationId": "end_run",
+        "parameters": [
+          {
+            "description": "The run's root task id",
+            "in": "path",
+            "name": "root_task_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EndRunRequest"
+              }
+            }
+          },
+          "description": "Optional",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunResponse"
+                }
+              }
+            },
+            "description": "Run finalized"
+          },
+          "403": {
+            "description": "Run belongs to another part of the hierarchy"
+          },
+          "404": {
+            "description": "No steps recorded for this run"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Finalize a run",
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/v1/version": {
+      "get": {
+        "operationId": "version",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionResponse"
+                }
+              }
+            },
+            "description": "Version info"
+          }
+        },
+        "summary": "Service version, edition and feature flags",
+        "tags": [
+          "Gateway"
+        ]
+      }
+    },
+    "/v1beta/models/{model}:generateContent": {
+      "post": {
+        "description": "Gemini native Messages API endpoint. Preserves native body shape end-to-end and routes through the same governance / cache / observability pipeline as the OpenAI surface.",
+        "operationId": "generate_content",
+        "parameters": [
+          {
+            "description": "Model id or name",
+            "in": "path",
+            "name": "model",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Gemini native response"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "429": {
+            "description": "Rate/usage limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Generate content (Gemini-compatible)",
+        "tags": [
+          "Gemini"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Anthropic Messages API — native endpoint for Claude Code and other Anthropic-native clients",
+      "name": "Anthropic"
+    },
+    {
+      "description": "Health checks and service info",
+      "name": "Gateway"
+    },
+    {
+      "description": "LLM proxy — chat completions, embeddings, responses API",
+      "name": "LLM"
+    },
+    {
+      "description": "Gemini generateContent API — native endpoint for Gemini-native clients",
+      "name": "Gemini"
+    },
+    {
+      "description": "Runs — end a run and read its rollup",
+      "name": "Runs"
+    },
+    {
+      "description": "MCP server proxy — JSON-RPC and SSE streaming",
+      "name": "MCP"
+    },
+    {
+      "description": "Virtual MCP — aggregates multiple MCP servers",
+      "name": "Virtual MCP"
+    },
+    {
+      "description": "OAuth 2.0 / OIDC discovery and token exchange",
+      "name": "OAuth"
+    },
+    {
+      "description": "Agent skill execution and catalog",
+      "name": "Skills"
+    },
+    {
+      "description": "Agent-to-Agent proxy — outbound invocation with signed delegation chains",
+      "name": "A2A"
+    },
+    {
+      "description": "Signed download links of the filesystem media store",
+      "name": "Media"
+    }
+  ]
+}

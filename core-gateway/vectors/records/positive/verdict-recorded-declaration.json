@@ -1,0 +1,49 @@
+{
+  "canonical": "{\"action_id\":\"ai.brutor.declaration/01K5VEC0018\",\"context\":{\"framework_id\":\"eu-ai-act\",\"record_type\":\"ai.brutor.declaration\",\"surface\":\"control_plane\"},\"epoch\":\"contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"kind\":\"fyi\",\"operator\":\"tenant-vectors\",\"references\":[{\"digest\":\"e73551f4c9f806b81a11dac416b06a2651790b93874277d0122317410e9c0868\",\"digest_alg\":\"SHA-256\",\"purpose\":\"ai.brutor.declaration\",\"type\":\"ai.brutor.payload\"}],\"schema\":\"ai.brutor/action-record/v1\",\"system\":{\"ai_system_id\":\"rg-vectors-claims\",\"contract_hash\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"contract_version\":3},\"timestamp\":\"2026-09-19T10:00:18.000Z\",\"verdict\":\"recorded\"}",
+  "description": "recorded (fyi): a profile declaration sealed through the seal API; the payload enters only as a digest",
+  "expect": {
+    "codes": [],
+    "effect_mode": "not_applicable",
+    "ok": true,
+    "record_id": "30ff31cb15a35ce53d3ad6a8fcd0f012fde4bb37bb2df631696acee78f10050f"
+  },
+  "preimages": {
+    "references[0].digest": {
+      "scheme": "jcs",
+      "value": {
+        "field": "intended_purpose",
+        "framework_id": "eu-ai-act",
+        "value": "Refund triage for consumer orders"
+      }
+    }
+  },
+  "record": {
+    "action_id": "ai.brutor.declaration/01K5VEC0018",
+    "context": {
+      "framework_id": "eu-ai-act",
+      "record_type": "ai.brutor.declaration",
+      "surface": "control_plane"
+    },
+    "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+    "kind": "fyi",
+    "operator": "tenant-vectors",
+    "record_id": "30ff31cb15a35ce53d3ad6a8fcd0f012fde4bb37bb2df631696acee78f10050f",
+    "references": [
+      {
+        "digest": "e73551f4c9f806b81a11dac416b06a2651790b93874277d0122317410e9c0868",
+        "digest_alg": "SHA-256",
+        "purpose": "ai.brutor.declaration",
+        "type": "ai.brutor.payload"
+      }
+    ],
+    "schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "rg-vectors-claims",
+      "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "contract_version": 3
+    },
+    "timestamp": "2026-09-19T10:00:18.000Z",
+    "verdict": "recorded"
+  },
+  "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggMP8xyxWjXOU9Otao/NDwEv3kuze7LfYxaWrO548QBQ9YQMXlzgJJhNsq094h81VBOu5TN0G0JZGdnnR70ox8VbKbkeGAVWaoYDY6wIuNAuXPyZW6zPqJ/bhI7i9bNOFkMAg="
+}

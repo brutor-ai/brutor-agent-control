@@ -1,0 +1,48 @@
+{
+  "action_id": "approval/apr-77-expired",
+  "action_type": "decide",
+  "ai.brutor": {
+    "chain": {
+      "parent_record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+      "relation": "supersedes"
+    },
+    "context": {
+      "approval_request_id": "apr-77",
+      "record_type": "ai.brutor.approval-expired"
+    },
+    "lossy": [
+      "attestation_tier_not_projected"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "5afe664a5288aaa9922b6dbc484c4e329ce536165930091b7af878061dba18e3",
+    "record_schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "sys-claims-triage",
+      "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+      "contract_version": 3
+    },
+    "verdict": "expired"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "not_applicable",
+    "ledger_mode": "chained"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "944867ea54ae67770595dbfe69df6ce94aef911214c2bfb6d82f039bf67be1b3",
+  "chain": {
+    "parent_capsule_id": "1928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd2",
+    "relation": "supersedes"
+  },
+  "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+  "disposition": {
+    "approver": "policy",
+    "decision": "deferred",
+    "human_disposed": false,
+    "verdict_class": "expired"
+  },
+  "format_version": "4",
+  "operator": "tenant-acme",
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-20T10:01:00.000Z"
+}

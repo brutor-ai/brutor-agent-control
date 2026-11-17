@@ -1,0 +1,69 @@
+{
+  "canonical": "{\"action_id\":\"mcp/01K5VEC0000000000000000006\",\"context\":{\"autonomy_level\":\"supervised\",\"autonomy_provenance\":\"contract\",\"root_task_id\":\"run-vectors-1\",\"server_version\":\"orders-mcp/2.4.1\",\"surface\":\"mcp\",\"tags\":[\"eu_ai_act.art12\",\"soc2.cc7.2\"],\"tool_definition_hash\":\"39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3\",\"turn_id\":\"turn-4\"},\"controls\":[{\"blocking\":true,\"id\":\"ai.brutor.agent_grant.scope\",\"kind\":\"gate\",\"result\":\"fail\",\"severity\":\"high\"}],\"disposition\":{\"approver\":\"policy\",\"decision\":\"reject\",\"human_disposed\":true},\"epoch\":\"contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"kind\":\"decide\",\"operator\":\"tenant-vectors\",\"references\":[{\"digest\":\"d647feb5fc14aeda49ed3ced9325e1f11030fa956d1a449750c7c78b6a80e1b3\",\"digest_alg\":\"SHA-256\",\"type\":\"ai.brutor.proxy-log-row\"},{\"digest\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"digest_alg\":\"SHA-256\",\"purpose\":\"governing_contract\",\"type\":\"ai.brutor.ai-system-contract\"}],\"schema\":\"ai.brutor/action-record/v1\",\"system\":{\"ai_system_id\":\"rg-vectors-claims\",\"contract_hash\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"contract_version\":3},\"timestamp\":\"2026-09-19T10:00:06.000Z\",\"verdict\":\"denied\"}",
+  "description": "honesty check: human_disposed=true with approver=policy (a builder refuses this); the verifier reports a warning, never an error",
+  "expect": {
+    "codes": [
+      "dishonest_human_disposed"
+    ],
+    "effect_mode": "not_applicable",
+    "ok": true,
+    "record_id": "62ed45e14b6c5f2851afcb5e8d88f336151bf65e59bea1b594f1c668b717fed1"
+  },
+  "preimages": {},
+  "record": {
+    "action_id": "mcp/01K5VEC0000000000000000006",
+    "context": {
+      "autonomy_level": "supervised",
+      "autonomy_provenance": "contract",
+      "root_task_id": "run-vectors-1",
+      "server_version": "orders-mcp/2.4.1",
+      "surface": "mcp",
+      "tags": [
+        "eu_ai_act.art12",
+        "soc2.cc7.2"
+      ],
+      "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+      "turn_id": "turn-4"
+    },
+    "controls": [
+      {
+        "blocking": true,
+        "id": "ai.brutor.agent_grant.scope",
+        "kind": "gate",
+        "result": "fail",
+        "severity": "high"
+      }
+    ],
+    "disposition": {
+      "approver": "policy",
+      "decision": "reject",
+      "human_disposed": true
+    },
+    "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+    "kind": "decide",
+    "operator": "tenant-vectors",
+    "record_id": "62ed45e14b6c5f2851afcb5e8d88f336151bf65e59bea1b594f1c668b717fed1",
+    "references": [
+      {
+        "digest": "d647feb5fc14aeda49ed3ced9325e1f11030fa956d1a449750c7c78b6a80e1b3",
+        "digest_alg": "SHA-256",
+        "type": "ai.brutor.proxy-log-row"
+      },
+      {
+        "digest": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "digest_alg": "SHA-256",
+        "purpose": "governing_contract",
+        "type": "ai.brutor.ai-system-contract"
+      }
+    ],
+    "schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "rg-vectors-claims",
+      "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "contract_version": 3
+    },
+    "timestamp": "2026-09-19T10:00:06.000Z",
+    "verdict": "denied"
+  },
+  "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggYu1F4UtsXyhRr8tejYjzNhUb9l5ZvqG1lPHGaLcX/tFYQD0ZcRClW/zOrUB46RlTqfpwcaYt2BGkAwfI04TjACmDUaNwF7PaR2nXOxljp+jFF7+a5r9ScFmfhtxgTRNHVQI="
+}

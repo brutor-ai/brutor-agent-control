@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 92b7be8501119641669ac2547aa862b654be719a762afdb58cdb0c8510d7e9d1 # shrinks to sc = Scenario { n_systems: 1, nodes: [NodeSpec { parent_pick: 0, group_pick: 257036391475673411, rows: [RowSpec { tokens: 0, cost_units: 0, success: false }], unanswered: [] }, NodeSpec { parent_pick: 0, group_pick: 0, rows: [RowSpec { tokens: 0, cost_units: 0, success: false }], unanswered: [] }], edges: [] }

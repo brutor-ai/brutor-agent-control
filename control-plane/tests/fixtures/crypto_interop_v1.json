@@ -1,0 +1,57 @@
+{
+  "format_version": 1,
+  "comment": "Cross-language interop fixture for Fernet between gateway-control (Python) and gateway-core (Rust). Tokens here were produced at commit 0.7.95 using pyca/cryptography (Python side) and the hand-rolled implementation in src/services/encryption.rs (Rust side). Any future implementation in EITHER language MUST decrypt every token in BOTH 'tokens_from_python' and 'tokens_from_rust'. To regenerate: see examples/gen_interop_fixture.rs in gateway-core and the inline script in tests/test_crypto_interop_python_rust.py.",
+  "master_key": "brutor-interop-fixture-master-key-do-not-use-in-production",
+  "tokens_from_python": {
+    "ascii_short": {
+      "plaintext": "sk_brutor_api_test_xyz",
+      "ciphertext": "gAAAAABqBBinq2Bg42oj2wb9cDcHK-xstRiOYy8dkPTW8mAmQTr7MuuXVhcRYVmLFQzAMJnqJYu-RG9pI1rvToa-Y8FqQDScc-1NFh29zcRU2Cv_gLrVGs8="
+    },
+    "oauth_token": {
+      "plaintext": "ya29.a0AfH6SMB-example-access-token",
+      "ciphertext": "gAAAAABqBBinSO_2ZgXLPOU5BXR0H8UCX6hmCJ0K-mXhSGaohdutGBiogiA535jp5g7uyu1P63OmoCpoNCP0SHHymqFxpbsq9fFwwzkBSjx4c0ArS95MdavQc173l4z44CXljoiCmg9E"
+    },
+    "unicode": {
+      "plaintext": "汉字テスト中文",
+      "ciphertext": "gAAAAABqBBinoZ_T7CiLxek1MQkRY7MggxW2kkxdNgJzQc2JMNDfFx7uU5cU6hx3QJ0OQgiToHPhROPPrHkFOt9KZvu6V07MxFONfzuR05vqO9w20AEzC20="
+    },
+    "json_blob": {
+      "plaintext": "{\"endpoint\":\"https://api.example.com\",\"model\":\"gpt-4o-mini\"}",
+      "ciphertext": "gAAAAABqBBindGO11NS8DfNL7cw0VtShXiGw0FiYqnJfc1sjZ5e1AmUvHEE0VpcNz4rl6jjAAvaJloSS5Ld-rU9ZntUDqEjf1bbUqDCM_uLOa_I_u-y5q-bf73-hG2KPSUWjnwkXPGIZoMMIqUJmSY6cYkSzWlZIhA=="
+    },
+    "newlines": {
+      "plaintext": "line1\nline2\tindented\r",
+      "ciphertext": "gAAAAABqBBin9nbQFF0mFTgWr47qPdAp_xnGu8FljhujfXhcYS7ECRbgu8N4714QgAkN3Pn5dcKEugoI9J0gqG6U73dB1ea3VNQGxKqw4tgwnSBAqRxvyvA="
+    }
+  },
+  "tokens_from_rust": {
+    "ascii_short": {
+      "plaintext": "sk_brutor_api_test_xyz",
+      "ciphertext": "gAAAAABqBBlNLMz5rGyYDaLUjzyIV519kEYc6YFwwEtyDZztUozYqw66QlYIQNxVq82-NzVdgtz6F5ZRzUMOJApN0TH_gu60xRx0xePNEotsXh6r7jT8hYk="
+    },
+    "oauth_token": {
+      "plaintext": "ya29.a0AfH6SMB-example-access-token",
+      "ciphertext": "gAAAAABqBBlNxJ8BHIfZTjEodekzh67xiqICzETI63yiE3lg4QXW6fhJTmymtETxhJ11CQlpHZN3ErEFxrEz1J-gInLFCDR9lu_DfHZm35FFc8s_AdkkV5tJuKyLknEevaJ0c-ms9iji"
+    },
+    "unicode": {
+      "plaintext": "汉字テスト中文",
+      "ciphertext": "gAAAAABqBBlNW3pKO0WR8zITyKEexOV7v_b_gy6H4iArq-8lqgi0nDLJ46YY2265P_4w4j2pPCi0jAso9XuxPZw09SnjocFu12PmIvIQYzz9MBzQVBBffno="
+    },
+    "json_blob": {
+      "plaintext": "{\"endpoint\":\"https://api.example.com\",\"model\":\"gpt-4o-mini\"}",
+      "ciphertext": "gAAAAABqBBlNpsk-hIDZK2BfPOfd6Y8y1sn6E1kOknwEzBjvnx_bOfCcgYi_pkwQLT-ggDOtUKYTrfaptzqHZQQ7X0q44ZQ2431QDVgY7XfHQGGYltEWQ_qbt3F1QDI6BEDtQ2bILEU78Wbz18YDjzdTX2fbfr7LWg=="
+    },
+    "newlines": {
+      "plaintext": "line1\nline2\tindented\r",
+      "ciphertext": "gAAAAABqBBlNErAMKkX3_8rwY25eV0meiEHyRgbsjxcLzjKVjb6BXJxXnS_giApmCFycFSe7qFSd1ifxzoad0al5fvYRyzyP3ylxhXaWNwH6e7IdqIgzucI="
+    }
+  },
+  "ed25519": {
+    "comment": "Ed25519 sign/verify fixtures. Both sides MUST verify the signature produced by the other. Private key in hex; the corresponding public key is derived. The message is the JCS-canonical agent-card body that A2A v1.0 cards sign over.",
+    "private_key_hex_seed": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+    "public_key_hex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+    "message_utf8": "{\"name\":\"test-card\",\"version\":\"1.0.0\"}",
+    "signature_hex_from_python": "dbe0b0d4549a6ecd89d2e13063765c084a2dbc1bb26a3077ec049e810e4abeb40b451e6e1ce6b6067643ce4c969307f9943d2743ffd3e8113b73a32cafd8b300",
+    "signature_hex_from_rust":   "dbe0b0d4549a6ecd89d2e13063765c084a2dbc1bb26a3077ec049e810e4abeb40b451e6e1ce6b6067643ce4c969307f9943d2743ffd3e8113b73a32cafd8b300"
+  }
+}

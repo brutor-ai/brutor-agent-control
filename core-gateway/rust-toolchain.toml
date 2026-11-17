@@ -1,0 +1,13 @@
+# Pinned toolchain.
+#
+# One compiler for local builds, CI and the shipped image (the Dockerfile's
+# `rust:` tag must match). Before this, CI floated on `stable` while the image
+# built with 1.93 — tested ≠ shipped — and 1.93 predates the 2026 Cargo
+# security fixes (CVE-2026-33055/33056, -5222/5223, libssh2 in 1.96.1).
+# Bump deliberately, in its own change, after checking the release notes for
+# security fixes.
+[toolchain]
+channel = "1.97.1"
+components = ["rustfmt", "clippy"]
+targets = ["wasm32-unknown-unknown"]
+profile = "minimal"

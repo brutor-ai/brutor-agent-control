@@ -1,0 +1,63 @@
+{
+  "comment": "What a Community build of the Admin Console must not contain. routePrefixes are the Control Plane route prefixes only the Enterprise Edition serves, and navIds are the ids of the Enterprise navigation entries. sharedPrefixRoutes are Enterprise routes under a prefix both editions have routes under (/v1/admin/users, whose system-administrator routes, /v1/admin/users/system and everything under it, belong to the multi-tenant feature); src/__tests__/communityBundle.test.ts holds that the Community control plane serves none of them. Read by scripts/scan-community-bundle.mjs.",
+  "routePrefixes": [
+    "/v1/admin/deployments",
+    "/v1/admin/llm-runner",
+    "/v1/admin/usage-import",
+    "/v1/admin/semantic-cache",
+    "/v1/admin/prompt-cache",
+    "/v1/admin/mcp-registries",
+    "/v1/internal",
+    "/v1/admin/knowledge-base",
+    "/v1/admin/kb-connectors",
+    "/v1/admin/kb-connector-identities",
+    "/v1/assets/connector-icons",
+    "/v1/admin/policies",
+    "/v1/admin/batch-jobs",
+    "/v1/admin/platform",
+    "/v1/admin/licence",
+    "/v1/public",
+    "/v1/admin/user-notifications",
+    "/v1/admin/discovery",
+    "/v1/discovery"
+  ],
+  "sharedPrefixRoutes": [
+    "/v1/admin/users/system"
+  ],
+  "navIds": [
+    "llm-deployment",
+    "mcp-deployment",
+    "traffic-import",
+    "cache",
+    "semantic-cache",
+    "prompt-cache",
+    "mcp-registry-instance",
+    "knowledge-base",
+    "kb-collections",
+    "kb-connectors",
+    "policies",
+    "batch-jobs",
+    "messages",
+    "platform-overview",
+    "tenants",
+    "system-admins",
+    "tenant-licence",
+    "platform-licence",
+    "platform-settings",
+    "my-profile"
+  ],
+  "sharedNavIds": {
+    "policies": {
+      "label": "Policy as Code",
+      "why": "Community pages have a Policies sub-tab of their own (limits and policies forms, the Composition tab's Policies section) and use the word as a state value."
+    },
+    "cache": {
+      "label": "Cache",
+      "why": "Community code names the cache policy kind the control plane reports in a composition, and a Map it keeps."
+    },
+    "messages": {
+      "label": "Messages",
+      "why": "The \"messages\" field of a chat request, in the API examples the Community console shows."
+    }
+  }
+}

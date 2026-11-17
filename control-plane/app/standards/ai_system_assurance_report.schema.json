@@ -1,0 +1,920 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.brutor.ai/standards/ai-system-assurance-report/1.4/schema.json",
+  "title": "AI System Assurance Report",
+  "description": "A period-scoped, evidence-backed statement of whether a deployed AI System remained within its approved operating envelope — with a verdict, per-term contract compliance, exceptions, changes, and an explicit statement of what the report does NOT cover. spec ai.brutor/ai-system-assurance-report, version 1.x: additive changes only; consumers must tolerate unknown fields.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "spec",
+    "spec_version",
+    "generated_at",
+    "period_hours",
+    "identity",
+    "health",
+    "verdict",
+    "contract_compliance",
+    "bounded",
+    "non_drifting",
+    "doing_its_job",
+    "alive",
+    "conformance",
+    "evidence",
+    "exceptions",
+    "changes",
+    "not_covered"
+  ],
+  "properties": {
+    "spec": {
+      "const": "ai.brutor/ai-system-assurance-report"
+    },
+    "spec_version": {
+      "type": "string",
+      "pattern": "^1\\.\\d+$"
+    },
+    "schema_version": {
+      "type": "integer"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "period_hours": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "identity": {
+      "type": "object",
+      "required": [
+        "ai_system_id",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "health": {
+      "type": "object"
+    },
+    "verdict": {
+      "type": "object",
+      "required": [
+        "status",
+        "conclusion"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "status": {
+          "enum": [
+            "assured",
+            "assured_with_exceptions",
+            "violations",
+            "insufficient_evidence"
+          ],
+          "description": "Worst-first precedence: violations > insufficient_evidence > assured_with_exceptions > assured. Insufficient evidence never reads as assured."
+        },
+        "conclusion": {
+          "type": "string"
+        },
+        "basis": {
+          "enum": [
+            "signed_envelope",
+            "observed_history"
+          ],
+          "description": "Added in 1.2. What the verdict was measured against. observed_history means no approved envelope was in force: the verdict is conditional and formal assurance is incomplete."
+        }
+      }
+    },
+    "contract_compliance": {
+      "type": "object",
+      "required": [
+        "under_signature"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "under_signature": {
+          "type": "boolean",
+          "description": "Whether an approved contract governs the period. Terms declared but never approved are reported, and flagged as not yet under signature."
+        },
+        "envelope": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "config_drifted": {
+          "type": "boolean"
+        }
+      }
+    },
+    "assurance_summary": {
+      "type": "object",
+      "description": "Added in 1.2. The executive layer: one conclusion paragraph answering 'can I rely on this system right now?', the assurance maturity level (0 Observable … 4 Independently assured, cumulative), and five dimensions (operational_evidence, behavioural_stability, contract_assurance, execution_evidence, independent_evidence) each ok | partial | missing. Synthesised from facts stated elsewhere in the report — never a judgment the reader cannot re-derive from the sections below.",
+      "additionalProperties": true,
+      "properties": {
+        "status": {
+          "type": "object",
+          "description": "Added in 1.3. The plain-language assurance status a decision-maker reads first, derived from verdict x basis: a verdict earned only against observed history is conditionally_assured, never plain assured.",
+          "properties": {
+            "code": {
+              "enum": [
+                "assured",
+                "assured_with_exceptions",
+                "conditionally_assured",
+                "violations",
+                "insufficient_evidence"
+              ]
+            },
+            "label": {
+              "type": "string"
+            }
+          }
+        },
+        "what_we_know": {
+          "type": "string",
+          "description": "Added in 1.3."
+        },
+        "what_prevents_full_assurance": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Added in 1.3. Empty when nothing does."
+        },
+        "recommended_action": {
+          "type": "string",
+          "description": "Added in 1.3."
+        },
+        "why_it_matters": {
+          "type": "string",
+          "description": "Added in 1.4. The risk interpretation in one or two sentences — what the status and gaps mean for someone deciding whether to rely on the system."
+        },
+        "conclusion": {
+          "type": "string"
+        },
+        "level": {
+          "type": "object",
+          "description": "Cumulative EVIDENCE maturity (level.scale = Evidence maturity), deliberately not named assurance level: the number measures how much evidence exists, not how trustworthy the system is."
+        },
+        "dimensions": {
+          "type": "object"
+        }
+      }
+    },
+    "bounded": {
+      "type": "object"
+    },
+    "baselines": {
+      "type": "object",
+      "description": "Added in 1.1. The learned baselines — what normal looks like for this system, from its own run ledger. The yardstick every drift finding is measured against; a baseline still learning never alerts.",
+      "additionalProperties": true,
+      "properties": {
+        "ready": {
+          "type": "integer"
+        },
+        "learning": {
+          "type": "integer"
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "non_drifting": {
+      "type": "object"
+    },
+    "doing_its_job": {
+      "type": "object"
+    },
+    "alive": {
+      "type": "object"
+    },
+    "conformance": {
+      "type": "object"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "exceptions": {
+      "type": "object",
+      "description": "Every refusal and interposition in the period — counted, never netted away.",
+      "additionalProperties": true
+    },
+    "changes": {
+      "type": "object",
+      "description": "What changed during the period: contract versions, attributed model/dependency changes, configuration drift.",
+      "additionalProperties": true
+    },
+    "recommended_controls": {
+      "type": "array",
+      "description": "Added in 1.1. Findings turned into named next controls — strictly rule-based over facts already in this report, advisory, never auto-applied.",
+      "items": {
+        "type": "object",
+        "required": [
+          "control",
+          "severity",
+          "reason"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "control": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "not_covered": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What this report does not evidence. A report claiming total coverage is one an auditor stops trusting the moment they find a gap."
+    },
+    "coverage": {
+      "type": "object",
+      "description": "Coverage attestation — the population proof under the report's claims. States what fraction of the discovered AI estate is routed through the gateway, and the basis that figure rests on. Optional: reports captured before this section existed are immutable and legitimately lack it.",
+      "additionalProperties": true,
+      "properties": {
+        "basis": {
+          "type": "string",
+          "enum": [
+            "unmeasured",
+            "stale",
+            "measured"
+          ],
+          "description": "unmeasured = no collector has ever reported. In that case coverage_pct MUST be null, never 1.0 — silence is not coverage."
+        },
+        "coverage_pct": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "governed / (governed + ungoverned + unknown). Null when unmeasured or when the estate is empty."
+        },
+        "governed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ungoverned": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unknown": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Unreconciled assets. Counted against coverage, never toward it."
+        },
+        "total_discovered": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dismissed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Excluded from the denominator by operator action. Disclosed because dismissing assets raises the percentage."
+        },
+        "endpoint_plane_observed": {
+          "type": "boolean"
+        },
+        "planes_observed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "last_report_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "statement": {
+          "type": "string",
+          "description": "One sentence an auditor can quote."
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excluded_period": {
+          "type": "object",
+          "description": "1.8 — The period inside declared incident windows: unmeasured, not passed.",
+          "additionalProperties": true,
+          "required": [
+            "incident_windows",
+            "excluded_hours",
+            "excluded_runs",
+            "statement"
+          ],
+          "properties": {
+            "incident_windows": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "excluded_hours": {
+              "type": "number",
+              "minimum": 0
+            },
+            "excluded_runs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "statement": {
+              "type": "string"
+            },
+            "excluded_approval_requests": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "1.10 — Approval holds raised inside the windows (not judged by the oversight rate). Optional."
+            }
+          }
+        }
+      },
+      "required": [
+        "basis",
+        "coverage_pct",
+        "statement"
+      ]
+    },
+    "obligation_evidence": {
+      "type": "object",
+      "description": "1.5 — the latest Evidence Report per framework for this system. Cites reports; never a compliance verdict.",
+      "additionalProperties": true,
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "reports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "composition": {
+      "type": "object",
+      "description": "1.6 — Composition and dependencies: each declared dependency edge with its role, current status, evidence basis (tested | assumed), contract version, supplier and separability claim, plus the system's callers and open composition findings. 1.7 — each member agent's current release (name, version, build), its trust (verified | declared) and approval, and the agent implementation findings on the system.",
+      "additionalProperties": true,
+      "required": [
+        "title",
+        "edges",
+        "findings"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "root",
+            "shared_service",
+            "root_and_service"
+          ]
+        },
+        "risk_tier_declared": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "risk_tier_effective": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "effective_tier_sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "separability_declarations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "enforce_accepted_callers": {
+          "type": "boolean"
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "edge_id",
+              "role",
+              "criticality",
+              "contributes_to_decision",
+              "assurance_basis"
+            ],
+            "properties": {
+              "edge_id": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "shared_service",
+                  "external"
+                ]
+              },
+              "criticality": {
+                "type": "string",
+                "enum": [
+                  "critical",
+                  "degradable"
+                ]
+              },
+              "contributes_to_decision": {
+                "type": "boolean"
+              },
+              "assurance_basis": {
+                "type": "string",
+                "enum": [
+                  "tested",
+                  "assumed"
+                ]
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "contract": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "supplier_legal_entity": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "callers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "agents": {
+          "type": "array",
+          "description": "1.7 — the system's member agents, each with its CURRENT release (the one seen last) or null when it has never declared one.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "id",
+              "release"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "implementation_name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "approved_versions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "require_release": {
+                "type": "boolean"
+              },
+              "release": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true,
+                "required": [
+                  "name",
+                  "version",
+                  "trust",
+                  "approved"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "build": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "trust": {
+                    "type": "string",
+                    "enum": [
+                      "verified",
+                      "declared"
+                    ]
+                  },
+                  "approved": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "Derived from the identity's approved versions; null = the identity approves nothing (observe only)."
+                  },
+                  "last_seen_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "agent_findings": {
+          "type": "array",
+          "description": "1.7 — open agent implementation findings of the system's member agents (agent.unapproved_release | agent.name_mismatch | agent.release_missing | agent.undeclared_change), at this system's severity.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "code",
+              "severity",
+              "agent_id"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "agent.unapproved_release",
+                  "agent.name_mismatch",
+                  "agent.release_missing",
+                  "agent.undeclared_change"
+                ]
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium"
+                ]
+              },
+              "agent_id": {
+                "type": "string"
+              },
+              "agent_name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "release": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "judgement_exclusions": {
+      "type": "object",
+      "description": "1.8 — What was excluded from judgement: every incident window overlapping the period (who declared it, why, how many of this system's runs it excluded) and every baseline epoch of the system. Runs inside a window are recorded and sealed evidence; they are listed here, never hidden. 1.9 adds `measurement_changes` and the `measurement_change` epoch kind (a platform upgrade changed how a metric is measured). Optional: reports captured before 1.8 lack it. 1.10 adds `excluded_approval_requests`: approval holds raised inside a declared window, which the oversight rate does not judge (a window only excuses what it covers).",
+      "additionalProperties": true,
+      "required": [
+        "incident_windows",
+        "baseline_epochs",
+        "excluded_hours",
+        "excluded_runs"
+      ],
+      "properties": {
+        "incident_windows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "id",
+              "starts_at",
+              "ends_at",
+              "cause_category",
+              "reason",
+              "runs_excluded"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "ai_system_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "null = every AI System in the tenant"
+              },
+              "tenant_wide": {
+                "type": "boolean"
+              },
+              "resource_type": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "resource_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "starts_at": {
+                "type": "string"
+              },
+              "ends_at": {
+                "type": "string",
+                "description": "Exclusive"
+              },
+              "cause_category": {
+                "type": "string",
+                "enum": [
+                  "provider_outage",
+                  "platform_incident",
+                  "maintenance",
+                  "other"
+                ]
+              },
+              "reason": {
+                "type": "string"
+              },
+              "drift_event_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "declared_by": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "declared_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "updated_by": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "record_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The sealed ai.brutor.declaration; null = not sealed"
+              },
+              "sealed_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "runs_excluded": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "This system's runs whose start lies in the window"
+              },
+              "drift_event_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The cause_fixed findings this window closed (declaring first, then attached); each window is listed once"
+              }
+            }
+          }
+        },
+        "baseline_epochs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "id",
+              "metric_key",
+              "basis",
+              "caller_system_id",
+              "starts_at",
+              "kind"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "metric_key": {
+                "type": "string"
+              },
+              "basis": {
+                "type": "string",
+                "enum": [
+                  "runs",
+                  "segments"
+                ]
+              },
+              "caller_system_id": {
+                "type": "string",
+                "description": "'all' covers every caller of the metric"
+              },
+              "starts_at": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "accepted_change",
+                  "false_positive",
+                  "measurement_change"
+                ]
+              },
+              "drift_event_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "measurement_change_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "1.9 — measurement_change epochs: the platform registry entry"
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "declared_by": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "declared_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "record_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "sealed_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "excluded_hours": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Union of the windows, clipped to the period"
+        },
+        "excluded_runs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "measurement_changes": {
+          "type": "array",
+          "description": "1.9 — Platform upgrades that changed how one of this system's metrics is measured. Each started a baseline epoch: samples before it are not judged against samples after it. Optional: reports before 1.9 lack it.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "id",
+              "metric_keys",
+              "starts_at",
+              "reason"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "metric_keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "bases": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "runs",
+                    "segments"
+                  ]
+                }
+              },
+              "starts_at": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "introduced_in_version": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "excluded_approval_requests": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "1.10 — Approval holds raised inside a declared incident window of this system (or tenant-wide): recorded and listed, not judged by the oversight rate. Holds raised outside every window always count, however they ended. Optional: reports before 1.10 lack it."
+        }
+      }
+    }
+  }
+}

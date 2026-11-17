@@ -1,0 +1,11 @@
+# The image of the Skill Runner: ONE list of what it is called and what it
+# says about itself. Held to by tests/image_names_guard.rs: the Dockerfile's
+# labels and the workflow's image name equal this list.
+#
+# Columns, separated by tabs:
+#   edition   name   title   licenses   source   dockerfile
+# `name` is the repository on the registry (no tag). The Skill Runner is one
+# build, the Community one; the Enterprise package runs the same image.
+# The image also carries org.opencontainers.image.vendor = "Brutor AI Ltd"
+# and ai.brutor.edition = <edition>.
+community	ghcr.io/brutor-ai/brutor-agent-control-skill-runner	Brutor Agent Control Skill Runner (Community Edition)	Apache-2.0	https://github.com/brutor-ai/brutor-agent-control	Dockerfile

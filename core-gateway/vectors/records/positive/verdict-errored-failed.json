@@ -1,0 +1,63 @@
+{
+  "canonical": "{\"action_id\":\"mcp/01K5VEC0000000000000000010\",\"context\":{\"autonomy_level\":\"supervised\",\"autonomy_provenance\":\"contract\",\"root_task_id\":\"run-vectors-1\",\"server_version\":\"orders-mcp/2.4.1\",\"surface\":\"mcp\",\"tags\":[\"eu_ai_act.art12\",\"soc2.cc7.2\"],\"tool_definition_hash\":\"39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3\",\"turn_id\":\"turn-10\"},\"disposition\":{\"approver\":\"policy\",\"decision\":\"accept\",\"human_disposed\":false},\"effect\":{\"attestation\":\"gate_observed\",\"request_digest\":\"f1339239f955058d4301ee556d524197314100557dc5c5b6944f11e48f809f71\",\"status\":\"failed\",\"type\":\"mcp_tool_call\"},\"epoch\":\"contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"kind\":\"decide\",\"operator\":\"tenant-vectors\",\"schema\":\"ai.brutor/action-record/v1\",\"system\":{\"ai_system_id\":\"rg-vectors-claims\",\"contract_hash\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"contract_version\":3},\"timestamp\":\"2026-09-19T10:00:10.000Z\",\"verdict\":\"errored\"}",
+  "description": "errored: tool returned isError / upstream 4xx-5xx; effect failed; derived mode dispatched_unconfirmed",
+  "expect": {
+    "codes": [],
+    "effect_mode": "dispatched_unconfirmed",
+    "ok": true,
+    "record_id": "0c1298e9b39653a1f9f9e356943e2320f74c7a978114f99fc1cadee5e6756437"
+  },
+  "preimages": {
+    "effect.request_digest": {
+      "scheme": "jcs",
+      "value": {
+        "arguments": {
+          "amount": "1240.19",
+          "currency": "EUR",
+          "order_id": "PO-88213"
+        },
+        "tool": "orders.refund"
+      }
+    }
+  },
+  "record": {
+    "action_id": "mcp/01K5VEC0000000000000000010",
+    "context": {
+      "autonomy_level": "supervised",
+      "autonomy_provenance": "contract",
+      "root_task_id": "run-vectors-1",
+      "server_version": "orders-mcp/2.4.1",
+      "surface": "mcp",
+      "tags": [
+        "eu_ai_act.art12",
+        "soc2.cc7.2"
+      ],
+      "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+      "turn_id": "turn-10"
+    },
+    "disposition": {
+      "approver": "policy",
+      "decision": "accept",
+      "human_disposed": false
+    },
+    "effect": {
+      "attestation": "gate_observed",
+      "request_digest": "f1339239f955058d4301ee556d524197314100557dc5c5b6944f11e48f809f71",
+      "status": "failed",
+      "type": "mcp_tool_call"
+    },
+    "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+    "kind": "decide",
+    "operator": "tenant-vectors",
+    "record_id": "0c1298e9b39653a1f9f9e356943e2320f74c7a978114f99fc1cadee5e6756437",
+    "schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "rg-vectors-claims",
+      "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "contract_version": 3
+    },
+    "timestamp": "2026-09-19T10:00:10.000Z",
+    "verdict": "errored"
+  },
+  "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggDBKY6bOWU6H5+eNWlD4jIPdMepeBFPmfwcre5eZ1ZDdYQDOPIsutxCfIFOH0MJoeyAOj6E/CFEar1A849giX5jqUpYs+MpeWdVeGGY4ZRTY7kMhZZlmlFU4tcwAkn0wS2wU="
+}

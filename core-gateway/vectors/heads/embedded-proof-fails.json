@@ -1,0 +1,17 @@
+{
+  "consistency_proof": null,
+  "description": "a head whose root was rewritten: its embedded consistency proof from prev_root no longer holds",
+  "expect": {
+    "codes": [
+      "head_consistency_invalid"
+    ],
+    "consistent_with_previous": null,
+    "log_id": null,
+    "ok": false,
+    "root": null,
+    "tree_size": null
+  },
+  "keys": "keys/well-known.json",
+  "previous_b64": null,
+  "statement_b64": "0oRY2aQBJwN4JWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IudHJlZS1oZWFkK2Nib3IEWCBhj0sCJ6m8L2xM3EtIFMDaGzUbrofwfyiZpiIyPi/pEQ+iAXhAMGRkNDFmMGY3YzI3NGZhZDI4NDkyMTQyZDcxNzZmNmE0MTIxMTQxN2Y2OTUwOTk4NDRmYjdlOWZiNzQ5NDJlNQJ4QzBkZDQxZjBmN2MyNzRmYWQyODQ5MjE0MmQ3MTc2ZjZhNDEyMTE0MTdmNjk1MDk5ODQ0ZmI3ZTlmYjc0OTQyZTUjMTCgWQGUp2Ryb290WCDvQjJNA9WzAxjZ7+gW8dF3IiXoY1qJcZvJ8JxBh0Q2eGZsb2dfaWR4QDBkZDQxZjBmN2MyNzRmYWQyODQ5MjE0MmQ3MTc2ZjZhNDEyMTE0MTdmNjk1MDk5ODQ0ZmI3ZTlmYjc0OTQyZTVpaXNzdWVkX2F0eBgyMDI2LTA5LTE5VDEwOjE1OjAwLjAwMFppcHJldl9yb290WCBkEijgKUSK7jWez8Ct72VmnwMKmbnq4+mCqcoksn3kJGlwcmV2X3NpemUHaXRyZWVfc2l6ZQpxY29uc2lzdGVuY3lfcHJvb2aFWCBb/Rj/wgrD83+9kZbq5f2jn3qsvCoKAb4O0D37vyIeuVggLxY+OQ/V07gXV4obNqg6zD/jq2xi63n56PNiaraAsdpYID2SKsZnXbzMgQ7aKzlnDsMmRrUojnhZ+x6NcP83QXJCWCDYFRJVUTe64bnj/f7xLQpiUGSiYqGqODsp66AxivkyjFgg8o6PaD1AxatueOKttYuR44ArQ9r2KXrQM2huV0ODANVYQMmy6oUCXAxT/aHh28JeVNiXFgiB8kVO+X/2WCyQlEdw5/f4jDmGXOYNnfA364Vc9IwL2N06IbIPZ5FyZqLxFgc="
+}

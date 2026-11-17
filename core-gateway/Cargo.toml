@@ -1,0 +1,291 @@
+[package]
+name = "brutor-gateway-core"
+version = "0.11.32"
+edition = "2024"
+description = "Brutor Agent Control Core Gateway: high-performance proxy layer in Rust"
+license = "Apache-2.0"
+publish = false
+authors = ["Brutor AI Ltd"]
+
+[workspace]
+members = ["crates/*"]
+# The Enterprise Edition is a workspace of its own:
+# its lock file and its private dependency stay out of this
+# one.
+exclude = ["enterprise"]
+# The root package stays the gateway binary; the crates under crates/
+# are the standards-only evidence substrate: a relying
+# party can build brutor-verify without the gateway, and the gateway
+# depends on the crates, never the other way round.
+
+[dependencies]
+brutor-cose = { path = "crates/brutor-cose" }
+brutor-ctlog = { path = "crates/brutor-ctlog" }
+brutor-evidence = { path = "crates/brutor-evidence" }
+brutor-aac = { path = "crates/brutor-aac" }
+brutor-tsp = { path = "crates/brutor-tsp" }
+# Receipt grading shared with the offline verifier (no CLI deps).
+brutor-verify = { path = "crates/brutor-verify", default-features = false }
+# Field paths in seal-API 422s (already in the tree via axum).
+serde_path_to_error = "0.1"
+
+# Web framework
+axum = { version = "0.8", features = ["macros", "ws", "multipart"] }
+axum-extra = { version = "0.10", features = ["typed-header"] }
+tower = { version = "0.5", features = ["full"] }
+tower-http = { version = "0.6", features = ["cors", "trace", "request-id", "propagate-header"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# The host's name, in the id of the instance lease
+# (services/instance_lease.rs): the refusal a second instance gets names
+# the machine or container that holds the lease.
+hostname = "0.4"
+
+# HTTP client for proxying
+# One TLS stack. reqwest's default features add native-tls (OpenSSL
+# on Linux), and its default client then PREFERS it over rustls, so every
+# outbound HTTPS call went through OpenSSL. Defaults off; the rest of the
+# default set is kept (charset, http2, system-proxy). Roots: the bundled
+# Mozilla set plus the operating system's store, so a private CA installed
+# in the image (an internal LLM endpoint, a corporate proxy) is still
+# trusted as it was under native-tls. `deny.toml` bans OpenSSL.
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "stream",
+    "rustls-tls",
+    "rustls-tls-native-roots",
+    "gzip",
+    "multipart",
+    "charset",
+    "http2",
+    "system-proxy",
+] }
+reqwest-eventsource = "0.6"
+
+# Database
+sqlx = { version = "0.8", features = [
+    "runtime-tokio-rustls",
+    "postgres",
+    "chrono",
+    "json",
+    "uuid",
+    # `macros` enables `#[sqlx::test]` for the DB-integration harness in
+    # tests/it/. The macro spins up an ephemeral Postgres DB per test from
+    # a template DB pre-loaded with tests/fixtures/schema.sql (dumped from
+    # Alembic — see tests/it/README.md).
+    "macros",
+] }
+
+# Redis
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# serde_yml removed: was only used by the retired skill_source_sync
+# scheduler. Config-import YAML parsing now happens in
+# gateway-control via PyYAML.
+
+# Auth & Crypto
+jsonwebtoken = "9"
+sha2 = "0.10"
+hex = "0.4"
+hmac = "0.12"
+pbkdf2 = { version = "0.12", features = ["simple"] }
+aes = "0.8"
+cbc = { version = "0.1", features = ["alloc"] }
+base64 = "0.22"
+rand = "0.9"
+# Ed25519 signing — used by A2A v1.0 JWS Agent Card signatures.
+# v2.x is the current stable API. `rand_core` feature pulls in the
+# trait implementations we need for keypair generation in tests.
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+
+# Concurrent data structures
+dashmap = "6"
+
+# Glob matching — used by A2A outbound policy to match remote agent
+# URLs against tenant-configured allow-lists (e.g. "https://*.partner.com/*").
+globset = "0.4"
+
+# Form data parsing
+serde_urlencoded = "0.7"
+
+# Observability — Logging, Distributed Tracing, Metrics
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "registry"] }
+tracing-opentelemetry = "0.29"
+
+# OpenTelemetry — trace export via OTLP (Datadog, New Relic, Grafana Tempo, Jaeger)
+opentelemetry = "0.28"
+opentelemetry_sdk = { version = "0.28", features = ["rt-tokio"] }
+# Defaults off: they add the HTTP exporter and a blocking reqwest
+# client, metrics and logs pipelines this crate does not use.
+opentelemetry-otlp = { version = "0.28", default-features = false, features = ["grpc-tonic", "trace"] }
+
+# Prometheus metrics — exposes /metrics endpoint for scraping
+metrics = "0.24"
+metrics-exporter-prometheus = "0.16"
+
+# GCP authentication (Vertex AI backend)
+gcp_auth = "0.12"
+# Direct, to install the process's TLS crypto provider before gcp_auth builds
+# its client: the graph enables both `ring` and
+# `aws-lc-rs` on rustls, so rustls cannot pick one and gcp_auth's first token
+# request panicked. Already in the graph at this version (reqwest, sqlx,
+# hyper-rustls, the AWS SDK); no new crate. Apache-2.0 / ISC / MIT.
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs", "std"] }
+
+# AWS S3 — production backend for the multimodal Files API.
+# Same SDK drives both AWS S3 (SaaS) and MinIO (trial
+# bundle); MinIO is fully S3-API compatible, only the endpoint URL
+# and credential source differ. We pin the SDK and config crates
+# to the same minor version so a future bump touches both at once
+# (the smithy-runtime contract between them changes per minor).
+aws-config = { version = "1", features = ["behavior-version-latest"] }
+# Default features minus `rustls`, which selects the SDK's LEGACY connector
+# (hyper 0.14 + rustls 0.21 + h2 0.3 + rustls-webpki 0.101, all with open
+# RustSec advisories: RUSTSEC-2026-0258/0098/0099/0104). `default-https-client`
+# is the SDK's current hyper 1 + rustls 0.23 client, the one aws-config already uses.
+aws-sdk-s3 = { version = "1", default-features = false, features = ["behavior-version-latest", "sigv4a", "default-https-client", "rt-tokio"] }
+aws-credential-types = { version = "1", features = ["hardcoded-credentials"] }
+
+# In-memory caching (TTL, LRU, async-ready)
+moka = { version = "0.12", features = ["future", "sync"] }
+
+# Bounded CEL profile for Continuous Assurance Checks (the
+# engine evaluates the run ledger's facts). `json` gives lossless
+# serde_json <-> cel::Value conversion; the profile whitelist in
+# services/assurance_checks.rs is what keeps this bounded — never expose
+# the full stdlib to operator expressions without going through
+# `compile_expression`.
+cel = { version = "0.14", features = ["json"] }
+
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+ulid = "1"
+url = "2"
+bytes = "1"
+futures = "0.3"
+async-trait = "0.1"
+thiserror = "2"
+dotenvy = "0.15"
+anyhow = "1"
+regex-lite = "0.1"
+
+# Argument-policy analyzers (POLICY-10 AST checks).
+# `visitor` feature exposes visit_relations() so we can walk
+# parsed statements without re-implementing the recursion.
+sqlparser = { version = "0.52", features = ["visitor"] }
+shellwords = "1.1"
+
+# SSE streaming
+tokio-stream = "0.1"
+tokio-util = "0.7"
+
+# OpenAPI / Swagger UI
+utoipa = { version = "5", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "10", features = ["axum"] }
+
+[dev-dependencies]
+# HTTP mocking for integration tests
+wiremock = "0.6"
+# Tower test utilities for route handler tests
+tower = { version = "0.5", features = ["util"] }
+# Hyper body utilities for reading response bodies in tests
+http-body-util = "0.1"
+# Micro-benchmarks
+criterion = { version = "0.5", features = ["html_reports"] }
+# Test oracle only: A2A card JCS moved to brutor_evidence::canon (RFC 8785
+# §3.2.3 orders members by UTF-16 units; serde_jcs sorts by code point).
+# Its ECMAScript number output (ryu-js) cross-checks our formatter.
+serde_jcs = "0.1"
+# Property tests with shrinking (run-segment conservation over
+# arbitrary delegation trees): a failing tree is reduced to the smallest one
+# that still breaks the invariant, which a seeded loop cannot do.
+proptest = { version = "1", default-features = false, features = ["std"] }
+
+[[bench]]
+name = "router_state"
+harness = false
+
+[[bench]]
+name = "routing_strategies"
+harness = false
+
+[[bench]]
+name = "adapter_transform"
+harness = false
+
+[[bench]]
+name = "stream_normalizer"
+harness = false
+
+[[bench]]
+name = "anthropic_adapter"
+harness = false
+
+[[bench]]
+name = "jsonrpc_body"
+harness = false
+
+[[bench]]
+name = "argument_analysis"
+harness = false
+
+[features]
+# Opt-in DB-integration tests under tests/integration/ — gated so plain
+# `cargo test` does not require a Postgres. Run with:
+#   cargo nextest run --locked --workspace --lib --tests --features db-tests
+# on a throwaway Postgres and Redis: see tests/integration/README.md.
+db-tests = []
+
+# DB-integration test binary — covers the gaps that pure unit tests
+# can't reach (SQL queries, route handlers against a live DB). Gated
+# behind `db-tests` so it's a no-op without the feature.
+[[test]]
+name = "integration"
+path = "tests/integration/main.rs"
+required-features = ["db-tests"]
+
+[lib]
+name = "brutor_gateway_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "brutor-gateway-core"
+path = "src/main.rs"
+
+[[bin]]
+name = "benchmark"
+path = "src/bin/benchmark.rs"
+
+# Rebuild the run ledger from historical proxy_logs.
+# Reuses the live finalizer so there is only ever one definition of a run.
+[[bin]]
+name = "run-backfill"
+path = "src/bin/run_backfill.rs"
+
+# ── Build profiles ───────────────────────────────────────────────────────
+#
+# Test binaries carry line tables instead of full DWARF. Panic backtraces
+# still report file and line — which is what a failing test needs — but the
+# per-variable debug info a debugger would use is dropped, and that is the
+# bulk of a debug build's size.
+#
+# This matters because the `integration` binary links ~70 crates and comes
+# out at 180 MB with full debuginfo. On a CI runner with ~14 GB free, the
+# link step ran the disk out and `rust-lld` died with signal 7 (Bus error),
+# reported as an LLVM crash rather than as "no space left".
+#
+# Deliberately only `test`: `dev` is left alone so stepping through the
+# proxy in a debugger still works locally. CI sets
+# CARGO_PROFILE_DEV_DEBUG=line-tables-only for the dependency rlibs, where
+# nobody is setting breakpoints anyway.
+[profile.test]
+debug = "line-tables-only"

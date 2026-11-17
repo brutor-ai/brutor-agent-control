@@ -1,0 +1,129 @@
+# gitleaks configuration of the public repository: gitleaks' default rules, plus
+# an allow-list in which every entry says why it is not a secret. The root
+# workflow (.github/workflows/repository.yml) runs it on every pull request and
+# on the history from the import commit on. Add an entry only for a value a
+# person has read and found to be a test value or a published example; name the
+# file, and the value by a fragment, never a whole file type.
+
+title = "Brutor Agent Control"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "The fixed 2048-bit RSA key the workload-identity integration tests sign their tokens with; generated for the tests, it signs nothing outside them. Allowed in this file only, and only this key (a fragment of its body)."
+targetRules = ["private-key"]
+condition = "AND"
+paths = ['''^core-gateway/tests/integration/workload_identity\.rs$''']
+regexes = ['''F9LLn0pyq9GYm6eljkgVhoSqZtdAVlhR''']
+
+[[allowlists]]
+description = "The CI jobs' own throwaway settings: the JWT secret and encryption key of the test services and the skill runner's start smoke, each a self-describing test value used only inside the job."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = [
+  '''^\.github/workflows/core-gateway\.yml$''',
+  '''^\.github/workflows/control-plane\.yml$''',
+  '''^\.github/workflows/skill-runner\.yml$''',
+]
+regexes = [
+  '''^ci-test-jwt-secret-must-be-at-least-32-characters$''',
+  '''^ci-test-encryption-key-32chars''',
+  '''test-jwt-secret-at-least-32-characters-long-xxx''',
+]
+
+[[allowlists]]
+description = "Identifiers, not credentials: the control keys of the compliance catalogues (article and clause ids such as art50-...) and the metric keys their tests use, lower-case words joined by hyphens or underscores."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = [
+  '''^control-plane/app/services/compliance/catalogs/brazil\.py$''',
+  '''^control-plane/app/services/compliance/catalogs/eu_ai_act\.py$''',
+  '''^control-plane/app/services/compliance/catalogs/gdpr\.py$''',
+  '''^control-plane/app/services/compliance/catalogs/hipaa\.py$''',
+  '''^control-plane/app/services/compliance/catalogs/iso_42001\.py$''',
+  '''^control-plane/app/services/compliance/catalogs/nis2\.py$''',
+  '''^control-plane/app/services/compliance/catalogs/soc2\.py$''',
+  '''^control-plane/tests/test_compliance_catalogs_and_resolvers\.py$''',
+  '''^control-plane/tests/test_compliance_resolvers_pg\.py$''',
+]
+regexes = ['''^[a-z0-9]+(?:[-_][a-z0-9]+)+$''']
+
+[[allowlists]]
+description = "Public values, not secrets: Ed25519 public keys (the corpus witness's pin, the documented examples of the pinned-key and trusted-key settings) and the sha256 file hashes of the UI style lock, each 64 hexadecimal characters."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = [
+  '''^core-gateway/vectors/keys/witness\.json$''',
+  '''^core-gateway/\.env\.example$''',
+  '''^control-plane/\.env\.example$''',
+  '''^admin-console/src/ui-style/UI_STYLE_LOCK\.json$''',
+]
+regexes = ['''^[0-9a-f]{64}$''']
+
+[[allowlists]]
+description = "The Ed25519 secret key of test vector 1 of RFC 8032, published in the RFC, which the crypto interoperability fixture uses so that both implementations sign the same bytes."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^control-plane/tests/fixtures/crypto_interop_v1\.json$''']
+regexes = ['''^9d61b19deffd5a60ba844af492ec2cc4''']
+
+[[allowlists]]
+description = "Inputs of the secret and PII detector tests and of other tests that need a key-shaped value: each carries a marker (EXAMPLE, test, a run of 0123456789 or abcdef, an ellipsis), is GitHub's documented example token, or is a truncated PEM header."
+targetRules = ["generic-api-key", "aws-access-token", "github-oauth", "private-key", "jwt"]
+condition = "AND"
+paths = [
+  '''^core-gateway/src/services/guardrails/secrets\.rs$''',
+  '''^core-gateway/src/services/guardrails/pii\.rs$''',
+  '''^core-gateway/src/services/agent_impl_tests\.rs$''',
+  '''^core-gateway/tests/integration/cloud_identity\.rs$''',
+  '''^core-gateway/scripts/image-smoke\.sh$''',
+  '''^control-plane/tests/test_placeholder_secrets_refused\.py$''',
+  '''^control-plane/tests/test_claude_desktop_export\.py$''',
+  '''^admin-console/src/components/configuration/__tests__/TenantEvidencePanel\.test\.tsx$''',
+]
+regexes = [
+  '''(?i)example|test|fake|dummy|0123456789|abcdef|xxxx|\.\.\.''',
+  '''MIIEogIBAAKC''',
+  '''^gho_16C7e42F292c6912E7710c''',
+]
+
+[[allowlists]]
+description = "Documentation, not credentials: the OpenAPI example of a token response (an elided JWT), the docstring example of the API key format, and an error message that names the PEM header it expects."
+targetRules = ["generic-api-key", "private-key"]
+condition = "AND"
+paths = [
+  '''^control-plane/app/api/v1/models/admin/admin_rbac\.py$''',
+  '''^control-plane/app/services/utils/authentication_context\.py$''',
+  '''^control-plane/app/services/llm/provider_config\.py$''',
+]
+regexes = [
+  '''\.\.\.''',
+  '''^sk_brutor_api_''',
+  '''-----BEGIN PRIVATE KEY-----\)''',
+]
+
+[[allowlists]]
+description = "The Admin Console's copy-and-paste curl examples: the Authorization header holds a template placeholder filled in the browser, never a value."
+targetRules = ["curl-auth-header"]
+condition = "AND"
+paths = [
+  '''^admin-console/src/components/llm/config/LLMProxyEndpointModal\.tsx$''',
+  '''^admin-console/src/components/mcp/config/server/CapabilityViewerDialog\.tsx$''',
+]
+regexes = ['''\$\{|YOUR_|<''']
+
+[[allowlists]]
+description = "A synthetic bearer token in a PII detector test: the header and claims are {\"alg\":\"HS256\"} and {\"sub\":\"user\"}, and its signature is too short to be an HS256 signature."
+targetRules = ["jwt"]
+condition = "AND"
+paths = ['''^core-gateway/src/services/guardrails/pii\.rs$''']
+regexes = ['''^eyJhbGciOiJIUzI1NiJ9\.eyJzdWIiOiJ1c2VyIn0''']
+
+[[allowlists]]
+description = "The list of credentials a cloud-identity test checks never reach the upstream: constants of the test and the fixture string ya29.f811-row, matched on that line."
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^core-gateway/tests/integration/cloud_identity\.rs$''']
+regexes = ['''SECRET, "ya29\.f811-row"\]''']

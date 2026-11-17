@@ -1,0 +1,10 @@
+{
+  "community": {
+    "routes": "6f01a02e436ca08dcbb9212c192df1f65486489ab5ca0c786e42c52a8ccd07be",
+    "types": "4e3a4707e8a0a4e5c77327a9c7bab8eb0b30732d12b44ac4d86ea3ac264913cb"
+  },
+  "enterprise": {
+    "routes": "6f52fed1dcd9c80ab8dabebc130d3bd0e4e2af0f5c41cddd613df94e89199a21",
+    "types": "57ea631298dd7165a0d7190fbad4992487b76be56bfa8d0f8f2542c602b569fd"
+  }
+}

@@ -1,0 +1,52 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Intellij IDEA Project
+.idea
+
+# Mac file
+.DS_Store
+
+# Secrets — runtime configuration. Carries JWT_SECRET, ENCRYPTION_KEY,
+# admin default passwords, DB / Redis URLs. Ship .env.example (no
+# secret values) as the template; every developer / deployment
+# provides their own real .env. If .env was tracked before this
+# rule, run `git rm --cached .env` AND rotate every secret it held.
+.env
+.env.*
+!.env.example
+
+# What a test run writes: logs and coverage data. They carry paths of the
+# machine they ran on and whatever a test printed (tests/test_no_tracked_run_output.py).
+*.log
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# file backup dirs
+.ai_gateway_config_backups/
+
+.mcp-server-builds
+
+# Provider API keys for live health-check tests. The directory holds a
+# .env-style file with OPENAI_API_KEY / ANTHROPIC_API_KEY / GOOGLE_API_KEY.
+# Kept out of git — every developer / CI runner provides their own.
+tests/.secrets/
+
+# Claude Code workspace — local session state, agent transcripts, and
+# (most importantly) the per-workflow git worktrees that show up under
+# .claude/worktrees/wf_<runid>-<n>. Worktrees are real git checkouts
+# pointing back at this repo via .git/worktrees/* — committing them
+# as submodule entries is never what we want. The whole .claude/ tree
+# is local-only by convention; nothing here is meant to be shared.
+.claude/
+

@@ -1,0 +1,63 @@
+# =============================================================================
+# OpenTelemetry Collector Configuration
+#
+# Entry point for all telemetry from the Brutor Agent Control Core Gateway.
+# Receives OTLP (gRPC :4317, HTTP :4318) and fans out to:
+#   - Prometheus (metrics via remote write)
+#   - Loki (logs via HTTP)
+# =============================================================================
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+
+  # Add resource attributes for easier filtering in Grafana
+  resource:
+    attributes:
+      - key: service.namespace
+        value: brutor-ai
+        action: upsert
+
+exporters:
+  # Prometheus — collector exposes :8889 for Prometheus to scrape
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: brutor
+    resource_to_telemetry_conversion:
+      enabled: true
+
+  # Loki — push logs via HTTP
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
+
+  # Debug exporter for troubleshooting (writes to collector stdout)
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [debug]
+
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [prometheus]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlphttp/loki, debug]

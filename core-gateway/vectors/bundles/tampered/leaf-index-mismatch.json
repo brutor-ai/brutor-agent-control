@@ -1,0 +1,518 @@
+{
+  "consistency": [
+    {
+      "from_size": 4,
+      "path": [
+        "9e7c35904cb54be2ba746ca55fdc2d1e4aabf418deb0c66f62c440bf59b295ff"
+      ],
+      "to_size": 7
+    }
+  ],
+  "countersignatures": [],
+  "disclosures": {},
+  "extensions": {
+    "ai.brutor/evidence-report/v1": {
+      "period_end": "2026-09-20",
+      "period_start": "2026-09-19",
+      "statements": [
+        {
+          "key": "art12.logging",
+          "m": 6,
+          "n": 6,
+          "status": "met"
+        }
+      ]
+    }
+  },
+  "manifest": {
+    "bundle_id": "bdl-vectors-run",
+    "catalog_version": "2026-09",
+    "completeness": {
+      "closure_depth": 1,
+      "missing": [],
+      "payloads_mode": "none",
+      "records_mode": "complete",
+      "selection": "contiguous",
+      "suppressed_fields": []
+    },
+    "framework_id": "eu-ai-act",
+    "issuer": "urn:brutor:deployment:vectors",
+    "kids": [
+      "618f4b0227a9bc2f6c4cdc4b4814c0da1b351bae87f07f2899a622323e2fe911"
+    ],
+    "kind": "ai.brutor/evidence-bundle",
+    "log_id": "0dd41f0f7c274fad28492142d7176f6a41211417f695099844fb7e9fb74942e5",
+    "produced_at": "2026-09-19T11:00:00.000Z",
+    "selector": {
+      "root_task_id": "run-vectors-1"
+    },
+    "verification": {
+      "self_report": {
+        "heads": 2,
+        "proofs": 6,
+        "records": 6
+      }
+    },
+    "version": 1
+  },
+  "proofs": [
+    {
+      "leaf_index": 1,
+      "path": [
+        "a164cc219b5233c166a7a5b43c7474f5b4cd8f192882280c07a72bb78b628216",
+        "6aefdb108c788a8ba1157cc1459dc955fb17efa835e0d72af71e03d4833fb6b0",
+        "9e7c35904cb54be2ba746ca55fdc2d1e4aabf418deb0c66f62c440bf59b295ff"
+      ],
+      "record_id": "b2d61b2f1cb037dbb1cbb57a3e009f63bba0b5083f6f9f52b83b96d15cf6938c",
+      "tree_size": 7
+    },
+    {
+      "leaf_index": 1,
+      "path": [
+        "278242604c51644abb159d8594ca227924d7b22c51815206caaaf434177ea830",
+        "6aefdb108c788a8ba1157cc1459dc955fb17efa835e0d72af71e03d4833fb6b0",
+        "9e7c35904cb54be2ba746ca55fdc2d1e4aabf418deb0c66f62c440bf59b295ff"
+      ],
+      "record_id": "6b0f1dbe8a81f462551b003664a6eae720637c8bfed5b226e90f1132cc61ed47",
+      "tree_size": 7
+    },
+    {
+      "leaf_index": 2,
+      "path": [
+        "3c894e6a8be117cda1b0f038c4106fd94d47208713b6f0b9a5aedecec1d265c8",
+        "acab85a4c6522a1d9e44aa28e463b583c0d70fa948afcafa7a6a4ca196cefaab",
+        "9e7c35904cb54be2ba746ca55fdc2d1e4aabf418deb0c66f62c440bf59b295ff"
+      ],
+      "record_id": "e8dc81322b7b467bcc3a7c61c596ad6ba4ac3f3ffef6e33a6558f952a41c5a94",
+      "tree_size": 7
+    },
+    {
+      "leaf_index": 3,
+      "path": [
+        "360fde946dabc4e3a1336c83a07fac173b46514846e830261cbf9e2dc9562d72",
+        "acab85a4c6522a1d9e44aa28e463b583c0d70fa948afcafa7a6a4ca196cefaab",
+        "9e7c35904cb54be2ba746ca55fdc2d1e4aabf418deb0c66f62c440bf59b295ff"
+      ],
+      "record_id": "437651a1abc83e14f00d89ed441fb686f97e575f0bc98fb3c9cbbfe6131024a5",
+      "tree_size": 7
+    },
+    {
+      "leaf_index": 5,
+      "path": [
+        "9819f00268ce7a9761ea9f14a49441d91bc445a6b74b2b57d821e3039fee2d47",
+        "5bfd18ffc20ac3f37fbd9196eae5fda39f7aacbc2a0a01be0ed03dfbbf221eb9",
+        "d81512555137bae1b9e3fdfef12d0a625064a262a1aa383b29eba0318af9328c"
+      ],
+      "record_id": "a9dd7427b928dd039aeeea6074ccf7fcc00ff8fe0f8ddce740a4c858a2a0e105",
+      "tree_size": 7
+    },
+    {
+      "leaf_index": 6,
+      "path": [
+        "3d922ac6675dbccc810eda2b39670ec32646b5288e7859fb1e8d70ff37417242",
+        "d81512555137bae1b9e3fdfef12d0a625064a262a1aa383b29eba0318af9328c"
+      ],
+      "record_id": "0cf79f384f6339e2f56d3f77b8f9d85b717ce54c5a380b0cf185d1f387d3e583",
+      "tree_size": 7
+    }
+  ],
+  "prunes": [],
+  "records": [
+    {
+      "record": {
+        "action_id": "mcp/01K5VEC0000000000000000001",
+        "context": {
+          "approval_request_id": "apr-01K5VEC0001",
+          "autonomy_level": "supervised",
+          "autonomy_provenance": "contract",
+          "root_task_id": "run-vectors-1",
+          "server_version": "orders-mcp/2.4.1",
+          "surface": "mcp",
+          "tags": [
+            "eu_ai_act.art12",
+            "soc2.cc7.2"
+          ],
+          "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+          "turn_id": "turn-1"
+        },
+        "controls": [
+          {
+            "blocking": true,
+            "id": "ai.brutor.approval.required",
+            "kind": "gate",
+            "result": "fail",
+            "severity": "high"
+          }
+        ],
+        "disposition": {
+          "approver": "policy",
+          "decision": "needs_input",
+          "human_disposed": false
+        },
+        "effect": {
+          "attestation": "gate_observed",
+          "status": "planned",
+          "type": "mcp_tool_call"
+        },
+        "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "kind": "decide",
+        "operator": "tenant-vectors",
+        "record_id": "b2d61b2f1cb037dbb1cbb57a3e009f63bba0b5083f6f9f52b83b96d15cf6938c",
+        "references": [
+          {
+            "digest": "540393188cdee8083affa629a7116deb37f164b2da60730e309fcd24d3068b2a",
+            "digest_alg": "SHA-256",
+            "type": "ai.brutor.proxy-log-row"
+          },
+          {
+            "digest": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+            "digest_alg": "SHA-256",
+            "purpose": "governing_contract",
+            "type": "ai.brutor.ai-system-contract"
+          }
+        ],
+        "schema": "ai.brutor/action-record/v1",
+        "system": {
+          "ai_system_id": "rg-vectors-claims",
+          "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+          "contract_version": 3
+        },
+        "timestamp": "2026-09-19T10:00:01.000Z",
+        "verdict": "awaiting_human"
+      },
+      "seq": 0,
+      "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggstYbLxywN9uxy7V6PgCfY7ugtQg/b59SuDuW0Vz2k4xYQP1P011xTTN/EwQc1VNXoZQLH+G7U1ZWYigMljCqR/836zCTSs0wRvod93t9JkbhsE+zHCWTOsnRIFX5agEsLQ8="
+    },
+    {
+      "record": {
+        "action_id": "mcp/01K5VEC0000000000000000002",
+        "attestation": {
+          "input_digest": "217998ed9fcbbec13366539b945e28527f43aee76775eb74f738f9cb11e2bbe1",
+          "numbers_canonicalized": false,
+          "observation": "in_path",
+          "output_digest": "5b3800d12e9a6b9f23ccbc0955984cad58b23bc41be835aa04022a99de9d60b7",
+          "runtime": "brutor-gateway"
+        },
+        "chain": {
+          "parent_record_id": "b2d61b2f1cb037dbb1cbb57a3e009f63bba0b5083f6f9f52b83b96d15cf6938c",
+          "relation": "supersedes"
+        },
+        "context": {
+          "autonomy_level": "supervised",
+          "autonomy_provenance": "contract",
+          "root_task_id": "run-vectors-1",
+          "server_version": "orders-mcp/2.4.1",
+          "surface": "mcp",
+          "tags": [
+            "eu_ai_act.art12",
+            "soc2.cc7.2"
+          ],
+          "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+          "turn_id": "turn-1"
+        },
+        "controls": [
+          {
+            "blocking": false,
+            "id": "ai.brutor.agent_grant.scope",
+            "kind": "gate",
+            "result": "pass",
+            "severity": "info"
+          }
+        ],
+        "disposition": {
+          "approver": "human",
+          "authority": "apr-01K5VEC0001",
+          "decision": "accept",
+          "human_disposed": true
+        },
+        "effect": {
+          "attestation": "gate_observed",
+          "request_digest": "f1339239f955058d4301ee556d524197314100557dc5c5b6944f11e48f809f71",
+          "response_digest": "f2f67616f51b4effa8099288da2af75efa57ff6a3f54419cfcfe66e8ce85252c",
+          "status": "confirmed",
+          "type": "mcp_tool_call"
+        },
+        "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "kind": "decide",
+        "operator": "tenant-vectors",
+        "record_id": "6b0f1dbe8a81f462551b003664a6eae720637c8bfed5b226e90f1132cc61ed47",
+        "references": [
+          {
+            "digest": "a7fb0ec821d6e1a039793098f61a5a4238fcc935ddfe58afd3e264903a57df0b",
+            "digest_alg": "SHA-256",
+            "type": "ai.brutor.proxy-log-row"
+          },
+          {
+            "digest": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+            "digest_alg": "SHA-256",
+            "purpose": "governing_contract",
+            "type": "ai.brutor.ai-system-contract"
+          }
+        ],
+        "schema": "ai.brutor/action-record/v1",
+        "system": {
+          "ai_system_id": "rg-vectors-claims",
+          "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+          "contract_version": 3
+        },
+        "timestamp": "2026-09-19T10:00:02.000Z",
+        "verdict": "executed"
+      },
+      "seq": 1,
+      "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggaw8dvoqB9GJVGwA2ZKbq5yBjfIv+1bIm6Q8RMsxh7UdYQCbgWh3N9+3suqOJF/dUd6JTGPmLi6TQO4/xj4/Znmsvri/8/mYMz8lsJKsvpGiif/bYMXk8Xys31CU2zrdLGgI="
+    },
+    {
+      "record": {
+        "action_id": "mcp/01K5VEC0000000000000000003",
+        "context": {
+          "autonomy_level": "supervised",
+          "autonomy_provenance": "contract",
+          "root_task_id": "run-vectors-1",
+          "server_version": "orders-mcp/2.4.1",
+          "surface": "mcp",
+          "tags": [
+            "eu_ai_act.art12",
+            "soc2.cc7.2"
+          ],
+          "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+          "turn_id": "turn-2"
+        },
+        "disposition": {
+          "approver": "policy",
+          "decision": "accept",
+          "human_disposed": false
+        },
+        "effect": {
+          "attestation": "gate_observed",
+          "status": "planned",
+          "type": "mcp_tool_call"
+        },
+        "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "kind": "decide",
+        "operator": "tenant-vectors",
+        "record_id": "e8dc81322b7b467bcc3a7c61c596ad6ba4ac3f3ffef6e33a6558f952a41c5a94",
+        "references": [
+          {
+            "digest": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+            "digest_alg": "SHA-256",
+            "purpose": "governing_contract",
+            "type": "ai.brutor.ai-system-contract"
+          }
+        ],
+        "schema": "ai.brutor/action-record/v1",
+        "system": {
+          "ai_system_id": "rg-vectors-claims",
+          "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+          "contract_version": 3
+        },
+        "timestamp": "2026-09-19T10:00:03.000Z",
+        "verdict": "planned"
+      },
+      "seq": 2,
+      "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFgg6NyBMit7RnvMOnxhxZata6SsPz/+9uM6ZVj5UqQcWpRYQDv7b7gfHulXJl4R8iDVXcFIV144CShngQlHaGLeiTmb+R/2bHGgoctNFMNJek8TjawdynCgPNNAJIxotoBYLAY="
+    },
+    {
+      "record": {
+        "action_id": "mcp/01K5VEC0000000000000000003",
+        "attestation": {
+          "input_digest": "217998ed9fcbbec13366539b945e28527f43aee76775eb74f738f9cb11e2bbe1",
+          "numbers_canonicalized": false,
+          "observation": "in_path",
+          "output_digest": "5b3800d12e9a6b9f23ccbc0955984cad58b23bc41be835aa04022a99de9d60b7",
+          "runtime": "brutor-gateway"
+        },
+        "chain": {
+          "parent_record_id": "e8dc81322b7b467bcc3a7c61c596ad6ba4ac3f3ffef6e33a6558f952a41c5a94",
+          "relation": "confirms"
+        },
+        "context": {
+          "autonomy_level": "supervised",
+          "autonomy_provenance": "contract",
+          "root_task_id": "run-vectors-1",
+          "server_version": "orders-mcp/2.4.1",
+          "surface": "mcp",
+          "tags": [
+            "eu_ai_act.art12",
+            "soc2.cc7.2"
+          ],
+          "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+          "turn_id": "turn-2"
+        },
+        "disposition": {
+          "approver": "policy",
+          "decision": "accept",
+          "human_disposed": false
+        },
+        "effect": {
+          "attestation": "gate_observed",
+          "request_digest": "f1339239f955058d4301ee556d524197314100557dc5c5b6944f11e48f809f71",
+          "response_digest": "f2f67616f51b4effa8099288da2af75efa57ff6a3f54419cfcfe66e8ce85252c",
+          "status": "confirmed",
+          "type": "mcp_tool_call"
+        },
+        "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "kind": "decide",
+        "operator": "tenant-vectors",
+        "record_id": "437651a1abc83e14f00d89ed441fb686f97e575f0bc98fb3c9cbbfe6131024a5",
+        "references": [
+          {
+            "digest": "c2f52d1c4101683030633083ad091b1fb74a09f341b48211332c1deaddadd7c0",
+            "digest_alg": "SHA-256",
+            "type": "ai.brutor.proxy-log-row"
+          },
+          {
+            "digest": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+            "digest_alg": "SHA-256",
+            "purpose": "governing_contract",
+            "type": "ai.brutor.ai-system-contract"
+          }
+        ],
+        "schema": "ai.brutor/action-record/v1",
+        "system": {
+          "ai_system_id": "rg-vectors-claims",
+          "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+          "contract_version": 3
+        },
+        "timestamp": "2026-09-19T10:00:04.000Z",
+        "verdict": "executed"
+      },
+      "seq": 3,
+      "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggQ3ZRoavIPhTwDYntRB+2hvl+V18LyY+zycu/5hMQJKVYQNk7+bHvnQtKvfaJIO8w3mHv7Ffxnm+V5D9DkHSHM4Va4y7WfVthgdtSuhSnl/4d8YUXuDkkNmrWRmUFRYAOuAI="
+    },
+    {
+      "record": {
+        "action_id": "mcp/01K5VEC0000000000000000005",
+        "context": {
+          "autonomy_level": "supervised",
+          "autonomy_provenance": "contract",
+          "root_task_id": "run-vectors-1",
+          "server_version": "orders-mcp/2.4.1",
+          "surface": "mcp",
+          "tags": [
+            "eu_ai_act.art12",
+            "soc2.cc7.2"
+          ],
+          "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+          "turn_id": "turn-3"
+        },
+        "controls": [
+          {
+            "blocking": true,
+            "id": "ai.brutor.guardrail.pii",
+            "kind": "gate",
+            "result": "fail",
+            "severity": "high"
+          }
+        ],
+        "disposition": {
+          "approver": "policy",
+          "decision": "reject",
+          "human_disposed": false
+        },
+        "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "kind": "decide",
+        "operator": "tenant-vectors",
+        "record_id": "a9dd7427b928dd039aeeea6074ccf7fcc00ff8fe0f8ddce740a4c858a2a0e105",
+        "references": [
+          {
+            "digest": "82cabb7b3aa53b82b6663d7835e6b34e6ac064a8850ec6578ab85e45603a176b",
+            "digest_alg": "SHA-256",
+            "type": "ai.brutor.proxy-log-row"
+          },
+          {
+            "digest": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+            "digest_alg": "SHA-256",
+            "purpose": "governing_contract",
+            "type": "ai.brutor.ai-system-contract"
+          }
+        ],
+        "schema": "ai.brutor/action-record/v1",
+        "system": {
+          "ai_system_id": "rg-vectors-claims",
+          "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+          "contract_version": 3
+        },
+        "timestamp": "2026-09-19T10:00:05.000Z",
+        "verdict": "blocked"
+      },
+      "seq": 5,
+      "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggqd10J7ko3QOa7upgdMz3/MAP+P4PjdznQKTIWKKg4QVYQMt3QXADgJXbqcq+BjLQ0By+kajf6Z+LhDk+AOI6l7OYkMxMPttmQyC7nM/b6HNncONSy1qqVcrwtEL/CbV11wM="
+    },
+    {
+      "record": {
+        "action_id": "mcp/01K5VEC0000000000000000006",
+        "context": {
+          "autonomy_level": "supervised",
+          "autonomy_provenance": "contract",
+          "root_task_id": "run-vectors-1",
+          "server_version": "orders-mcp/2.4.1",
+          "surface": "mcp",
+          "tags": [
+            "eu_ai_act.art12",
+            "soc2.cc7.2"
+          ],
+          "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+          "turn_id": "turn-4"
+        },
+        "controls": [
+          {
+            "blocking": true,
+            "id": "ai.brutor.agent_grant.scope",
+            "kind": "gate",
+            "result": "fail",
+            "severity": "high"
+          }
+        ],
+        "disposition": {
+          "approver": "policy",
+          "decision": "reject",
+          "human_disposed": false
+        },
+        "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "kind": "decide",
+        "operator": "tenant-vectors",
+        "record_id": "0cf79f384f6339e2f56d3f77b8f9d85b717ce54c5a380b0cf185d1f387d3e583",
+        "references": [
+          {
+            "digest": "d647feb5fc14aeda49ed3ced9325e1f11030fa956d1a449750c7c78b6a80e1b3",
+            "digest_alg": "SHA-256",
+            "type": "ai.brutor.proxy-log-row"
+          },
+          {
+            "digest": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+            "digest_alg": "SHA-256",
+            "purpose": "governing_contract",
+            "type": "ai.brutor.ai-system-contract"
+          }
+        ],
+        "schema": "ai.brutor/action-record/v1",
+        "system": {
+          "ai_system_id": "rg-vectors-claims",
+          "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+          "contract_version": 3
+        },
+        "timestamp": "2026-09-19T10:00:06.000Z",
+        "verdict": "denied"
+      },
+      "seq": 6,
+      "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggDPefOE9jOeL1bT93uPnYW3F85UxaOAsM8YXR84fT5YNYQFvAFw1uib5h94S88JlI8snf6nEX0KbB0gAWEbpeqwdMZyS8oI6FbWz9kwwvptCns3SRJIthpWAtESTjB11o1As="
+    }
+  ],
+  "tree_heads": [
+    {
+      "receipts": [],
+      "statement_b64": "0oRY2KQBJwN4JWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IudHJlZS1oZWFkK2Nib3IEWCBhj0sCJ6m8L2xM3EtIFMDaGzUbrofwfyiZpiIyPi/pEQ+iAXhAMGRkNDFmMGY3YzI3NGZhZDI4NDkyMTQyZDcxNzZmNmE0MTIxMTQxN2Y2OTUwOTk4NDRmYjdlOWZiNzQ5NDJlNQJ4QjBkZDQxZjBmN2MyNzRmYWQyODQ5MjE0MmQ3MTc2ZjZhNDEyMTE0MTdmNjk1MDk5ODQ0ZmI3ZTlmYjc0OTQyZTUjNKBYyadkcm9vdFgg2BUSVVE3uuG54/3+8S0KYlBkomKhqjg7KeugMYr5MoxmbG9nX2lkeEAwZGQ0MWYwZjdjMjc0ZmFkMjg0OTIxNDJkNzE3NmY2YTQxMjExNDE3ZjY5NTA5OTg0NGZiN2U5ZmI3NDk0MmU1aWlzc3VlZF9hdHgYMjAyNi0wOS0xOVQxMDowNTowMC4wMDBaaXByZXZfcm9vdEBpcHJldl9zaXplAGl0cmVlX3NpemUEcWNvbnNpc3RlbmN5X3Byb29mgFhAtluDclB67+hT3x9rpFq8ikHyxnnxNTo7wHpJiBh7k8lyORoxqHgM4qrLc6rADMnvdCb5rR6aYCg677Td+upNAA=="
+    },
+    {
+      "receipts": [
+        {
+          "grade": "witnessed",
+          "kind": "scitt",
+          "receipt_b64": "0oRPowEnD6EGGmquX3gZAYsBoRkBjKEggVhIgwMBglggWSRAexWRH4/F2mS84QGgBko6xtQlAv1FITaFCNizC6xYIMyYSoo9rJ5CF136oa+5VapqA55iucpWu0DGSpbfdRiQ9lhA/KXap6rikHUsyiJrCUiDSh9V2/4OMtn76GKDXdP6xnB/+oqqXF9b1ZSVmI5MQ+Yvy4AjQqS5wszARE9wV4tjAQ=="
+        }
+      ],
+      "statement_b64": "0oRY2KQBJwN4JWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IudHJlZS1oZWFkK2Nib3IEWCBhj0sCJ6m8L2xM3EtIFMDaGzUbrofwfyiZpiIyPi/pEQ+iAXhAMGRkNDFmMGY3YzI3NGZhZDI4NDkyMTQyZDcxNzZmNmE0MTIxMTQxN2Y2OTUwOTk4NDRmYjdlOWZiNzQ5NDJlNQJ4QjBkZDQxZjBmN2MyNzRmYWQyODQ5MjE0MmQ3MTc2ZjZhNDEyMTE0MTdmNjk1MDk5ODQ0ZmI3ZTlmYjc0OTQyZTUjN6BZAQynZHJvb3RYIGQSKOApRIruNZ7PwK3vZWafAwqZuerj6YKpyiSyfeQkZmxvZ19pZHhAMGRkNDFmMGY3YzI3NGZhZDI4NDkyMTQyZDcxNzZmNmE0MTIxMTQxN2Y2OTUwOTk4NDRmYjdlOWZiNzQ5NDJlNWlpc3N1ZWRfYXR4GDIwMjYtMDktMTlUMTA6MTA6MDAuMDAwWmlwcmV2X3Jvb3RYINgVElVRN7rhueP9/vEtCmJQZKJioao4OynroDGK+TKMaXByZXZfc2l6ZQRpdHJlZV9zaXplB3Fjb25zaXN0ZW5jeV9wcm9vZoFYIJ58NZBMtUviunRspV/cLR5Kq/QY3rDGb2LEQL9ZspX/WEDK0ln+5BYAt3Mez69kiGjuL2m47726abEwyDeUa3m3rgu5P1MqQAV+HYQVM5+/WkA8y8sMMzTsIpY9wKDjjOkD",
+      "transparent_statement_b64": "0oRY2KQBJwN4JWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IudHJlZS1oZWFkK2Nib3IEWCBhj0sCJ6m8L2xM3EtIFMDaGzUbrofwfyiZpiIyPi/pEQ+iAXhAMGRkNDFmMGY3YzI3NGZhZDI4NDkyMTQyZDcxNzZmNmE0MTIxMTQxN2Y2OTUwOTk4NDRmYjdlOWZiNzQ5NDJlNQJ4QjBkZDQxZjBmN2MyNzRmYWQyODQ5MjE0MmQ3MTc2ZjZhNDEyMTE0MTdmNjk1MDk5ODQ0ZmI3ZTlmYjc0OTQyZTUjN6EZAYqBWKbShE+jAScPoQYaaq5feBkBiwGhGQGMoSCBWEiDAwGCWCBZJEB7FZEfj8XaZLzhAaAGSjrG1CUC/UUhNoUI2LMLrFggzJhKij2snkIXXfqhr7lVqmoDnmK5yla7QMZKlt91GJD2WED8pdqnquKQdSzKImsJSINKH1Xb/g4y2fvoYoNd0/rGcH/6iqpcX1vVlJWYjkxD5i/LgCNCpLnCzMBET3BXi2MBWQEMp2Ryb290WCBkEijgKUSK7jWez8Ct72VmnwMKmbnq4+mCqcoksn3kJGZsb2dfaWR4QDBkZDQxZjBmN2MyNzRmYWQyODQ5MjE0MmQ3MTc2ZjZhNDEyMTE0MTdmNjk1MDk5ODQ0ZmI3ZTlmYjc0OTQyZTVpaXNzdWVkX2F0eBgyMDI2LTA5LTE5VDEwOjEwOjAwLjAwMFppcHJldl9yb290WCDYFRJVUTe64bnj/f7xLQpiUGSiYqGqODsp66AxivkyjGlwcmV2X3NpemUEaXRyZWVfc2l6ZQdxY29uc2lzdGVuY3lfcHJvb2aBWCCefDWQTLVL4rp0bKVf3C0eSqv0GN6wxm9ixEC/WbKV/1hAytJZ/uQWALdzHs+vZIho7i9puO+9ummxMMg3lGt5t64LuT9TKkAFfh2EFTOfv1pAPMvLDDM07CKWPcCg44zpAw=="
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+/*
+ * Copyright 2026 Brutor AI Ltd.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * Single entry point for the shared style system. An app's own
+ * `globals.css` imports this first, then adds only app-specific rules:
+ *
+ *     @import 'tailwindcss/base';
+ *     @import 'tailwindcss/components';
+ *     @import 'tailwindcss/utilities';
+ *     @import './ui-style/css/index.css';
+ *
+ * Import order matters: `tokens.css` must come before anything
+ * that reads a `--color-*` variable.
+ */
+
+@import './tokens.css';
+@import './base.css';
+@import './layout.css';
+@import './components.css';

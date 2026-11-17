@@ -1,0 +1,116 @@
+# The third-party licences of the Control Plane's two images
+# (`scripts/third_party_licenses.py`; the generated files are
+# `THIRD_PARTY_LICENSES` and `enterprise/THIRD_PARTY_LICENSES`).
+#
+# The rule: third-party packages ship unmodified with their licence texts, in
+# a generated file in each image and in the repository, listing every
+# dependency with its licence.
+
+component = "Brutor Agent Control Control Plane"
+root = ".."
+# The images' interpreter (`python:3.13-slim`).
+python = "3.13"
+# The Linux wheel tags that interpreter installs (Debian trixie, glibc 2.41):
+# `regenerate` unpacks the wheels the image's build would choose (most
+# specific first, the order pip prefers them in).
+wheel_tags = ["manylinux_2_41", "manylinux_2_39", "manylinux_2_36", "manylinux_2_34", "manylinux_2_28", "manylinux_2_17", "manylinux2014"]
+tool_requirements = "third_party_licenses_tool.txt"
+# Packages the images build from source, never from a wheel (owner decision
+# L1): psycopg2, compiled against Debian's libpq (`libpq-dev` in the build
+# stage, `libpq5` at run time), so that the native libraries it uses are the
+# Debian packages', whose copyright files the image ships under
+# /usr/share/doc. (psycopg2-binary's wheel bundles libpq, OpenSSL, Kerberos
+# and others without their licence texts.) `regenerate` builds these from the
+# sdist, which needs `pg_config` on the PATH (macOS: `brew install libpq`).
+built_from_source = ["psycopg2"]
+# Our own packages are not third-party.
+exclude_prefixes = ["brutor-agent-control-plane"]
+
+# The allowed licences, written once for both editions. A package whose
+# licence is not on it (every term of an AND, one alternative of an OR) fails
+# the build until the licence is reviewed and added here.
+allowed = [
+    # The Core Gateway's list (`brutor-gateway-core/deny.toml`), all permissive.
+    "0BSD",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-1-Clause",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+    # Permissive licences of the Python ecosystem the core's graph does not
+    # have: the Python Software Foundation licence (typing_extensions,
+    # aiohappyeyeballs) and the CMU variant of MIT (Pillow).
+    "PSF-2.0",
+    "MIT-CMU",
+    # Weak copyleft, allowed by name: the packages ship unmodified, as their
+    # authors publish them, with their licence texts, which is what these
+    # licences ask of a redistribution. certifi (the CA bundle) is MPL-2.0.
+    "MPL-2.0",
+    # psycopg2: the LGPL, version 3 or later, with the copyright
+    # holders' exception for linking with OpenSSL (its LICENSE). The SPDX
+    # list has no identifier for that exception, hence the AdditionRef.
+    "LGPL-3.0-or-later WITH AdditionRef-psycopg2-OpenSSL-exception",
+]
+
+# Packages that declare their licence ambiguously: the resolution, made from
+# the licence files they carry. `declared` is what pip-licenses reports
+# (License-Metadata, License-Classifier, License-Expression); when a new
+# version declares something else the build fails until it is reviewed again.
+# `texts` are licence texts a package refers to without carrying them.
+
+[overrides.psycopg2]
+declared = ["LGPL with exceptions", "GNU Library or Lesser General Public License (LGPL)", "UNKNOWN"]
+spdx = "LGPL-3.0-or-later WITH AdditionRef-psycopg2-OpenSSL-exception"
+# Its LICENSE grants the LGPL 3 or later and refers to the text ("see the
+# doc/ directory"), which the package does not carry; the LGPL 3 is a set of
+# additional permissions on the GPL 3, so both texts ship (from gnu.org).
+texts = ["licence-texts/LGPL-3.0.txt", "licence-texts/GPL-3.0.txt"]
+
+[overrides.httpx]
+declared = ["BSD-3-Clause", "BSD License", "UNKNOWN"]
+# LICENSE.md is the three-clause BSD licence, as its metadata says.
+spdx = "BSD-3-Clause"
+
+[overrides.python-dateutil]
+declared = ["Dual License", "Apache Software License; BSD License", "UNKNOWN"]
+# LICENSE: the contributions since December 2017 (and the relicensed ones)
+# are Apache-2.0, the rest three-clause BSD; both apply to the package.
+spdx = "Apache-2.0 AND BSD-3-Clause"
+
+[overrides.qrcode]
+declared = ["BSD", "BSD License; Other/Proprietary License", "UNKNOWN"]
+# LICENSE: three-clause BSD (Lincoln Loop) and the MIT licence of the
+# pyqrnative/qrcode.js code it was forked from. No proprietary terms: the
+# "Other/Proprietary License" classifier has no text behind it.
+spdx = "BSD-3-Clause AND MIT"
+
+[overrides.requests-oauthlib]
+declared = ["ISC", "BSD License", "UNKNOWN"]
+# LICENSE is the ISC licence, as its metadata says.
+spdx = "ISC"
+
+[overrides.uvloop]
+declared = ["MIT License", "Apache Software License; MIT License", "UNKNOWN"]
+# Dual licensed: LICENSE-MIT and LICENSE-APACHE, at the user's option.
+spdx = "MIT OR Apache-2.0"
+
+[editions.community]
+title = "Community Edition"
+constraints = ["constraints.txt"]
+output = "THIRD_PARTY_LICENSES"
+regenerate = "python scripts/third_party_licenses.py regenerate community"
+
+[editions.enterprise]
+title = "Enterprise Edition"
+constraints = ["constraints.txt", "enterprise/constraints.txt"]
+output = "enterprise/THIRD_PARTY_LICENSES"
+regenerate = "python scripts/third_party_licenses.py regenerate enterprise"

@@ -1,0 +1,27 @@
+Brutor Agent Control Community Edition
+Copyright 2026 Brutor AI Ltd.
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This package is a Docker Compose file and the scripts around it. It starts
+container images, each under its own license:
+
+  Brutor Agent Control control plane, core gateway, Admin Console and
+  skill runner
+    Copyright 2026 Brutor AI Ltd. Apache License, Version 2.0.
+
+  Brutor witness
+    Packages capsule-anchor, unmodified
+    (https://github.com/action-state-group/capsule-anchor).
+    Copyright 2024-2026 Action State Group, Inc.
+    Apache License, Version 2.0. The upstream LICENSE and NOTICE files are
+    in the image at /usr/share/licenses/capsule-anchor/.
+
+  PostgreSQL (image postgres)
+    PostgreSQL License. https://www.postgresql.org/about/licence/
+
+  Valkey (image valkey/valkey)
+    Copyright (c) 2024-present, Valkey contributors.
+    Copyright (c) 2006-2020, Redis Ltd.
+    BSD 3-Clause License.
+    https://github.com/valkey-io/valkey/blob/unstable/COPYING

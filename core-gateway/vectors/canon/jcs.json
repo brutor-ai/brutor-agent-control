@@ -1,0 +1,53 @@
+{
+  "cases": [
+    {
+      "canonical": "{\"a\":null,\"b\":{\"a\":[3,{\"x\":0,\"y\":0}],\"z\":1},\"c\":true}",
+      "description": "members sorted by UTF-16 code units, recursively",
+      "input": "{\"b\":{\"z\":1,\"a\":[3,{\"y\":0,\"x\":0}]},\"a\":null,\"c\":true}",
+      "sha256": "5d4407b7bd57d1f00752c0914d1a785b62442fead24c1152260afa6410e78348"
+    },
+    {
+      "canonical": "{\"€\":4,\"𐀀\":3,\"\":2,\"�\":1}",
+      "description": "U+10000 (surrogate pair D800 DC00) sorts before U+E000 and U+FFFD",
+      "input": "{\"�\":1,\"\":2,\"𐀀\":3,\"€\":4}",
+      "sha256": "ad79687c28c907fdb77c1fb18b267232f4d5d39735dbe6b0dfa7b6809389344e"
+    },
+    {
+      "canonical": "{\"s\":\"\\u0001\\b\\t\\n\\f\\r\\\"\\\\/é \"}",
+      "description": "short escapes, \\u00xx for the rest of C0, DEL and non-ASCII literal, '/' not escaped",
+      "input": "{\"s\":\"\\u0001\\b\\t\\n\\f\\r\\\"\\\\/é\\u2028\"}",
+      "sha256": "47baa06f9e7b740a46d90f2025c173e3044ea63d2c92cb2afbe3aa539b40bdad"
+    },
+    {
+      "canonical": "{\"n\":[0,-7,9007199254740991,-9007199254740991]}",
+      "description": "whitespace removed, integers as plain decimals",
+      "input": "{ \"n\" : [ 0 , -7 , 9007199254740991 , -9007199254740991 ] }",
+      "sha256": "a0b636aa7ef12eb9f6c4c7ae6caa01e9b45767fbf67722d8dcd57f877ca26d98"
+    },
+    {
+      "canonical": "[{},[],\"\",null,true,false]",
+      "description": "empty containers and literals",
+      "input": "[{},[],\"\",null,true,false]",
+      "sha256": "f2f9449864f57499d00042d8e33d1f74aeb5e160bd2256dfb45ed9207a76b9e8"
+    },
+    {
+      "description": "a float is refused: a digested document carries integers only, whose spelling every implementation agrees on",
+      "error": "float",
+      "input": "{\"a\":1.5}",
+      "path": "$.a"
+    },
+    {
+      "description": "an integral float spelling is still a float",
+      "error": "float",
+      "input": "{\"a\":1.0}",
+      "path": "$.a"
+    },
+    {
+      "description": "2^53 is outside the safe range",
+      "error": "unsafe_integer",
+      "input": "{\"a\":9007199254740992}",
+      "path": "$.a"
+    }
+  ],
+  "description": "RFC 8785 JSON Canonicalization Scheme as Brutor digests use it: `input` is literal JSON text; `canonical` is the UTF-8 JCS output, `sha256` its digest; `error` names the digest-hygiene rule that refuses the input (floats anywhere; integers outside ±(2^53−1))."
+}

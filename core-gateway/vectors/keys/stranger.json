@@ -1,0 +1,16 @@
+{
+  "issuer": "urn:brutor:deployment:someone-else",
+  "keys": [
+    {
+      "alg": "EdDSA",
+      "crv": "Ed25519",
+      "issuer": "urn:brutor:deployment:vectors",
+      "kid": "2ca714947d97c9d06e83ceb88a8d9d2f3ee824b4e4102eb95e86241a62a1aa6f",
+      "kty": "OKP",
+      "scope": "deployment",
+      "status": "active",
+      "use": "sig",
+      "x": "LKcUlH2XydBug864io2dLz7oJLTkEC65XoYkGmKhqm8"
+    }
+  ]
+}

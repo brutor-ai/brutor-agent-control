@@ -1,0 +1,27 @@
+{
+  "canonical": "{\"action_id\":\"mcp/01K5VEC0000000000000000024\",\"disposition\":{\"approver\":\"policy\",\"decision\":\"reject\",\"human_disposed\":false},\"kind\":\"decide\",\"operator\":\"tenant-vectors\",\"schema\":\"ai.brutor/action-record/v1\",\"system\":\"ungoverned\",\"timestamp\":\"2026-09-19T10:00:24.000Z\",\"verdict\":\"denied\"}",
+  "description": "the smallest record: an ungoverned row (system \"ungoverned\", no epoch), no optional blocks",
+  "expect": {
+    "codes": [],
+    "effect_mode": "not_applicable",
+    "ok": true,
+    "record_id": "45a3512625d4a21078ea3012f7236e4133836615229a7561034b8f9e3064fa48"
+  },
+  "preimages": {},
+  "record": {
+    "action_id": "mcp/01K5VEC0000000000000000024",
+    "disposition": {
+      "approver": "policy",
+      "decision": "reject",
+      "human_disposed": false
+    },
+    "kind": "decide",
+    "operator": "tenant-vectors",
+    "record_id": "45a3512625d4a21078ea3012f7236e4133836615229a7561034b8f9e3064fa48",
+    "schema": "ai.brutor/action-record/v1",
+    "system": "ungoverned",
+    "timestamp": "2026-09-19T10:00:24.000Z",
+    "verdict": "denied"
+  },
+  "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggRaNRJiXUohB46jAS9yNuQTODZhUimnVhA0uPnjBk+khYQJFzCWRrllYn6aFDAEzx7Adu6dK6dMLjxXGf7JQ2jLdU0k6tbLsgvMMHP56gEt5yNsTej5ndgPxruLBNUVA1FwM="
+}

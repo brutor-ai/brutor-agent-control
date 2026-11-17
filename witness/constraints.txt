@@ -1,0 +1,42 @@
+# Brutor Agent Control Witness — pinned Python dependencies of capsule-anchor@0e040e8 and of the
+# PostgreSQL driver it is installed with instead of its postgres extra: psycopg with its C extension
+# (psycopg-c), built from source in the image against Debian's libpq, never psycopg-binary.
+# Resolved from an unconstrained build (date resolved: 2026-09-19); refresh with
+#   docker run --rm --entrypoint /opt/witness/bin/pip <image> freeze
+# whenever CAPSULE_ANCHOR_COMMIT moves.
+# pip is pinned too: the image upgrades the virtual environment's pip to it
+# first, and it ships in the image with the rest (THIRD_PARTY_LICENSES lists
+# exactly this file and capsule-anchor; `third_party_licenses.py` fails the
+# build otherwise).
+agent-action-capsule==0.4.0
+annotated-doc==0.0.5
+annotated-types==0.8.0
+anyio==4.15.1
+cbor2==6.1.4
+certifi==2026.7.22
+cffi==2.1.1
+checkpointed-local-log==0.4.0
+click==8.5.0
+cryptography==50.0.1
+fastapi==0.141.1
+h11==0.16.0
+httpcore==1.0.9
+httptools==0.8.0
+httpx==0.28.1
+idna==3.20
+pip==26.3
+psycopg==3.3.6
+psycopg-c==3.3.6
+pycparser==3.0
+pydantic==2.13.5
+pydantic_core==2.46.5
+python-dotenv==1.2.3
+PyYAML==6.0.3
+scitt-cose==0.3.0
+starlette==1.6.0
+typing-inspection==0.4.4
+typing_extensions==4.16.0
+uvicorn==0.53.0
+uvloop==0.22.1
+watchfiles==1.2.0
+websockets==17.1

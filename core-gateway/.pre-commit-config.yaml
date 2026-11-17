@@ -1,0 +1,47 @@
+repos:
+  - repo: https://github.com/doublify/pre-commit-rust
+    rev: v1.0
+    hooks:
+      - id: fmt
+        name: cargo fmt
+        args: ["--all", "--"]
+      - id: clippy
+        name: cargo clippy
+        args: ["--all-targets", "--", "-D", "warnings"]
+
+  # The source header of a new Rust file, one entry per edition: a Community
+  # file gets the Community header (license-header.txt), a file of the
+  # Enterprise workspace the Enterprise one (enterprise/license-header.txt).
+  # A file whose first lines already name the company is skipped, whatever
+  # header it carries: the headers of the tree are replaced in one pass when
+  # the Community tree is exported, and the hook never inserts a second
+  # header above an existing one, before that pass or after it.
+  # tests/licence_header_hook_guard.rs holds these entries to that.
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: insert-license
+        name: insert the Community header
+        files: \.rs$
+        exclude: ^enterprise/
+        args:
+          - --license-filepath
+          - license-header.txt
+          - --comment-style
+          - //
+          - --detect-license-in-X-top-lines
+          - "10"
+          - --skip-license-insertion-comment
+          - Brutor AI Ltd.
+      - id: insert-license
+        name: insert the Enterprise header
+        files: ^enterprise/.*\.rs$
+        args:
+          - --license-filepath
+          - enterprise/license-header.txt
+          - --comment-style
+          - //
+          - --detect-license-in-X-top-lines
+          - "10"
+          - --skip-license-insertion-comment
+          - Brutor AI Ltd.

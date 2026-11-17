@@ -1,0 +1,794 @@
+{
+  "navigation": [
+    {
+      "section": "Mission Control",
+      "items": [
+        {
+          "id": "inbox",
+          "label": "Inbox",
+          "icon": "Inbox",
+          "requiresTenantAdmin": true
+        },
+        {
+          "id": "approvals",
+          "label": "Approvals",
+          "icon": "UserCheck",
+          "requiresPermission": "tool_approval:read"
+        },
+        {
+          "id": "mission-control",
+          "label": "Overview",
+          "icon": "Network",
+          "requiresTenantAdmin": true
+        },
+        {
+          "id": "mission-control-metrics",
+          "label": "Analytics",
+          "icon": "Gauge",
+          "requiresTenantAdmin": true
+        }
+      ]
+    },
+    {
+      "section": "AI Estate",
+      "items": [
+        {
+          "id": "ai-systems",
+          "label": "AI Systems",
+          "icon": "Layers",
+          "requiresTenantAdmin": true,
+          "requiresPermission": "resourcegroup:read"
+        },
+        {
+          "id": "groups",
+          "label": "Resource Groups",
+          "icon": "Boxes",
+          "requiresTenantAdmin": true,
+          "dynamicChildren": true,
+          "children": []
+        },
+        {
+          "id": "resources",
+          "label": "Resources",
+          "icon": "Package",
+          "requiresTenantAdmin": true,
+          "children": [
+            {
+              "id": "ai-models",
+              "label": "AI Models",
+              "icon": "Brain",
+              "children": [
+                {
+                  "id": "llm-providers",
+                  "label": "Providers",
+                  "icon": "Globe"
+                },
+                {
+                  "id": "llm-models",
+                  "label": "Configuration",
+                  "icon": "Settings"
+                },
+                {
+                  "id": "llm-routing",
+                  "label": "Routing",
+                  "icon": "Share2"
+                }
+              ]
+            },
+            {
+              "id": "server-management",
+              "label": "MCP Servers",
+              "icon": "MCPIcon",
+              "children": [
+                {
+                  "id": "mcp-config",
+                  "label": "Configuration",
+                  "icon": "Settings"
+                }
+              ]
+            },
+            {
+              "id": "idp",
+              "label": "Identity Providers",
+              "icon": "Shield"
+            },
+            {
+              "id": "agent-skills-section",
+              "label": "Skills",
+              "icon": "Sparkles",
+              "children": [
+                {
+                  "id": "agent-skills",
+                  "label": "Configuration",
+                  "icon": "Settings"
+                },
+                {
+                  "id": "agent-skill-sources",
+                  "label": "Sources",
+                  "icon": "GitBranch"
+                }
+              ]
+            },
+            {
+              "id": "a2a",
+              "label": "Agents",
+              "icon": "Workflow",
+              "children": [
+                {
+                  "id": "a2a-agent-cards",
+                  "label": "Cards",
+                  "icon": "IdCard"
+                },
+                {
+                  "id": "a2a-identities",
+                  "label": "Identities",
+                  "icon": "Bot"
+                },
+                {
+                  "id": "a2a-tasks",
+                  "label": "Tasks",
+                  "icon": "ListChecks"
+                },
+                {
+                  "id": "a2a-delegation-graphs",
+                  "label": "Delegation Graphs",
+                  "icon": "GitBranch"
+                },
+                {
+                  "id": "a2a-tenant-key",
+                  "label": "Signing Key",
+                  "icon": "KeyRound"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ai-assets",
+          "label": "Asset Register",
+          "icon": "ClipboardList",
+          "requiresTenantAdmin": true,
+          "requiresPermission": "ai_asset:read"
+        }
+      ]
+    },
+    {
+      "section": "Governance",
+      "items": [
+        {
+          "id": "governance",
+          "label": "Governance",
+          "icon": "Scale",
+          "requiresTenantAdmin": true,
+          "children": [
+            {
+              "id": "guardrails",
+              "label": "Guardrails",
+              "icon": "ShieldCheck"
+            },
+            {
+              "id": "policy-section",
+              "label": "Policies",
+              "icon": "Files",
+              "children": [
+                {
+                  "id": "semantic-policies",
+                  "label": "Semantic Policies",
+                  "icon": "ScrollText",
+                  "requiresPermission": "semantic_policy:read"
+                },
+                {
+                  "id": "argument-policies",
+                  "label": "Argument Policies",
+                  "icon": "Braces"
+                },
+                {
+                  "id": "agent-policies",
+                  "label": "Agent Policies",
+                  "icon": "Bot",
+                  "requiresPermission": "agent_identity:read"
+                }
+              ]
+            },
+            {
+              "id": "incident-windows",
+              "label": "Incident Windows",
+              "icon": "CalendarX"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section": "Compliance",
+      "items": [
+        {
+          "id": "compliance",
+          "label": "Compliance",
+          "icon": "Scale",
+          "requiresTenantAdmin": true,
+          "requiresPermission": "compliance:read",
+          "children": [
+            {
+              "id": "compliance-overview",
+              "label": "Overview",
+              "icon": "LayoutDashboard"
+            },
+            {
+              "id": "compliance-frameworks",
+              "label": "Frameworks",
+              "icon": "Library"
+            },
+            {
+              "id": "compliance-profiles",
+              "label": "Profiles",
+              "icon": "Layers"
+            },
+            {
+              "id": "compliance-obligations",
+              "label": "Obligations",
+              "icon": "ListChecks"
+            },
+            {
+              "id": "compliance-evidence",
+              "label": "Evidence Ledger",
+              "icon": "ScrollText"
+            },
+            {
+              "id": "compliance-oversight",
+              "label": "Human Oversight",
+              "icon": "UserCheck"
+            },
+            {
+              "id": "compliance-transparency",
+              "label": "Transparency",
+              "icon": "Eye"
+            },
+            {
+              "id": "compliance-reports",
+              "label": "Reports",
+              "icon": "FileText"
+            },
+            {
+              "id": "compliance-incidents",
+              "label": "Incidents",
+              "icon": "Siren"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section": "Operations",
+      "items": [
+        {
+          "id": "async-jobs",
+          "label": "Async Jobs",
+          "icon": "LayoutList",
+          "requiresTenantAdmin": true,
+          "children": [
+            {
+              "id": "video-gen-jobs",
+              "label": "Video Gen Jobs",
+              "icon": "Film"
+            }
+          ]
+        },
+        {
+          "id": "monitoring",
+          "label": "Logs & Audit",
+          "icon": "ScrollText",
+          "requiresTenantAdmin": true,
+          "children": [
+            {
+              "id": "monitoring-audit-logs",
+              "label": "Admin Audit Logs",
+              "icon": "ScrollText"
+            },
+            {
+              "id": "monitoring-proxy-logs",
+              "label": "Proxy Logs",
+              "icon": "ScrollText"
+            },
+            {
+              "id": "monitoring-audit-export",
+              "label": "Audit Export",
+              "icon": "Download"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section": "Administration",
+      "items": [
+        {
+          "id": "users",
+          "label": "Users",
+          "icon": "Users",
+          "requiresTenantAdmin": true
+        },
+        {
+          "id": "config",
+          "label": "Settings",
+          "icon": "Settings",
+          "requiresTenantAdmin": true
+        },
+        {
+          "id": "system",
+          "label": "System",
+          "icon": "ServerCog",
+          "requiresPermission": "system:read",
+          "children": [
+            {
+              "id": "system-overview",
+              "label": "Overview",
+              "icon": "LayoutDashboard"
+            },
+            {
+              "id": "system-counters",
+              "label": "Counters",
+              "icon": "Gauge"
+            },
+            {
+              "id": "system-caches",
+              "label": "Caches",
+              "icon": "DatabaseZap"
+            },
+            {
+              "id": "system-chains",
+              "label": "Audit Chains",
+              "icon": "ShieldCheck"
+            },
+            {
+              "id": "system-audit",
+              "label": "Audit",
+              "icon": "ScrollText"
+            },
+            {
+              "id": "system-connections",
+              "label": "Connections",
+              "icon": "Plug"
+            },
+            {
+              "id": "system-tasks",
+              "label": "Background Tasks",
+              "icon": "ListChecks"
+            },
+            {
+              "id": "system-sessions",
+              "label": "Sessions",
+              "icon": "Users"
+            },
+            {
+              "id": "system-logs",
+              "label": "Logs",
+              "icon": "FileText"
+            },
+            {
+              "id": "system-maintenance",
+              "label": "Maintenance",
+              "icon": "Wrench"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section": "Platform",
+      "items": [
+        {
+          "id": "llm-catalog-admin",
+          "label": "LLM Catalog",
+          "icon": "Library",
+          "requiresPermission": "platform:catalog:manage"
+        },
+        {
+          "id": "mcp-catalog-admin",
+          "label": "MCP Catalog",
+          "icon": "Package",
+          "requiresPermission": "platform:catalog:manage"
+        }
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "name": "a2a-agent-cards",
+      "ids": [
+        "a2a-agent-cards"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "a2a-delegation-graphs",
+      "ids": [
+        "a2a-delegation-graphs"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "a2a-identities",
+      "ids": [
+        "a2a-identities"
+      ],
+      "prefixes": [
+        "a2a-identities:"
+      ],
+      "edition": null
+    },
+    {
+      "name": "a2a-tasks",
+      "ids": [
+        "a2a-tasks"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "a2a-tenant-key",
+      "ids": [
+        "a2a-tenant-key"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "agent-policies",
+      "ids": [
+        "agent-policies"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "agent-skill-sources",
+      "ids": [
+        "agent-skill-sources"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "agent-skills",
+      "ids": [
+        "agent-skills"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "ai-assets",
+      "ids": [
+        "ai-assets"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "ai-systems",
+      "ids": [
+        "ai-systems"
+      ],
+      "prefixes": [
+        "ai-systems:"
+      ],
+      "edition": null
+    },
+    {
+      "name": "approvals",
+      "ids": [
+        "approvals"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "argument-policies",
+      "ids": [
+        "argument-policies"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "compliance",
+      "ids": [
+        "compliance-overview",
+        "compliance-frameworks",
+        "compliance-profiles",
+        "compliance-obligations",
+        "compliance-evidence",
+        "compliance-oversight",
+        "compliance-transparency",
+        "compliance-reports",
+        "compliance-incidents"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "config",
+      "ids": [
+        "config"
+      ],
+      "prefixes": [
+        "config:"
+      ],
+      "edition": null
+    },
+    {
+      "name": "groups",
+      "ids": [
+        "groups",
+        "groups-create"
+      ],
+      "prefixes": [
+        "groups:"
+      ],
+      "edition": null
+    },
+    {
+      "name": "guardrails",
+      "ids": [
+        "guardrails"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "idp",
+      "ids": [
+        "idp"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "inbox",
+      "ids": [
+        "inbox"
+      ],
+      "prefixes": [
+        "inbox:reviews:"
+      ],
+      "edition": null
+    },
+    {
+      "name": "incident-windows",
+      "ids": [
+        "incident-windows"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "llm-catalog-admin",
+      "ids": [
+        "llm-catalog-admin"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "llm-models",
+      "ids": [
+        "llm-models"
+      ],
+      "prefixes": [
+        "llm-models:"
+      ],
+      "edition": null
+    },
+    {
+      "name": "llm-providers",
+      "ids": [
+        "llm-providers"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "llm-routing",
+      "ids": [
+        "llm-routing"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "mcp-catalog-admin",
+      "ids": [
+        "mcp-catalog-admin"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "mcp-config",
+      "ids": [
+        "mcp-config"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "mission-control",
+      "ids": [
+        "mission-control"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "mission-control-metrics",
+      "ids": [
+        "mission-control-metrics"
+      ],
+      "prefixes": [
+        "mission-control-metrics:"
+      ],
+      "edition": null
+    },
+    {
+      "name": "monitoring-audit-export",
+      "ids": [
+        "monitoring-audit-export"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "monitoring-audit-logs",
+      "ids": [
+        "monitoring-audit-logs"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "monitoring-proxy-logs",
+      "ids": [
+        "monitoring-proxy-logs"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "semantic-policies",
+      "ids": [
+        "semantic-policies"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "system",
+      "ids": [
+        "system-overview",
+        "system-counters",
+        "system-caches",
+        "system-chains",
+        "system-audit",
+        "system-connections",
+        "system-tasks",
+        "system-sessions",
+        "system-logs",
+        "system-maintenance"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "users",
+      "ids": [
+        "users"
+      ],
+      "prefixes": [],
+      "edition": null
+    },
+    {
+      "name": "video-gen-jobs",
+      "ids": [
+        "video-gen-jobs"
+      ],
+      "prefixes": [],
+      "edition": null
+    }
+  ],
+  "resolves": {
+    "a2a": null,
+    "a2a-agent-cards": "a2a-agent-cards",
+    "a2a-delegation-graphs": "a2a-delegation-graphs",
+    "a2a-identities": "a2a-identities",
+    "a2a-identities:target": "a2a-identities",
+    "a2a-tasks": "a2a-tasks",
+    "a2a-tenant-key": "a2a-tenant-key",
+    "agent-policies": "agent-policies",
+    "agent-skill-sources": "agent-skill-sources",
+    "agent-skills": "agent-skills",
+    "agent-skills-section": null,
+    "ai-assets": "ai-assets",
+    "ai-models": null,
+    "ai-systems": "ai-systems",
+    "ai-systems:target": "ai-systems",
+    "approvals": "approvals",
+    "argument-policies": "argument-policies",
+    "async-jobs": null,
+    "batch-jobs": null,
+    "cache": null,
+    "compliance": null,
+    "compliance-evidence": "compliance",
+    "compliance-frameworks": "compliance",
+    "compliance-incidents": "compliance",
+    "compliance-obligations": "compliance",
+    "compliance-oversight": "compliance",
+    "compliance-overview": "compliance",
+    "compliance-profiles": "compliance",
+    "compliance-reports": "compliance",
+    "compliance-transparency": "compliance",
+    "config": "config",
+    "config:target": "config",
+    "governance": null,
+    "groups": "groups",
+    "groups-create": "groups",
+    "groups:target": "groups",
+    "guardrails": "guardrails",
+    "idp": "idp",
+    "inbox": "inbox",
+    "inbox:reviews:target": "inbox",
+    "incident-windows": "incident-windows",
+    "kb-collections": null,
+    "kb-connectors": null,
+    "knowledge-base": null,
+    "llm-catalog-admin": "llm-catalog-admin",
+    "llm-deployment": null,
+    "llm-models": "llm-models",
+    "llm-models:target": "llm-models",
+    "llm-providers": "llm-providers",
+    "llm-routing": "llm-routing",
+    "mcp-catalog-admin": "mcp-catalog-admin",
+    "mcp-config": "mcp-config",
+    "mcp-deployment": null,
+    "mcp-registry-instance": null,
+    "messages": null,
+    "mission-control": "mission-control",
+    "mission-control-metrics": "mission-control-metrics",
+    "mission-control-metrics:target": "mission-control-metrics",
+    "monitoring": null,
+    "monitoring-audit-export": "monitoring-audit-export",
+    "monitoring-audit-logs": "monitoring-audit-logs",
+    "monitoring-proxy-logs": "monitoring-proxy-logs",
+    "my-profile": null,
+    "platform-licence": null,
+    "platform-overview": null,
+    "platform-settings": null,
+    "policies": null,
+    "policy-section": null,
+    "prompt-cache": null,
+    "resources": null,
+    "semantic-cache": null,
+    "semantic-policies": "semantic-policies",
+    "server-management": null,
+    "system": null,
+    "system-admins": null,
+    "system-audit": "system",
+    "system-caches": "system",
+    "system-chains": "system",
+    "system-connections": "system",
+    "system-counters": "system",
+    "system-logs": "system",
+    "system-maintenance": "system",
+    "system-overview": "system",
+    "system-sessions": "system",
+    "system-tasks": "system",
+    "tenant-licence": null,
+    "tenants": null,
+    "traffic-import": null,
+    "users": "users",
+    "video-gen-jobs": "video-gen-jobs"
+  },
+  "slots": {}
+}

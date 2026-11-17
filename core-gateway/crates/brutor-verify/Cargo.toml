@@ -1,0 +1,56 @@
+[package]
+name = "brutor-verify"
+version = "0.1.0"
+edition = "2024"
+description = "Offline verification of Brutor evidence: action records, Signed Statements, tree heads, witness receipts and evidence bundles — CLI, library and wasm32 build for the static verifier page"
+license = "Apache-2.0"
+publish = false
+authors = ["Brutor AI Ltd"]
+
+[lib]
+# rlib for the CLI, the gateway and the tests; cdylib for the wasm32 page.
+crate-type = ["rlib", "cdylib"]
+
+[[bin]]
+name = "brutor-verify"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[[example]]
+name = "gen-vectors"
+path = "examples/gen-vectors.rs"
+
+[features]
+default = ["cli"]
+cli = ["dep:clap"]
+# wasm-bindgen exports for the static verifier page (`build-web.sh`).
+wasm = ["dep:wasm-bindgen"]
+
+[dependencies]
+brutor-cose = { path = "../brutor-cose" }
+brutor-ctlog = { path = "../brutor-ctlog" }
+brutor-evidence = { path = "../brutor-evidence" }
+brutor-tsp = { path = "../brutor-tsp" }
+base64 = "0.22"
+ed25519-dalek = "2"
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+clap = { version = "4", features = ["derive"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+
+# Verification needs no randomness, but the RSA / ECDSA / Ed25519 crates
+# link `rand_core` with `getrandom` 0.2, which refuses to compile for
+# wasm32-unknown-unknown without a backend. The `custom` backend registered
+# in lib.rs always fails, so any accidental use of randomness on the verify
+# path is an error rather than a silently seeded RNG, and no JS shim is
+# pulled in.
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.2", features = ["custom"] }
+
+[dev-dependencies]
+
+# Evidence crates contain no unsafe Rust and never may.
+[lints.rust]
+unsafe_code = "forbid"

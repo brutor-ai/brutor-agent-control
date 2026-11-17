@@ -1,0 +1,145 @@
+# Copyright 2026 Brutor AI Ltd.
+# SPDX-License-Identifier: Apache-2.0
+
+# The Skill Runner (skill-runner/): tests, Clippy, format, the RustSec audit,
+# cargo-deny against its deny.toml, and the image built and started. No
+# repository secret.
+
+name: Skill Runner
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skill-runner/**"
+      - ".github/workflows/skill-runner.yml"
+      - "package/docker-bake.hcl"
+  pull_request:
+    paths:
+      - "skill-runner/**"
+      - ".github/workflows/skill-runner.yml"
+      - "package/docker-bake.hcl"
+  workflow_dispatch:
+
+# One run per ref at a time. A newer push cancels the superseded run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+defaults:
+  run:
+    working-directory: skill-runner
+
+jobs:
+  test:
+    timeout-minutes: 45
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: skill-runner
+      - name: Run tests
+        run: cargo test --all-targets --verbose
+
+  clippy:
+    timeout-minutes: 30
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: skill-runner
+      - name: Run Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+  fmt:
+    timeout-minutes: 30
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  audit:
+    timeout-minutes: 30
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo audit (RustSec advisories)
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+
+  # The skill runner has its own deny.toml (the Core Gateway's policy); its
+  # repository ran no job for it. The job is the Core Gateway's.
+  deny:
+    timeout-minutes: 30
+    name: Deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@9114bf4d891761788c546334fd37538eae1bf8b3 # v2.87.16
+        with:
+          tool: cargo-deny@0.20.2
+      - name: cargo deny check
+        run: cargo deny --locked check
+
+  # A single required variable and /health on port 8210: no database.
+  image:
+    timeout-minutes: 60
+    name: Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      # adapted: the image is built through package/docker-bake.hcl, as publish-images.yml builds it, under a local tag (the bake file is the one place the published names are written)
+      - name: Build the image
+        working-directory: .
+        run: docker buildx bake -f package/docker-bake.hcl skill-runner --load --set skill-runner.tags=test-image:latest
+
+      - name: Start the image
+        run: |
+          echo "Starting container with a dummy JWT secret..."
+          docker run -d --name test-runner \
+            -p 8210:8210 \
+            -e BRUTOR_SKILL_RUNNER_JWT_SECRET=test-jwt-secret-at-least-32-characters-long-xxx \
+            test-image:latest || true
+
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if docker exec test-runner wget -qO- http://localhost:8210/health 2>/dev/null; then
+              echo "Health check OK"
+              break
+            fi
+            sleep 1
+          done
+
+          echo "--- Container logs ---"
+          docker logs test-runner 2>&1 || true
+          docker rm -f test-runner || true
+          echo "Docker image test complete"

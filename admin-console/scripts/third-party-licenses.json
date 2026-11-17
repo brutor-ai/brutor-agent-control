@@ -1,0 +1,45 @@
+{
+  "_comment": [
+    "The one allowed list of the licences a package shipped in the Admin Console (both editions) may be under, read by scripts/third-party-licenses.mjs. A package under any other licence, or under none it declares, fails the build until it is reviewed and added here. The list is exactly the licences of the packages the builds ship, as in the core's deny.toml: a new licence, permissive or not, is reviewed before it is added.",
+    "Third-party packages ship unmodified with their licence texts. dompurify, offered under (MPL-2.0 OR Apache-2.0), is taken under Apache-2.0, Brutor AI's choice: MPL-2.0 is not on this list, and only dompurify's Apache-2.0 LICENSE file is shipped."
+  ],
+  "allowed": [
+    "Apache-2.0",
+    "ISC",
+    "MIT"
+  ],
+  "elections": {
+    "dompurify": {
+      "licence": "Apache-2.0",
+      "files": [
+        "LICENSE"
+      ],
+      "why": "dompurify is taken under Apache-2.0, Brutor AI's choice of its two licences (its LICENSE file); LICENSE-MPL is not the licence it is shipped under."
+    }
+  },
+  "alsoShipped": {
+    "tailwindcss": "src/styles/globals.css imports tailwindcss/base: the built stylesheet carries Tailwind's base styles (Preflight), which no module of the graph stands for."
+  },
+  "texts": {
+    "victory-vendor": {
+      "file": "licence-texts/victory-vendor-LICENSE.txt",
+      "source": "https://github.com/FormidableLabs/victory/blob/5515fd4cb5f7f03a32a1dcc8beb64880637da9af/LICENSE.txt",
+      "why": "victory-vendor (MIT AND ISC; recharts imports it) carries no licence file of its own. Its MIT text is the Victory repository's, kept here unmodified; the ISC part is the d3 packages it re-exports, each listed with its own LICENSE."
+    }
+  },
+  "vendored": {
+    "dompurify": {
+      "module": "node_modules/monaco-editor/esm/vs/base/browser/dompurify/dompurify.js",
+      "versionPattern": "@license DOMPurify (\\d+\\.\\d+\\.\\d+)",
+      "licenceFrom": "node_modules/dompurify",
+      "why": "monaco-editor (Enterprise) carries its own copy of DOMPurify, which its ThirdPartyNotices.txt does not name. The copy is listed at the version its header states, with the licence files of the installed dompurify package (package.json overrides)."
+    }
+  },
+  "fullTexts": {
+    "Apache-2.0": {
+      "file": "licence-texts/Apache-2.0.txt",
+      "marker": "TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION",
+      "source": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+    }
+  }
+}

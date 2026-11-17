@@ -1,0 +1,27 @@
+[package]
+name = "brutor-tsp"
+version = "0.1.0"
+edition = "2024"
+description = "RFC 3161 Time-Stamp Protocol: request encoding and offline verification of TimeStampTokens under a pinned TSA certificate"
+license = "Apache-2.0"
+publish = false
+authors = ["Brutor AI Ltd"]
+
+[dependencies]
+der = { version = "0.7", features = ["alloc", "oid", "pem"] }
+cms = "0.2"
+x509-cert = "0.2"
+x509-tsp = "0.1"
+spki = "0.7"
+sha2 = { version = "0.10", features = ["oid"] }
+rsa = { version = "0.9", features = ["sha2"] }
+p256 = { version = "0.14", features = ["ecdsa"] }
+p384 = { version = "0.14", features = ["ecdsa"] }
+hex = "0.4"
+thiserror = "2"
+
+[dev-dependencies]
+
+# Evidence crates contain no unsafe Rust and never may.
+[lints.rust]
+unsafe_code = "forbid"

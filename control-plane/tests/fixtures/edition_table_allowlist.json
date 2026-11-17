@@ -1,0 +1,76 @@
+{
+  "files": {
+    "app/services/ai_system_closure.py": {
+      "permanent": true,
+      "uses": [
+        "model:KbCollection",
+        "model:resource_group_kb_collections"
+      ]
+    },
+    "app/services/ai_system_connection_status.py": {
+      "permanent": true,
+      "uses": [
+        "model:KbCollection"
+      ]
+    },
+    "app/services/ai_system_coverage.py": {
+      "permanent": true,
+      "uses": [
+        "model:CollectorKey",
+        "model:DiscoveredAsset"
+      ]
+    },
+    "app/services/data_erasure.py": {
+      "permanent": true,
+      "uses": [
+        "model:BatchJob",
+        "model:BatchRequest"
+      ]
+    },
+    "app/services/data_retention/sweeper.py": {
+      "permanent": true,
+      "uses": [
+        "model:BatchRequest"
+      ]
+    },
+    "app/services/edition/guard.py": {
+      "permanent": true,
+      "uses": [
+        "map:enterprise_only_tables"
+      ]
+    },
+    "app/services/edition/reset.py": {
+      "permanent": true,
+      "uses": [
+        "map:enterprise_only_tables"
+      ]
+    },
+    "app/services/governance_metrics_service.py": {
+      "permanent": true,
+      "uses": [
+        "model:DiscoveredAsset"
+      ]
+    },
+    "app/services/iso42001_service.py": {
+      "permanent": true,
+      "uses": [
+        "model:DiscoveredAsset"
+      ]
+    },
+    "app/services/registry_service.py": {
+      "permanent": true,
+      "uses": [
+        "model:DiscoveredAsset"
+      ]
+    },
+    "app/services/system_model_bindings.py": {
+      "permanent": true,
+      "uses": [
+        "model:KbCollection",
+        "model:SemanticCacheConfig",
+        "model:resource_group_cache_configs",
+        "model:resource_group_kb_collections"
+      ]
+    }
+  }
+}

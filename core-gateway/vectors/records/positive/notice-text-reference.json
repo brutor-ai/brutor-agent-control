@@ -1,0 +1,55 @@
+{
+  "canonical": "{\"action_id\":\"ai.brutor.notice/01K5VEC0000000000000000023\",\"context\":{\"conversation_handle\":\"01K5VEC0NOT1CE0000000000C0\",\"locale\":\"en\",\"method\":\"banner\",\"record_type\":\"ai.brutor.notice\",\"surface\":\"portal\"},\"controls\":[{\"blocking\":false,\"id\":\"ai.brutor.notice.rendered\",\"kind\":\"transparency\",\"result\":\"pass\"}],\"epoch\":\"contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"kind\":\"fyi\",\"operator\":\"tenant-vectors\",\"references\":[{\"digest\":\"aff8e2b9d9a4f8c59860f889998fb105db1ea39ef272537e386b35af495610a4\",\"digest_alg\":\"SHA-256\",\"purpose\":\"rendered_text\",\"type\":\"ai.brutor.notice-text\"}],\"schema\":\"ai.brutor/action-record/v1\",\"system\":{\"ai_system_id\":\"rg-vectors-claims\",\"contract_hash\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"contract_version\":3},\"timestamp\":\"2026-09-19T10:00:23.000Z\",\"verdict\":\"recorded\"}",
+  "description": "AI-interaction notice: the rendered text enters as SHA-256 of its UTF-8 bytes (not JCS)",
+  "expect": {
+    "codes": [],
+    "effect_mode": "not_applicable",
+    "ok": true,
+    "record_id": "73e41e09360b17b7e7d9e182205afe86c3c7f2d5a101235658cf3d7804b1d690"
+  },
+  "preimages": {
+    "references[0].digest": {
+      "scheme": "utf8",
+      "value": "You are chatting with an AI system. Responses are generated automatically."
+    }
+  },
+  "record": {
+    "action_id": "ai.brutor.notice/01K5VEC0000000000000000023",
+    "context": {
+      "conversation_handle": "01K5VEC0NOT1CE0000000000C0",
+      "locale": "en",
+      "method": "banner",
+      "record_type": "ai.brutor.notice",
+      "surface": "portal"
+    },
+    "controls": [
+      {
+        "blocking": false,
+        "id": "ai.brutor.notice.rendered",
+        "kind": "transparency",
+        "result": "pass"
+      }
+    ],
+    "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+    "kind": "fyi",
+    "operator": "tenant-vectors",
+    "record_id": "73e41e09360b17b7e7d9e182205afe86c3c7f2d5a101235658cf3d7804b1d690",
+    "references": [
+      {
+        "digest": "aff8e2b9d9a4f8c59860f889998fb105db1ea39ef272537e386b35af495610a4",
+        "digest_alg": "SHA-256",
+        "purpose": "rendered_text",
+        "type": "ai.brutor.notice-text"
+      }
+    ],
+    "schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "rg-vectors-claims",
+      "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "contract_version": 3
+    },
+    "timestamp": "2026-09-19T10:00:23.000Z",
+    "verdict": "recorded"
+  },
+  "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggc+QeCTYLF7fn2eGCIFr+hsPH8tWhASNWWM89eASx1pBYQAtsrjfz6kbcr5ZbDh33/3BZbj9E4UzFgSQXmujHDr/lLD9yRzAzwnW+MiSN0CrNlJXnCenD8hMaCn4a6sY6nw0="
+}

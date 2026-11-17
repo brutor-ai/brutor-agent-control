@@ -1,0 +1,74 @@
+{
+  "canonical": "{\"action_id\":\"mcp/01K5VEC0000000000000000019\",\"chain\":{\"parent_record_id\":\"dcf1d7fa3c440d2e45ae5ee01a4df3efd013fa5ce5105210eebfa8737d7d94ca\",\"relation\":\"epoch_opens\"},\"context\":{\"surface\":\"mcp\"},\"disposition\":{\"approver\":\"policy\",\"decision\":\"reject\",\"human_disposed\":false},\"epoch\":\"contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"kind\":\"decide\",\"operator\":\"tenant-vectors\",\"schema\":\"ai.brutor/action-record/v1\",\"system\":{\"ai_system_id\":\"rg-vectors-claims\",\"contract_hash\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"contract_version\":3},\"timestamp\":\"2026-09-19T10:00:19.000Z\",\"verdict\":\"denied\"}",
+  "description": "first record of a new epoch; chain epoch_opens the epoch_boundary record",
+  "expect": {
+    "codes": [],
+    "effect_mode": "not_applicable",
+    "ok": true,
+    "record_id": "8bb0353b129203f62dead6a2e7653ae72e16468ffd71f70ba3231f9eae04498d"
+  },
+  "preimages": {},
+  "record": {
+    "action_id": "mcp/01K5VEC0000000000000000019",
+    "chain": {
+      "parent_record_id": "dcf1d7fa3c440d2e45ae5ee01a4df3efd013fa5ce5105210eebfa8737d7d94ca",
+      "relation": "epoch_opens"
+    },
+    "context": {
+      "surface": "mcp"
+    },
+    "disposition": {
+      "approver": "policy",
+      "decision": "reject",
+      "human_disposed": false
+    },
+    "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+    "kind": "decide",
+    "operator": "tenant-vectors",
+    "record_id": "8bb0353b129203f62dead6a2e7653ae72e16468ffd71f70ba3231f9eae04498d",
+    "schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "rg-vectors-claims",
+      "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "contract_version": 3
+    },
+    "timestamp": "2026-09-19T10:00:19.000Z",
+    "verdict": "denied"
+  },
+  "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggi7A1OxKSA/Yt6tai52U65y4WRo/9cfcLoyMfnq4ESY1YQEo9orbq5Wxi9vfPMIRDDrM3GknppuIz0UxuUoesxOJRGvELVQSNQE56Cyfi+0a+pTF8z5mNJu4NXUWA42RGsgU=",
+  "store": [
+    {
+      "action_id": "ai.brutor.epoch-boundary/01K5VEC0015",
+      "context": {
+        "contract_version": "4",
+        "record_type": "ai.brutor.epoch-boundary",
+        "surface": "control_plane"
+      },
+      "disposition": {
+        "approver": "policy",
+        "decision": "accept",
+        "human_disposed": false
+      },
+      "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "kind": "fyi",
+      "operator": "tenant-vectors",
+      "record_id": "dcf1d7fa3c440d2e45ae5ee01a4df3efd013fa5ce5105210eebfa8737d7d94ca",
+      "references": [
+        {
+          "digest": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+          "digest_alg": "SHA-256",
+          "purpose": "governing_contract",
+          "type": "ai.brutor.ai-system-contract"
+        }
+      ],
+      "schema": "ai.brutor/action-record/v1",
+      "system": {
+        "ai_system_id": "rg-vectors-claims",
+        "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "contract_version": 3
+      },
+      "timestamp": "2026-09-19T10:00:15.000Z",
+      "verdict": "epoch_boundary"
+    }
+  ]
+}

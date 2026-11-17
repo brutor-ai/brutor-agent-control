@@ -1,0 +1,116 @@
+# Copyright 2026 Brutor AI Ltd.
+# SPDX-License-Identifier: Apache-2.0
+
+# The witness (witness/): its third-party licences (the guard's tests, and
+# THIRD_PARTY_LICENSES regenerated on Linux and compared), and its image,
+# built through package/docker-bake.hcl, started against a throwaway
+# PostgreSQL, and checked to ship the repository's licence file. No repository
+# secret. Publishing it is publish-images.yml, by hand.
+
+name: Witness
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "witness/**"
+      - "control-plane/scripts/third_party_licenses.py"
+      - ".github/workflows/witness.yml"
+      - "package/docker-bake.hcl"
+  pull_request:
+    paths:
+      - "witness/**"
+      - "control-plane/scripts/third_party_licenses.py"
+      - ".github/workflows/witness.yml"
+      - "package/docker-bake.hcl"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: witness
+
+jobs:
+  # The guard's tests (witness/tests; one of them compares the witness's
+  # script with control-plane/scripts/third_party_licenses.py), and the
+  # repository's file regenerated from the lock with the generator the image
+  # runs; a difference fails. From the checkout's root, with the paths the
+  # tests read in this file.
+  licences:
+    timeout-minutes: 20
+    name: Witness third-party licences
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      # adapted: the source's command with the witness at witness (trial_bundle/witness in the source)
+      - name: The guard's tests
+        run: |
+          python -m pip install pytest==8.4.2
+          pytest -q witness/tests
+
+      - name: libpq for psycopg-c, which regenerate builds from source as the image does
+        run: sudo apt-get update && sudo apt-get install -y libpq-dev
+
+      # adapted: the source's command with the witness at witness (trial_bundle/witness in the source)
+      - name: THIRD_PARTY_LICENSES is current
+        run: python witness/third_party_licenses.py regenerate community --check
+
+  witness-image:
+    timeout-minutes: 60
+    name: Witness image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      # adapted: the image is built through package/docker-bake.hcl, as publish-images.yml builds it, under the local tag the source gives it
+      - name: Build the witness image
+        working-directory: .
+        run: docker buildx bake -f package/docker-bake.hcl witness --load --set witness.tags=brutor-agent-control-witness:ci
+
+      # Boot the image against a throwaway Postgres and check the two
+      # endpoints the platform depends on: health, and the pinned-key
+      # document the control plane seeds the witness row from.
+      - name: Smoke-test the image
+        run: |
+          set -euo pipefail
+          docker network create witness-ci
+          docker run -d --name pg --network witness-ci \
+            -e POSTGRES_USER=brutor -e POSTGRES_PASSWORD=brutor -e POSTGRES_DB=brutor \
+            postgres:16.14-alpine
+          for i in $(seq 1 30); do docker exec pg pg_isready -U brutor && break; sleep 1; done
+          docker run -d --name witness --network witness-ci -p 18000:8000 \
+            -e CAPSULE_ANCHOR_SIGNING_KEY="$(openssl rand -hex 32)" \
+            -e CAPSULE_ANCHOR_PUBLIC_HOST=brutor-witness.ci \
+            -e CAPSULE_ANCHOR_DATABASE_URL=postgresql://brutor:brutor@pg:5432/brutor_witness \
+            brutor-agent-control-witness:ci
+          for i in $(seq 1 60); do curl -fsS localhost:18000/health && break; sleep 1; done
+          curl -fsS localhost:18000/health | grep -q '"storage":"postgres"'
+          curl -fsS localhost:18000/anchor/authority-pubkey | grep -qE '"pubkey_hex":"[0-9a-f]{64}"'
+
+      # The image's file is the one its build generated from what it
+      # installed: it must be the repository's.
+      # adapted: the source's command with the witness at witness (trial_bundle/witness in the source)
+      - name: The image ships the repository's third-party licences
+        working-directory: .
+        run: |
+          docker run --rm --entrypoint cat brutor-agent-control-witness:ci /usr/share/licenses/brutor/THIRD_PARTY_LICENSES | diff - witness/THIRD_PARTY_LICENSES

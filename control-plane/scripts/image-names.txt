@@ -1,0 +1,14 @@
+# The images of the Control Plane: ONE list of what each is called and what
+# it says about itself. Held to by:
+#   tests/test_image_names.py              the Community Dockerfile's labels and
+#                                          the image workflow's names equal this list
+#   enterprise/tests/test_image_names.py   enterprise/Dockerfile's labels
+#
+# Columns, separated by tabs:
+#   edition   name   title   licenses   source   dockerfile
+# `name` is the repository on the registry (no tag). `licenses` is an SPDX
+# expression; the Enterprise Edition's is its proprietary identifier.
+# Every image also carries org.opencontainers.image.vendor = "Brutor AI Ltd"
+# and ai.brutor.edition = <edition>. The version and revision labels are
+# given by the build that knows them (.github/workflows/docker-build.yml).
+community	ghcr.io/brutor-ai/brutor-agent-control-control-plane	Brutor Agent Control Control Plane (Community Edition)	Apache-2.0	https://github.com/brutor-ai/brutor-agent-control	Dockerfile

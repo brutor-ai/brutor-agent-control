@@ -1,0 +1,17 @@
+{
+  "description": "the receipt presented for a different head",
+  "expect": {
+    "codes": [
+      "receipt_invalid"
+    ],
+    "grade": "invalid",
+    "iat": null,
+    "leaf_index": null,
+    "ok": false,
+    "tree_size": null
+  },
+  "kind": "scitt",
+  "pin": "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699",
+  "receipt_b64": "0oRPowEnD6EGGmquX3gZAYsBoRkBjKEggVhIgwMBglggWSRAexWRH4/F2mS84QGgBko6xtQlAv1FITaFCNizC6xYIMyYSoo9rJ5CF136oa+5VapqA55iucpWu0DGSpbfdRiQ9lhA/KXap6rikHUsyiJrCUiDSh9V2/4OMtn76GKDXdP6xnB/+oqqXF9b1ZSVmI5MQ+Yvy4AjQqS5wszARE9wV4tjAQ==",
+  "statement_b64": "0oRY2KQBJwN4JWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IudHJlZS1oZWFkK2Nib3IEWCBhj0sCJ6m8L2xM3EtIFMDaGzUbrofwfyiZpiIyPi/pEQ+iAXhAMGRkNDFmMGY3YzI3NGZhZDI4NDkyMTQyZDcxNzZmNmE0MTIxMTQxN2Y2OTUwOTk4NDRmYjdlOWZiNzQ5NDJlNQJ4QjBkZDQxZjBmN2MyNzRmYWQyODQ5MjE0MmQ3MTc2ZjZhNDEyMTE0MTdmNjk1MDk5ODQ0ZmI3ZTlmYjc0OTQyZTUjNKBYyadkcm9vdFgg2BUSVVE3uuG54/3+8S0KYlBkomKhqjg7KeugMYr5MoxmbG9nX2lkeEAwZGQ0MWYwZjdjMjc0ZmFkMjg0OTIxNDJkNzE3NmY2YTQxMjExNDE3ZjY5NTA5OTg0NGZiN2U5ZmI3NDk0MmU1aWlzc3VlZF9hdHgYMjAyNi0wOS0xOVQxMDowNTowMC4wMDBaaXByZXZfcm9vdEBpcHJldl9zaXplAGl0cmVlX3NpemUEcWNvbnNpc3RlbmN5X3Byb29mgFhAtluDclB67+hT3x9rpFq8ikHyxnnxNTo7wHpJiBh7k8lyORoxqHgM4qrLc6rADMnvdCb5rR6aYCg677Td+upNAA=="
+}

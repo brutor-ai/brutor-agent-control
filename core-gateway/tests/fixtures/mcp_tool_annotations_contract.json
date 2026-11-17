@@ -1,0 +1,245 @@
+{
+  "_comment": "Cross-plane contract for stored MCP tools. The control plane (tests/test_mcp_tool_snapshot.py) asserts its canonical normaliser turns `tools_list_result.tools` (both as raw dicts and as MCP SDK Tool objects) into `expected[*].stored`, and that its risk mirror gives `risk_attributes`; the core (services::agent_authz::tool_annotation_contract) asserts tool_risk_attributes / autonomy::classify / evidence read_only_map give `risk_attributes` / `call_kind` / `evidence_read_only` for each STORED tool. Lives in the core repo because the core is the enforcing consumer; the Python side finds it via tests/core_repo.py (BRUTOR_CORE_REPO in CI).",
+  "tools_list_result": {
+    "tools": [
+      {
+        "name": "get_applicant",
+        "title": "Get applicant",
+        "description": "Read one loan applicant's file.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "applicant_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "applicant_id"
+          ]
+        },
+        "outputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "income": {
+              "type": "number"
+            }
+          }
+        },
+        "annotations": {
+          "title": "Get applicant",
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "_meta": {
+          "brutor.demo/category": "lookup"
+        }
+      },
+      {
+        "name": "record_decision",
+        "description": "Record a pre-screening decision.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "applicant_id": {
+              "type": "string"
+            },
+            "decision": {
+              "type": "string",
+              "enum": [
+                "approve",
+                "refer",
+                "decline"
+              ]
+            }
+          }
+        },
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        }
+      },
+      {
+        "name": "purge_applicant",
+        "description": "Permanently delete an applicant file.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "applicant_id": {
+              "type": "string"
+            }
+          }
+        },
+        "annotations": {
+          "destructiveHint": true
+        }
+      },
+      {
+        "name": "legacy_tool",
+        "description": "",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "q": {
+              "type": "string",
+              "default": null
+            }
+          }
+        }
+      },
+      {
+        "name": "partial_hints",
+        "description": "Declares only openWorldHint; readOnlyHint is explicitly null.",
+        "inputSchema": {
+          "type": "object"
+        },
+        "annotations": {
+          "readOnlyHint": null,
+          "openWorldHint": false
+        }
+      }
+    ]
+  },
+  "expected": [
+    {
+      "stored": {
+        "name": "get_applicant",
+        "title": "Get applicant",
+        "description": "Read one loan applicant's file.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "applicant_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "applicant_id"
+          ]
+        },
+        "outputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "income": {
+              "type": "number"
+            }
+          }
+        },
+        "annotations": {
+          "title": "Get applicant",
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "_meta": {
+          "brutor.demo/category": "lookup"
+        }
+      },
+      "risk_attributes": [
+        "read_only",
+        "idempotent"
+      ],
+      "call_kind": "read_only",
+      "evidence_read_only": true
+    },
+    {
+      "stored": {
+        "name": "record_decision",
+        "description": "Record a pre-screening decision.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "applicant_id": {
+              "type": "string"
+            },
+            "decision": {
+              "type": "string",
+              "enum": [
+                "approve",
+                "refer",
+                "decline"
+              ]
+            }
+          }
+        },
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        }
+      },
+      "risk_attributes": [
+        "idempotent"
+      ],
+      "call_kind": "side_effecting",
+      "evidence_read_only": false
+    },
+    {
+      "stored": {
+        "name": "purge_applicant",
+        "description": "Permanently delete an applicant file.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "applicant_id": {
+              "type": "string"
+            }
+          }
+        },
+        "annotations": {
+          "destructiveHint": true
+        }
+      },
+      "risk_attributes": [
+        "destructive",
+        "open_world"
+      ],
+      "call_kind": "side_effecting",
+      "evidence_read_only": false
+    },
+    {
+      "stored": {
+        "name": "legacy_tool",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "q": {
+              "type": "string",
+              "default": null
+            }
+          }
+        }
+      },
+      "risk_attributes": [
+        "destructive",
+        "open_world"
+      ],
+      "call_kind": "side_effecting",
+      "evidence_read_only": false
+    },
+    {
+      "stored": {
+        "name": "partial_hints",
+        "description": "Declares only openWorldHint; readOnlyHint is explicitly null.",
+        "inputSchema": {
+          "type": "object"
+        },
+        "annotations": {
+          "openWorldHint": false
+        }
+      },
+      "risk_attributes": [
+        "destructive"
+      ],
+      "call_kind": "side_effecting",
+      "evidence_read_only": false
+    }
+  ]
+}

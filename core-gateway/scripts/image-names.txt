@@ -1,0 +1,14 @@
+# The images of the Core Gateway: ONE list of what each is called and what it
+# says about itself. Held to by:
+#   tests/image_names_guard.rs   the two Dockerfiles' labels and the workflow's
+#                                image names equal this list
+#   scripts/image-smoke.sh       a built image's labels equal this list
+#
+# Columns, separated by tabs:
+#   edition   name   title   licenses   source   dockerfile
+# `name` is the repository on the registry (no tag). `licenses` is an SPDX
+# expression; the Enterprise Edition's is its proprietary identifier.
+# Every image also carries org.opencontainers.image.vendor = "Brutor AI Ltd"
+# and ai.brutor.edition = <edition>.
+community	ghcr.io/brutor-ai/brutor-agent-control-core-gateway	Brutor Agent Control Core Gateway (Community Edition)	Apache-2.0	https://github.com/brutor-ai/brutor-agent-control	Dockerfile
+enterprise	ghcr.io/brutor-ai/brutor-agent-control-enterprise-core-gateway	Brutor Agent Control Core Gateway (Enterprise Edition)	LicenseRef-Brutor-Proprietary	https://github.com/brutor-ai/brutor-agent-control-enterprise	enterprise/Dockerfile

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.brutor.ai/standards/ai-system-contract/1.0/schema.json",
+  "title": "AI System Contract",
+  "description": "A hash-pinned, versioned declaration of everything an AI System may do (the resolved authorization closure) and what it should achieve (the operating envelope), generated from live configuration and approved as a unit. spec ai.brutor/ai-system-contract, version 1.x: additive changes only; consumers must tolerate unknown fields.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["spec", "spec_version", "generated_at", "system", "contract", "closure"],
+  "properties": {
+    "spec": { "const": "ai.brutor/ai-system-contract" },
+    "spec_version": { "type": "string", "pattern": "^1\\.\\d+$" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "tenant_id": { "type": "string" },
+    "system": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "system_kind": { "type": ["string", "null"] }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "required": ["version", "hash", "status"],
+      "additionalProperties": true,
+      "properties": {
+        "version": { "type": "integer", "minimum": 1 },
+        "hash": { "type": "string", "minLength": 16 },
+        "hash_algorithm": { "type": "string" },
+        "status": { "enum": ["draft", "active", "superseded", "rejected"] },
+        "created_at": { "type": ["string", "null"] },
+        "created_by": { "type": ["string", "null"] },
+        "approved_by": { "type": ["string", "null"] },
+        "approved_at": { "type": ["string", "null"] },
+        "promoted_at": { "type": ["string", "null"] },
+        "diff_from_version": { "type": ["integer", "null"] },
+        "diff_summary": { "type": ["object", "null"] }
+      }
+    },
+    "closure": {
+      "type": "object",
+      "description": "The resolved authorization closure the hash covers. Composition is additive up the inheritance chain; limits and governance compose restrictively, min-wins.",
+      "required": ["schema_version", "ai_system", "composition", "limits", "governance"],
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": { "type": "integer" },
+        "ai_system": {
+          "type": "object",
+          "required": ["id"],
+          "additionalProperties": true
+        },
+        "autonomy_level": { "type": ["string", "null"] },
+        "composition": { "type": "object" },
+        "limits": { "type": "object" },
+        "governance": { "type": "object" },
+        "operating_envelope": {
+          "type": "object",
+          "description": "Declared bounds on cost and outcome mix. Every term is computable from gateway-observed ledger facts; there is deliberately no correctness term, because a proxy has no ground truth.",
+          "additionalProperties": false,
+          "properties": {
+            "max_cost_per_run_usd": { "type": "number", "exclusiveMinimum": 0 },
+            "max_monthly_cost_usd": { "type": "number", "exclusiveMinimum": 0 },
+            "min_completion_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+            "max_error_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+            "max_abandoned_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+            "max_approval_escalation_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "canonical": "{\"action_id\":\"mcp/01K5VEC0000000000000000022\",\"context\":{\"surface\":\"mcp\",\"tags\":[\"𐀀\",\"�\"]},\"disposition\":{\"approver\":\"policy\",\"decision\":\"accept\",\"human_disposed\":false},\"effect\":{\"attestation\":\"gate_observed\",\"request_digest\":\"ef4d74304d4399118e1cc5cb66b86922558e20082f81de31dc5eb4fe05a56beb\",\"response_digest\":\"f2f67616f51b4effa8099288da2af75efa57ff6a3f54419cfcfe66e8ce85252c\",\"status\":\"confirmed\",\"type\":\"mcp_tool_call\"},\"epoch\":\"contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"kind\":\"decide\",\"operator\":\"tenant-vectors\",\"schema\":\"ai.brutor/action-record/v1\",\"system\":{\"ai_system_id\":\"rg-vectors-claims\",\"contract_hash\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"contract_version\":3},\"timestamp\":\"2026-09-19T10:00:22.000Z\",\"verdict\":\"executed\"}",
+  "description": "RFC 8785 member order is by UTF-16 code units: U+10000 sorts before U+E000 and U+FFFD (a code-point sort gets this wrong); see preimages.canonical",
+  "expect": {
+    "codes": [],
+    "effect_mode": "confirmed",
+    "ok": true,
+    "record_id": "a75beb8e944146a1cdee54c87ac064114495cde4d5c6ce2dd7c5c8bcaf13bc40"
+  },
+  "preimages": {
+    "effect.request_digest": {
+      "canonical": "{\"a\":\"ascii\",\"€\":\"euro\",\"𐀀\":\"linear-b\",\"\":\"private-use\",\"�\":\"replacement\"}",
+      "scheme": "jcs",
+      "value": {
+        "a": "ascii",
+        "€": "euro",
+        "": "private-use",
+        "�": "replacement",
+        "𐀀": "linear-b"
+      }
+    },
+    "effect.response_digest": {
+      "scheme": "jcs",
+      "value": {
+        "content": [
+          {
+            "text": "Refund R-5521 issued",
+            "type": "text"
+          }
+        ],
+        "isError": false
+      }
+    }
+  },
+  "record": {
+    "action_id": "mcp/01K5VEC0000000000000000022",
+    "context": {
+      "surface": "mcp",
+      "tags": [
+        "𐀀",
+        "�"
+      ]
+    },
+    "disposition": {
+      "approver": "policy",
+      "decision": "accept",
+      "human_disposed": false
+    },
+    "effect": {
+      "attestation": "gate_observed",
+      "request_digest": "ef4d74304d4399118e1cc5cb66b86922558e20082f81de31dc5eb4fe05a56beb",
+      "response_digest": "f2f67616f51b4effa8099288da2af75efa57ff6a3f54419cfcfe66e8ce85252c",
+      "status": "confirmed",
+      "type": "mcp_tool_call"
+    },
+    "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+    "kind": "decide",
+    "operator": "tenant-vectors",
+    "record_id": "a75beb8e944146a1cdee54c87ac064114495cde4d5c6ce2dd7c5c8bcaf13bc40",
+    "schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "rg-vectors-claims",
+      "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "contract_version": 3
+    },
+    "timestamp": "2026-09-19T10:00:22.000Z",
+    "verdict": "executed"
+  },
+  "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggp1vrjpRBRqHN7lTIesBkEUSVzeTVxs4t18XIvK8TvEBYQG8BIwvS6alxTkLUDkVhc12sEkpHPXH5rsXQf1QpFB+3UGpPNMxNP9N/AXMxwKbD6kNcAZFDpOFCaLp8KcIQAwQ="
+}

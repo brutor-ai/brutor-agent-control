@@ -1,0 +1,48 @@
+{
+  "action_id": "contract/sys-claims-triage/4",
+  "action_type": "fyi",
+  "ai.brutor": {
+    "context": {
+      "contract_version": "4",
+      "record_type": "ai.brutor.epoch-boundary"
+    },
+    "lossy": [
+      "attestation_tier_not_projected"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "a542fc92333275d108eefa4486ba3fc1ce8d08750a623827e31082a7a4b7ecba",
+    "record_schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "sys-claims-triage",
+      "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+      "contract_version": 3
+    },
+    "verdict": "epoch_boundary"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "not_applicable",
+    "ledger_mode": "standalone"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "f117c3d9b4675c0152b4d213d8d95a4d223b1d325fcbcc259da1390a940a5a03",
+  "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+  "disposition": {
+    "approver": "policy",
+    "decision": "accept",
+    "human_disposed": false,
+    "verdict_class": "epoch_boundary"
+  },
+  "epoch_id": "contract:eeccc2cd14556cd4596545b5ab081cea5705e111ee448ecd995b1f8a2c157fc7",
+  "format_version": "4",
+  "operator": "tenant-acme",
+  "references": [
+    {
+      "digest": "eeccc2cd14556cd4596545b5ab081cea5705e111ee448ecd995b1f8a2c157fc7",
+      "digest_alg": "SHA-256",
+      "type": "ai.brutor.ai-system-contract"
+    }
+  ],
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-19T12:00:00.000Z"
+}

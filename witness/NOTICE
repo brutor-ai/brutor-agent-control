@@ -1,0 +1,14 @@
+Brutor Agent Control Witness
+Copyright 2026 Brutor AI Ltd.
+
+This image packages capsule-anchor, unmodified, from
+https://github.com/action-state-group/capsule-anchor at commit
+0e040e819e770c598eb20f6cfe8cbacfea244006.
+
+capsule-anchor
+Copyright 2024-2026 Action State Group, Inc.
+Licensed under the Apache License, Version 2.0. The upstream LICENSE and
+NOTICE files are included in the image at /usr/share/licenses/capsule-anchor/.
+
+Brutor's only addition is entrypoint.py, which creates the witness database
+and then starts the upstream service.

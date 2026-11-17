@@ -1,0 +1,406 @@
+{
+  "cases": [
+    {
+      "description": "a run (root_task_id selector, contiguous): approval chain, two-phase action, a block and a denial; two heads with a consistency proof; the newest head witnessed by a scitt receipt and carried as a Transparent Statement",
+      "expect": {
+        "bundle_digest": "aa9732219419604f55ea7ef1ad14637a1abef288d25eeb757b62f852af9f7539",
+        "codes": [],
+        "heads_verified": 2,
+        "ok": true,
+        "proofs_verified": 6,
+        "records_verified": 6
+      },
+      "expected_digest": "aa9732219419604f55ea7ef1ad14637a1abef288d25eeb757b62f852af9f7539",
+      "file": "golden/run-contiguous.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "an explicit record id (producer-selected) and its chain parent followed at closure_depth 1",
+      "expect": {
+        "bundle_digest": "4e8478a8d4db76b96d7f061560a40b2e2954f83fb53a45bffcbe71f5d8e2a18f",
+        "codes": [],
+        "heads_verified": 2,
+        "ok": true,
+        "proofs_verified": 2,
+        "records_verified": 2
+      },
+      "expected_digest": null,
+      "file": "golden/producer-selected-closure.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "closure_depth 0: the chain parent is not followed and is listed in completeness.missing (records_mode declared_incomplete)",
+      "expect": {
+        "bundle_digest": "0ba031313a5e8130203f94b441cd3590c9e6f518476230a5cc7b4e9384c4e6c9",
+        "codes": [],
+        "heads_verified": 2,
+        "ok": true,
+        "proofs_verified": 1,
+        "records_verified": 1
+      },
+      "expected_digest": null,
+      "file": "golden/declared-incomplete.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "the smallest bundle: one record, a one-leaf log, one head, no consistency proof",
+      "expect": {
+        "bundle_digest": "c78cd34829e6441238f9121da278414ebd2a77e42a37fd1edd2230ac2731c5a5",
+        "codes": [],
+        "heads_verified": 1,
+        "ok": true,
+        "proofs_verified": 1,
+        "records_verified": 1
+      },
+      "expected_digest": null,
+      "file": "golden/single-record.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "G1 with no trusted keys and no witness key: self-consistent under the keys the statements name; the receipt is not checked",
+      "expect": {
+        "bundle_digest": "aa9732219419604f55ea7ef1ad14637a1abef288d25eeb757b62f852af9f7539",
+        "codes": [
+          "kid_not_pinned",
+          "receipt_not_checked"
+        ],
+        "heads_verified": 2,
+        "ok": true,
+        "proofs_verified": 6,
+        "records_verified": 6
+      },
+      "expected_digest": null,
+      "file": "golden/run-contiguous.json",
+      "keys": null,
+      "witness_keys": []
+    },
+    {
+      "description": "G1 against a keys document that does not list the signer (wrong kid): every head and record statement is untrusted",
+      "expect": {
+        "bundle_digest": "aa9732219419604f55ea7ef1ad14637a1abef288d25eeb757b62f852af9f7539",
+        "codes": [
+          "untrusted_kid",
+          "untrusted_kid",
+          "untrusted_kid",
+          "untrusted_kid",
+          "untrusted_kid",
+          "untrusted_kid",
+          "untrusted_kid",
+          "untrusted_kid"
+        ],
+        "heads_verified": 0,
+        "ok": false,
+        "proofs_verified": 0,
+        "records_verified": 0
+      },
+      "expected_digest": null,
+      "file": "golden/run-contiguous.json",
+      "keys": "keys/stranger.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "one record member changed after sealing",
+      "expect": {
+        "bundle_digest": "20f8a757ff378ee7785f6c3986ec13fe30ddadbe74b0949d27ef7446ba180985",
+        "codes": [
+          "record_semantic_error",
+          "statement_payload_mismatch"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 5,
+        "records_verified": 5
+      },
+      "expected_digest": null,
+      "file": "tampered/flipped-record-byte.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "record 0 presented with record 5's statement",
+      "expect": {
+        "bundle_digest": "3bd531d9e363eab4c940ba4921fc54374fb1ce87f8abb0f3235acf08a2f37009",
+        "codes": [
+          "statement_payload_mismatch"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 5,
+        "records_verified": 5
+      },
+      "expected_digest": null,
+      "file": "tampered/swapped-statement.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "an inclusion path with its last node removed",
+      "expect": {
+        "bundle_digest": "be920dec42df9d671faaf9acbc20764e0783ac6ac805acc89943736fd2f23e84",
+        "codes": [
+          "proof_invalid"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 5,
+        "records_verified": 6
+      },
+      "expected_digest": null,
+      "file": "tampered/truncated-proof-path.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "a record without an inclusion proof (the manifest self-report no longer matches either)",
+      "expect": {
+        "bundle_digest": "fe484ea5ce4d184fa65c8ea82d4df1f3453863c08e767942ff709cc35c1515fa",
+        "codes": [
+          "proof_missing",
+          "self_report_mismatch"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 5,
+        "records_verified": 6
+      },
+      "expected_digest": null,
+      "file": "tampered/proof-dropped.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "a proof claiming another leaf index than the record's seq",
+      "expect": {
+        "bundle_digest": "d0ac740e8dd40ff4f7ddc07523787a09e750234742220f20be072a48e9d71d84",
+        "codes": [
+          "leaf_index_mismatch"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 5,
+        "records_verified": 6
+      },
+      "expected_digest": null,
+      "file": "tampered/leaf-index-mismatch.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "the newest head's signature with one bit flipped (its receipt no longer matches either)",
+      "expect": {
+        "bundle_digest": "f17c18342f84ddae4b075ca825b0ad3700f22ee6bb63f80404fa2df81223a20e",
+        "codes": [
+          "head_invalid",
+          "receipt_invalid"
+        ],
+        "heads_verified": 1,
+        "ok": false,
+        "proofs_verified": 0,
+        "records_verified": 6
+      },
+      "expected_digest": null,
+      "file": "tampered/wrong-head-signature.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "the first head re-signed by a key outside the trusted set",
+      "expect": {
+        "bundle_digest": "6e6a0163c97f749b0865c9d242a5716bc479291d79d803427ebe3ed2448adc96",
+        "codes": [
+          "untrusted_kid"
+        ],
+        "heads_verified": 1,
+        "ok": false,
+        "proofs_verified": 0,
+        "records_verified": 6
+      },
+      "expected_digest": null,
+      "file": "tampered/head-signed-by-stranger.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "a consistency proof node zeroed",
+      "expect": {
+        "bundle_digest": "006adc7285be796ca7cd65d61e7e4e33db92a287e7be374f70dd69e17dda4aee",
+        "codes": [
+          "consistency_invalid"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 6,
+        "records_verified": 6
+      },
+      "expected_digest": null,
+      "file": "tampered/broken-consistency.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "two heads without the proof that links them",
+      "expect": {
+        "bundle_digest": "6ad6852118b26d0f1c378c52f92e3860c072a35323772bb8a6e4f7d28bb3fa6d",
+        "codes": [
+          "consistency_missing"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 6,
+        "records_verified": 6
+      },
+      "expected_digest": null,
+      "file": "tampered/consistency-dropped.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "the Transparent Statement is not the head it is carried with",
+      "expect": {
+        "bundle_digest": "d04a896c78881597357151051277d2702277a9bf22a5ca9c1e8efafdfaa1f550",
+        "codes": [
+          "transparent_statement_mismatch"
+        ],
+        "heads_verified": 1,
+        "ok": false,
+        "proofs_verified": 0,
+        "records_verified": 6
+      },
+      "expected_digest": null,
+      "file": "tampered/transparent-statement-mismatch.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "the witness receipt's signature with one bit flipped",
+      "expect": {
+        "bundle_digest": "102d8866200392bafa4c3b5e45f2639924ca72e225a0b9f80d8f11196af93eb9",
+        "codes": [
+          "receipt_invalid"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 6,
+        "records_verified": 6
+      },
+      "expected_digest": null,
+      "file": "tampered/receipt-tampered.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "an edit to digest-covered content (an extension) checked against the digest the producer sealed",
+      "expect": {
+        "bundle_digest": "9bff7dd88b2fdb24c14412d9f5e40f3adbfa3110921701c7ce6279888586cf05",
+        "codes": [
+          "bundle_digest_mismatch"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 6,
+        "records_verified": 6
+      },
+      "expected_digest": "aa9732219419604f55ea7ef1ad14637a1abef288d25eeb757b62f852af9f7539",
+      "file": "tampered/digest-mismatch.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "a chain parent neither included nor listed missing (dropped, not declared)",
+      "expect": {
+        "bundle_digest": "85cebee3fd34b2bc98e288cc78dec410c4f5a22514a59b74cdbc94abdc1a1987",
+        "codes": [
+          "closure_parent_dropped"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 1,
+        "records_verified": 1
+      },
+      "expected_digest": null,
+      "file": "tampered/missing-parent-not-listed.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "missing is non-empty but the manifest claims records_mode complete",
+      "expect": {
+        "bundle_digest": "cdc50f9fe5d3150ed2da8fa7f00512c7194d9de5252e21bec4cfcd4af2deca8f",
+        "codes": [
+          "records_mode_mismatch"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 1,
+        "records_verified": 1
+      },
+      "expected_digest": null,
+      "file": "tampered/records-mode-lie.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    },
+    {
+      "description": "an explicit-id bundle carrying a validly signed and proven record nobody selected",
+      "expect": {
+        "bundle_digest": "67495c45e03351f5f8e796a576faccabfd2e74743f4d042000130d521def50e7",
+        "codes": [
+          "record_not_in_selector"
+        ],
+        "heads_verified": 2,
+        "ok": false,
+        "proofs_verified": 3,
+        "records_verified": 3
+      },
+      "expected_digest": null,
+      "file": "tampered/extra-record-not-in-selector.json",
+      "keys": "keys/well-known.json",
+      "witness_keys": [
+        "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+      ]
+    }
+  ],
+  "description": "Expected brutor-verify outcome for every bundle file (paths relative to vectors/bundles/, key documents relative to vectors/). `codes` lists every finding code, all severities, in emission order.",
+  "generator": "cargo run -p brutor-verify --example gen-vectors"
+}

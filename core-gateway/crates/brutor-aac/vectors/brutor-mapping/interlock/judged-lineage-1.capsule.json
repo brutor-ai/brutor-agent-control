@@ -1,0 +1,60 @@
+{
+  "action_id": "assessment/as-1",
+  "action_type": "fyi",
+  "ai.brutor": {
+    "chain": {
+      "parent_record_id": "478ec8d6b8dcaae8fda7dacaa346638d558f3e029f057491dc33b332109c2541",
+      "relation": "assesses"
+    },
+    "context": {
+      "check_id": "groundedness",
+      "evaluator_fingerprint": "10e86c6514d40f2a3e861b31847340ee8c8ed181029a17b042f137121d28863e",
+      "record_type": "ai.brutor.assessment"
+    },
+    "lossy": [
+      "attestation_tier_not_projected",
+      "chain_relation_unregistered",
+      "verdict_unregistered"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "f83a6188ac6cdb3c05670afb262e37232020e131c78f96deba6f68ce8f549e5b",
+    "record_schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "sys-claims-triage",
+      "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+      "contract_version": 3
+    },
+    "verdict": "assessment"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "not_applicable",
+    "ledger_mode": "chained"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "b407a7a787e761636c854c40f7a7e569aa9286e8add5aaeec8a4f77d76c6d397",
+  "chain": {
+    "parent_capsule_id": "41d5a26f20abb4db841015d618a4a297b4401118f21cf5fa228daceb9a569a93",
+    "relation": "ai.brutor.assesses"
+  },
+  "constraints": [
+    {
+      "blocking": false,
+      "check_type": "ai.brutor.judged",
+      "evidence_digest": "78dc1d948c5af4fa59dcc4092af33a4f7ddd57e6ee0bdcaf5a660c20b584233d",
+      "id": "ai.brutor.judge.groundedness",
+      "result": "pass"
+    }
+  ],
+  "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+  "disposition": {
+    "approver": "policy",
+    "decision": "accept",
+    "human_disposed": false,
+    "verdict_class": "ai.brutor.assessment"
+  },
+  "format_version": "4",
+  "operator": "tenant-acme",
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-19T15:00:00.000Z"
+}

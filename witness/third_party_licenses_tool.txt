@@ -1,0 +1,14 @@
+# The licence generator, pinned with hashes: pip-licenses and its two
+# dependencies, installed with `--no-deps --require-hashes` into a virtual
+# environment of its own (in the image's build stage only: the shipped
+# environment never holds it). `third_party_licenses.toml` names it.
+pip-licenses==5.5.5 \
+    --hash=sha256:f4c4c6d9e6a03612cf59f29f19dc8ab54904d82e055b8e191498f2279a224e14
+prettytable==3.18.0 \
+    --hash=sha256:b3346e0e6f79180833aebaac088ae926340586cf6d7d991b9eb125b65f72313a
+wcwidth==0.9.4 \
+    --hash=sha256:901eace6d2dd25ebb917d0ce5db18e5c537e1504c905cf32f0d006c12098b05d \
+    --hash=sha256:b185c8b927b23af2721be1783499d1cfa5c028b098b0858951b4ae224477f1c2 \
+    --hash=sha256:093469e01d881bff3db93ff3f56c364dc87c441ea01f9f41c22de0c0bdf5c6ef \
+    --hash=sha256:f279f32c8e206a9092fa350e53ca0c2bd8072e45b1c9fd31bb6d476b59b591c4 \
+    --hash=sha256:b7969c9aa258d536df54c8ac8af5cad0c74a6268c9972e1fb60a5f29feffb66d

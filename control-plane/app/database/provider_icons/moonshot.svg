@@ -1,0 +1,7 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Crescent-moon mark for Moonshot AI / Kimi. Solid disc with a
+         right-offset cutout disc creates the crescent. Brand colour
+         is the platform.kimi.ai dark accent (#0F172A) so the logo
+         reads cleanly on light and dark themes alike. -->
+    <path d="M12 3a9 9 0 1 0 7.4 14.1A7 7 0 0 1 12 3z" fill="#0F172A"/>
+</svg>

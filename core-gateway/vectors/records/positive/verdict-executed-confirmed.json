@@ -1,0 +1,180 @@
+{
+  "canonical": "{\"action_id\":\"mcp/01K5VEC0000000000000000003\",\"attestation\":{\"input_digest\":\"217998ed9fcbbec13366539b945e28527f43aee76775eb74f738f9cb11e2bbe1\",\"numbers_canonicalized\":false,\"observation\":\"in_path\",\"output_digest\":\"5b3800d12e9a6b9f23ccbc0955984cad58b23bc41be835aa04022a99de9d60b7\",\"runtime\":\"brutor-gateway\"},\"chain\":{\"parent_record_id\":\"e8dc81322b7b467bcc3a7c61c596ad6ba4ac3f3ffef6e33a6558f952a41c5a94\",\"relation\":\"confirms\"},\"context\":{\"autonomy_level\":\"supervised\",\"autonomy_provenance\":\"contract\",\"root_task_id\":\"run-vectors-1\",\"server_version\":\"orders-mcp/2.4.1\",\"surface\":\"mcp\",\"tags\":[\"eu_ai_act.art12\",\"soc2.cc7.2\"],\"tool_definition_hash\":\"39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3\",\"turn_id\":\"turn-2\"},\"disposition\":{\"approver\":\"policy\",\"decision\":\"accept\",\"human_disposed\":false},\"effect\":{\"attestation\":\"gate_observed\",\"request_digest\":\"f1339239f955058d4301ee556d524197314100557dc5c5b6944f11e48f809f71\",\"response_digest\":\"f2f67616f51b4effa8099288da2af75efa57ff6a3f54419cfcfe66e8ce85252c\",\"status\":\"confirmed\",\"type\":\"mcp_tool_call\"},\"epoch\":\"contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"kind\":\"decide\",\"operator\":\"tenant-vectors\",\"references\":[{\"digest\":\"c2f52d1c4101683030633083ad091b1fb74a09f341b48211332c1deaddadd7c0\",\"digest_alg\":\"SHA-256\",\"type\":\"ai.brutor.proxy-log-row\"},{\"digest\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"digest_alg\":\"SHA-256\",\"purpose\":\"governing_contract\",\"type\":\"ai.brutor.ai-system-contract\"}],\"schema\":\"ai.brutor/action-record/v1\",\"system\":{\"ai_system_id\":\"rg-vectors-claims\",\"contract_hash\":\"01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec\",\"contract_version\":3},\"timestamp\":\"2026-09-19T10:00:04.000Z\",\"verdict\":\"executed\"}",
+  "description": "executed: allowed and upstream ok; effect confirmed with request/response digests over literal preimages; chain confirms a planned record (two-phase)",
+  "expect": {
+    "codes": [],
+    "effect_mode": "confirmed",
+    "ok": true,
+    "record_id": "437651a1abc83e14f00d89ed441fb686f97e575f0bc98fb3c9cbbfe6131024a5"
+  },
+  "preimages": {
+    "attestation.input_digest": {
+      "scheme": "jcs",
+      "value": {
+        "id": 7,
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "arguments": {
+            "amount": "1240.19",
+            "currency": "EUR",
+            "order_id": "PO-88213"
+          },
+          "tool": "orders.refund"
+        }
+      }
+    },
+    "attestation.output_digest": {
+      "scheme": "jcs",
+      "value": {
+        "id": 7,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "Refund R-5521 issued",
+              "type": "text"
+            }
+          ],
+          "isError": false
+        }
+      }
+    },
+    "effect.request_digest": {
+      "scheme": "jcs",
+      "value": {
+        "arguments": {
+          "amount": "1240.19",
+          "currency": "EUR",
+          "order_id": "PO-88213"
+        },
+        "tool": "orders.refund"
+      }
+    },
+    "effect.response_digest": {
+      "scheme": "jcs",
+      "value": {
+        "content": [
+          {
+            "text": "Refund R-5521 issued",
+            "type": "text"
+          }
+        ],
+        "isError": false
+      }
+    }
+  },
+  "record": {
+    "action_id": "mcp/01K5VEC0000000000000000003",
+    "attestation": {
+      "input_digest": "217998ed9fcbbec13366539b945e28527f43aee76775eb74f738f9cb11e2bbe1",
+      "numbers_canonicalized": false,
+      "observation": "in_path",
+      "output_digest": "5b3800d12e9a6b9f23ccbc0955984cad58b23bc41be835aa04022a99de9d60b7",
+      "runtime": "brutor-gateway"
+    },
+    "chain": {
+      "parent_record_id": "e8dc81322b7b467bcc3a7c61c596ad6ba4ac3f3ffef6e33a6558f952a41c5a94",
+      "relation": "confirms"
+    },
+    "context": {
+      "autonomy_level": "supervised",
+      "autonomy_provenance": "contract",
+      "root_task_id": "run-vectors-1",
+      "server_version": "orders-mcp/2.4.1",
+      "surface": "mcp",
+      "tags": [
+        "eu_ai_act.art12",
+        "soc2.cc7.2"
+      ],
+      "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+      "turn_id": "turn-2"
+    },
+    "disposition": {
+      "approver": "policy",
+      "decision": "accept",
+      "human_disposed": false
+    },
+    "effect": {
+      "attestation": "gate_observed",
+      "request_digest": "f1339239f955058d4301ee556d524197314100557dc5c5b6944f11e48f809f71",
+      "response_digest": "f2f67616f51b4effa8099288da2af75efa57ff6a3f54419cfcfe66e8ce85252c",
+      "status": "confirmed",
+      "type": "mcp_tool_call"
+    },
+    "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+    "kind": "decide",
+    "operator": "tenant-vectors",
+    "record_id": "437651a1abc83e14f00d89ed441fb686f97e575f0bc98fb3c9cbbfe6131024a5",
+    "references": [
+      {
+        "digest": "c2f52d1c4101683030633083ad091b1fb74a09f341b48211332c1deaddadd7c0",
+        "digest_alg": "SHA-256",
+        "type": "ai.brutor.proxy-log-row"
+      },
+      {
+        "digest": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "digest_alg": "SHA-256",
+        "purpose": "governing_contract",
+        "type": "ai.brutor.ai-system-contract"
+      }
+    ],
+    "schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "rg-vectors-claims",
+      "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "contract_version": 3
+    },
+    "timestamp": "2026-09-19T10:00:04.000Z",
+    "verdict": "executed"
+  },
+  "statement_b64": "0oRYmKUBJwRYIGGPSwInqbwvbEzcS0gUwNobNRuuh/B/KJmmIjI+L+kRD6IBeB11cm46YnJ1dG9yOmRlcGxveW1lbnQ6dmVjdG9ycwJ4G2FpLXN5c3RlbTpyZy12ZWN0b3JzLWNsYWltcxkBAi8ZAQN4KWFwcGxpY2F0aW9uL3ZuZC5icnV0b3IuYWN0aW9uLXJlY29yZCtqc29uoFggQ3ZRoavIPhTwDYntRB+2hvl+V18LyY+zycu/5hMQJKVYQNk7+bHvnQtKvfaJIO8w3mHv7Ffxnm+V5D9DkHSHM4Va4y7WfVthgdtSuhSnl/4d8YUXuDkkNmrWRmUFRYAOuAI=",
+  "store": [
+    {
+      "action_id": "mcp/01K5VEC0000000000000000003",
+      "context": {
+        "autonomy_level": "supervised",
+        "autonomy_provenance": "contract",
+        "root_task_id": "run-vectors-1",
+        "server_version": "orders-mcp/2.4.1",
+        "surface": "mcp",
+        "tags": [
+          "eu_ai_act.art12",
+          "soc2.cc7.2"
+        ],
+        "tool_definition_hash": "39fa8cd8319b5ad8cc0ca14981a0c0c32ed359ab38d605e658f301ce5185e7d3",
+        "turn_id": "turn-2"
+      },
+      "disposition": {
+        "approver": "policy",
+        "decision": "accept",
+        "human_disposed": false
+      },
+      "effect": {
+        "attestation": "gate_observed",
+        "status": "planned",
+        "type": "mcp_tool_call"
+      },
+      "epoch": "contract:01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+      "kind": "decide",
+      "operator": "tenant-vectors",
+      "record_id": "e8dc81322b7b467bcc3a7c61c596ad6ba4ac3f3ffef6e33a6558f952a41c5a94",
+      "references": [
+        {
+          "digest": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+          "digest_alg": "SHA-256",
+          "purpose": "governing_contract",
+          "type": "ai.brutor.ai-system-contract"
+        }
+      ],
+      "schema": "ai.brutor/action-record/v1",
+      "system": {
+        "ai_system_id": "rg-vectors-claims",
+        "contract_hash": "01bdbac1ff12d63453e694ed6f293c923c2ef97d8c7fd452f8a9b802700d7cec",
+        "contract_version": 3
+      },
+      "timestamp": "2026-09-19T10:00:03.000Z",
+      "verdict": "planned"
+    }
+  ]
+}

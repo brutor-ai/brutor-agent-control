@@ -1,0 +1,384 @@
+# =============================================================================
+# Brutor Agent Control Community Edition - Docker Compose
+#
+#   docker compose up -d
+#
+# Seven services: PostgreSQL, Valkey, the control plane, the core gateway, the
+# Admin Console, the skill runner and the witness. No license key.
+#
+# Every value this file needs is in .env. A package downloaded from brutor.ai
+# has its secrets already filled in; from a clone of the source repository,
+# run ./start.sh (or .\start.ps1) once and it fills in the empty ones.
+#
+# Everything is published on the loopback address only. BIND_ADDRESS in .env
+# opens the three user-facing ports (the Admin Console, the control plane and
+# the core gateway) to the network; the database and the witness stay on
+# loopback whatever it says, and Valkey is not published at all.
+#
+# The Control Plane and the Core Gateway read some settings under the same
+# name (the two shared secrets, the allowed origins, the fallback embedding
+# model, the outbound allow-list, the log level and JSON switch). .env has
+# each of them once and this file gives the same entry to both.
+#
+# Uploaded and generated files (media) are kept by the core gateway on the
+# named volume brutor-media. Back it up with the database.
+# =============================================================================
+
+name: brutor-agent-control
+
+# One connection string for the control plane and the core gateway. Inside
+# the Compose network the database is always postgres:5432; DB_PORT only
+# moves the port published on this host.
+x-database-url: &database-url postgresql://${DB_USER:-brutor}:${DB_PASSWORD:?DB_PASSWORD is empty in .env. Run ./start.sh once, or set it}@postgres:5432/${DB_NAME:-brutor}
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL. The control plane owns the schema and migrates it on start.
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16.14-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-brutor}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is empty in .env. Run ./start.sh once, or set it}
+      POSTGRES_DB: ${DB_NAME:-brutor}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+    command: postgres -c max_connections=200
+    ports:
+      # Loopback only, for psql and backups from this host.
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-brutor} -d ${DB_NAME:-brutor}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - brutor-network
+
+  # ---------------------------------------------------------------------------
+  # Valkey (BSD-3-Clause), the key-value store that speaks the Redis protocol.
+  # Required: the core gateway enforces usage limits on it and refuses to
+  # start without it. It has no password, so it is never on the skill runner's
+  # network and is not published: nothing on this host needs it.
+  #
+  # The service keeps the name `redis`, and the control plane and the gateway
+  # reach it through REDIS_URL (redis://redis:6379/0): the name of the
+  # protocol, not of the product.
+  # ---------------------------------------------------------------------------
+  redis:
+    image: valkey/valkey:9.1.3-alpine
+    restart: unless-stopped
+    command: >
+      valkey-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - brutor-network
+
+  # ---------------------------------------------------------------------------
+  # Control plane (Python). Backs the Admin Console, owns the database schema
+  # and seeds the default tenant and its administrator on the first start.
+  # ---------------------------------------------------------------------------
+  control-plane:
+    image: ${BRUTOR_REGISTRY:-ghcr.io/brutor-ai}/brutor-agent-control-control-plane:${BRUTOR_VERSION:-0.11.32}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: *database-url
+      # Per worker. One worker stays well inside max_connections.
+      BRUTOR_CONTROL_PLANE_DB_POOL_SIZE: ${BRUTOR_CONTROL_PLANE_DB_POOL_SIZE:-20}
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-1}
+      REDIS_URL: redis://redis:6379/0
+      # Signs every admin and gateway token. Shared with the core gateway.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is empty in .env. Run ./start.sh once, or set it (openssl rand -hex 32)}
+      # Not optional: without it every Admin Console sign-in fails.
+      JWT_ALGORITHM: HS256
+      # Protects stored provider keys. Shared with the core gateway. Never
+      # change it once the database holds data.
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY is empty in .env. Run ./start.sh once, or set it (openssl rand -hex 32)}
+      # How the control plane reaches the core gateway, and the key it
+      # presents (seeded into the database on the first start).
+      BRUTOR_GATEWAY_INTERNAL_URL: http://core:8100
+      BRUTOR_GATEWAY_SERVICE_API_KEY: ${BRUTOR_GATEWAY_SERVICE_API_KEY:?BRUTOR_GATEWAY_SERVICE_API_KEY is empty in .env. Run ./start.sh once}
+      BRUTOR_CONTROL_PLANE_PUBLIC_URL: ${BRUTOR_CONTROL_PLANE_PUBLIC_URL:-http://localhost:${BRUTOR_CONTROL_PLANE_PORT:-5050}}
+      BRUTOR_CORS_ORIGINS: ${BRUTOR_CORS_ORIGINS:-http://localhost:${BRUTOR_ADMIN_CONSOLE_PORT:-3002}}
+      # Forwarded headers are trusted from no one (no proxy in this package);
+      # behind a reverse proxy, set BRUTOR_TRUSTED_PROXIES in .env.
+      BRUTOR_TRUSTED_PROXIES: ${BRUTOR_TRUSTED_PROXIES:-}
+      BRUTOR_VERSION: ${BRUTOR_VERSION:-0.11.32}
+      # The same entries of .env as the core gateway's below.
+      BRUTOR_EMBEDDING_MODEL: ${BRUTOR_EMBEDDING_MODEL:-text-embedding-3-small}
+      BRUTOR_OUTBOUND_ALLOW_HOSTS: ${BRUTOR_OUTBOUND_ALLOW_HOSTS-witness}
+      BRUTOR_LOG_LEVEL: ${BRUTOR_LOG_LEVEL:-info}
+      BRUTOR_LOG_JSON_ENABLED: ${BRUTOR_LOG_JSON_ENABLED:-false}
+      # The first sign-in. Read once, when the database is empty.
+      BRUTOR_DEFAULT_TENANT_ADMIN_USERNAME: ${BRUTOR_DEFAULT_TENANT_ADMIN_USERNAME:-admin}
+      BRUTOR_DEFAULT_TENANT_ADMIN_PASSWORD: ${BRUTOR_DEFAULT_TENANT_ADMIN_PASSWORD:?BRUTOR_DEFAULT_TENANT_ADMIN_PASSWORD is empty in .env. Run ./start.sh once, or set it}
+      BRUTOR_DEFAULT_TENANT_ADMIN_EMAIL: ${BRUTOR_DEFAULT_TENANT_ADMIN_EMAIL:-admin@example.com}
+      # Registers the bundled witness for the default tenant. Empty turns
+      # that off.
+      BRUTOR_LOCAL_WITNESS_URL: ${BRUTOR_LOCAL_WITNESS_URL-http://witness:8000}
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${BRUTOR_CONTROL_PLANE_PORT:-5050}:5050"
+    volumes:
+      - control_logs:/app/logs
+      - control_data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Answers only once migrations and seeding are done; the first start on
+      # an empty database takes the longest.
+      test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 240s
+    networks:
+      - brutor-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 3G
+
+  # ---------------------------------------------------------------------------
+  # Core gateway (Rust). Proxies LLM, MCP, A2A and skill traffic on :8100.
+  # It reads its configuration from the database and never changes the
+  # schema, so it starts after the control plane is healthy.
+  #
+  # Metrics: /metrics is on a separate, unauthenticated listener (:9464) that
+  # is off unless BRUTOR_METRICS_ENABLED=true. It is not published here.
+  # ---------------------------------------------------------------------------
+  core:
+    image: ${BRUTOR_REGISTRY:-ghcr.io/brutor-ai}/brutor-agent-control-core-gateway:${BRUTOR_VERSION:-0.11.32}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: *database-url
+      BRUTOR_GATEWAY_DB_POOL_SIZE: ${BRUTOR_GATEWAY_DB_POOL_SIZE:-20}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is empty in .env. Run ./start.sh once, or set it (openssl rand -hex 32)}
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRES_IN_SECS: ${JWT_EXPIRES_IN_SECS:-3600}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY is empty in .env. Run ./start.sh once, or set it (openssl rand -hex 32)}
+      BRUTOR_GATEWAY_PUBLIC_URL: ${BRUTOR_GATEWAY_PUBLIC_URL:-http://localhost:${BRUTOR_GATEWAY_PORT:-8100}}
+      BRUTOR_CORS_ORIGINS: ${BRUTOR_CORS_ORIGINS:-http://localhost:${BRUTOR_ADMIN_CONSOLE_PORT:-3002}}
+      # Forwarded headers are trusted from no one (no proxy in this package);
+      # behind a reverse proxy, set BRUTOR_TRUSTED_PROXIES in .env.
+      BRUTOR_TRUSTED_PROXIES: ${BRUTOR_TRUSTED_PROXIES:-}
+      # The one level and JSON switch of .env.
+      RUST_LOG: ${BRUTOR_LOG_LEVEL:-info}
+      BRUTOR_LOG_JSON_ENABLED: ${BRUTOR_LOG_JSON_ENABLED:-false}
+      # The model the gateway embeds with for a tenant that has chosen none;
+      # the control plane is given the same entry.
+      BRUTOR_EMBEDDING_MODEL: ${BRUTOR_EMBEDDING_MODEL:-text-embedding-3-small}
+      # Private addresses are refused as outbound destinations, except these
+      # (see .env): the bundled witness the evidence heads are registered with.
+      BRUTOR_OUTBOUND_ALLOW_HOSTS: ${BRUTOR_OUTBOUND_ALLOW_HOSTS-witness}
+      # Skill runner: the gateway signs a short-lived token per execution and
+      # the runner validates it, so both hold the same secret.
+      BRUTOR_SKILL_RUNNER_URL: http://skill-runner:8210
+      BRUTOR_SKILL_RUNNER_JWT_SECRET: ${BRUTOR_SKILL_RUNNER_JWT_SECRET:?BRUTOR_SKILL_RUNNER_JWT_SECRET is empty in .env. Run ./start.sh once, or set it (openssl rand -hex 32)}
+      # Compliance evidence. The signing key is an Ed25519 seed (exactly 64
+      # hex characters); without a valid one evidence is silently off. The
+      # deployment id is part of every evidence log id: never change it once
+      # the database holds data.
+      BRUTOR_EVIDENCE_SIGNING_KEY: ${BRUTOR_EVIDENCE_SIGNING_KEY:?BRUTOR_EVIDENCE_SIGNING_KEY is empty in .env. Run ./start.sh once, or set it (openssl rand -hex 32)}
+      # Retired evidence public keys (see .env): still trusted for what
+      # they signed.
+      BRUTOR_EVIDENCE_RETIRED_KEYS: ${BRUTOR_EVIDENCE_RETIRED_KEYS:-}
+      # Audit chain. Rows are always hash-chained; this key (an Ed25519 seed,
+      # exactly 64 hex characters, separate from the evidence key) signs the
+      # checkpoints over them, so a wholesale rewrite is detected and the
+      # Admin Console reports the chain "verified", not "unattested". To
+      # rotate it, put the old public key on BRUTOR_AUDIT_TRUSTED_KEYS first.
+      BRUTOR_AUDIT_SIGNING_KEY: ${BRUTOR_AUDIT_SIGNING_KEY:?BRUTOR_AUDIT_SIGNING_KEY is empty in .env. Run ./start.sh once, or set it (openssl rand -hex 32)}
+      BRUTOR_AUDIT_TRUSTED_KEYS: ${BRUTOR_AUDIT_TRUSTED_KEYS:-}
+      BRUTOR_DEPLOYMENT_ID: ${BRUTOR_DEPLOYMENT_ID:?BRUTOR_DEPLOYMENT_ID is empty in .env. Run ./start.sh once, or set it}
+      BRUTOR_EVIDENCE_WITNESS_ENABLED: ${BRUTOR_EVIDENCE_WITNESS_ENABLED:-true}
+      # Media (uploaded and generated files): the filesystem store, on the
+      # volume brutor-media below. The gateway serves their download links
+      # itself, signed and built from BRUTOR_GATEWAY_PUBLIC_URL,
+      # so that address must be the one your browser uses. A write that
+      # would take the store past the size limit of .env is refused.
+      BRUTOR_MEDIA_FILESYSTEM_DIR: /app/data
+      BRUTOR_MEDIA_FILESYSTEM_MAX_BYTES: ${BRUTOR_MEDIA_FILESYSTEM_MAX_BYTES:-10737418240}
+    volumes:
+      # /app/data is the image's directory owned by the gateway's user
+      # (brutor, uid 1000): a new volume mounted there takes that owner, so
+      # the gateway can write it.
+      - brutor-media:/app/data
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${BRUTOR_GATEWAY_PORT:-8100}:8100"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      control-plane:
+        condition: service_healthy
+      skill-runner:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - brutor-network
+      - skill-runner-net
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2G
+
+  # ---------------------------------------------------------------------------
+  # Skill runner. Executes skill scripts, which are code a tenant wrote. It
+  # sits ONLY on skill-runner-net, an internal network whose other member is
+  # the core gateway: no internet, no host gateway, no route to PostgreSQL or
+  # Redis. Never add brutor-network here.
+  # ---------------------------------------------------------------------------
+  skill-runner:
+    image: ${BRUTOR_REGISTRY:-ghcr.io/brutor-ai}/brutor-agent-control-skill-runner:${BRUTOR_VERSION:-0.11.32}
+    restart: unless-stopped
+    environment:
+      BRUTOR_SKILL_RUNNER_LISTEN_ADDR: 0.0.0.0:8210
+      # Must match the core gateway's value. The runner refuses to start if
+      # it is shorter than 32 characters.
+      BRUTOR_SKILL_RUNNER_JWT_SECRET: ${BRUTOR_SKILL_RUNNER_JWT_SECRET:?BRUTOR_SKILL_RUNNER_JWT_SECRET is empty in .env. Run ./start.sh once, or set it (openssl rand -hex 32)}
+      RUST_LOG: ${BRUTOR_LOG_LEVEL:-info}
+      BRUTOR_LOG_JSON_ENABLED: ${BRUTOR_LOG_JSON_ENABLED:-false}
+    # The root file system is read-only and /tmp is the only place to write.
+    # The runner keeps its workspaces there, and gives every script it starts
+    # an environment of its own with HOME and TMPDIR in the script's
+    # workspace, so npm, tsx and pip write their caches there.
+    # Not published to the host. The gateway reaches it as skill-runner:8210.
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    security_opt:
+      # Docker's default seccomp profile stays active.
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8210/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - skill-runner-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+          pids: 64
+
+  # ---------------------------------------------------------------------------
+  # Witness. A local transparency service (RFC 9943): the core gateway
+  # registers each signed evidence tree head here and gets a receipt back.
+  # It runs on your host under your control, so the heads it receipts grade
+  # "self_witnessed", never "witnessed"; add an independent service in the
+  # Admin Console for that.
+  #
+  # It keeps its log in its own database (brutor_witness) on the PostgreSQL
+  # above, which it creates on the first start. Its signing key is an Ed25519
+  # seed (exactly 64 hex characters); changing it invalidates the key the
+  # control plane pinned.
+  # ---------------------------------------------------------------------------
+  witness:
+    image: ${BRUTOR_REGISTRY:-ghcr.io/brutor-ai}/brutor-agent-control-witness:${BRUTOR_VERSION:-0.11.32}
+    restart: unless-stopped
+    environment:
+      CAPSULE_ANCHOR_SIGNING_KEY: ${BRUTOR_WITNESS_SIGNING_KEY:?BRUTOR_WITNESS_SIGNING_KEY is empty in .env. Run ./start.sh once, or set it (openssl rand -hex 32)}
+      CAPSULE_ANCHOR_DATABASE_URL: postgresql://${DB_USER:-brutor}:${DB_PASSWORD:?DB_PASSWORD is empty in .env. Run ./start.sh once, or set it}@postgres:5432/${WITNESS_DB_NAME:-brutor_witness}
+      # Display only (the did:web identity); the control plane pins the key.
+      CAPSULE_ANCHOR_PUBLIC_HOST: ${WITNESS_PUBLIC_HOST:-brutor-witness.local}
+      CAPSULE_ANCHOR_OPERATOR: ${WITNESS_OPERATOR_LABEL:-self-hosted Brutor Agent Control Community Edition}
+      # No external calls: the public-log and timestamp-authority rails are off.
+      CAPSULE_ANCHOR_PUBLIC_LOG: "none"
+      CAPSULE_ANCHOR_TSA_ENABLED: "0"
+    ports:
+      # Loopback only: the read-only log endpoints, for your own monitoring.
+      - "127.0.0.1:${WITNESS_PORT:-8300}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - brutor-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # ---------------------------------------------------------------------------
+  # Admin Console (React, served by nginx). It runs in your browser, so the
+  # URLs below are the ones your browser uses, not Compose service names.
+  # ---------------------------------------------------------------------------
+  admin-console:
+    image: ${BRUTOR_REGISTRY:-ghcr.io/brutor-ai}/brutor-agent-control-admin-console:${BRUTOR_VERSION:-0.11.32}
+    restart: unless-stopped
+    environment:
+      # The control plane: every call the console makes goes there. It
+      # follows BRUTOR_CONTROL_PLANE_PORT.
+      BRUTOR_CONTROL_PLANE_PUBLIC_URL: ${BRUTOR_CONTROL_PLANE_PUBLIC_URL:-http://localhost:${BRUTOR_CONTROL_PLANE_PORT:-5050}}
+      # The core gateway: the address the console shows in its endpoint
+      # dialogs and uses for agent cards. It follows BRUTOR_GATEWAY_PORT.
+      BRUTOR_GATEWAY_PUBLIC_URL: ${BRUTOR_GATEWAY_PUBLIC_URL:-http://localhost:${BRUTOR_GATEWAY_PORT:-8100}}
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${BRUTOR_ADMIN_CONSOLE_PORT:-3002}:3002"
+    depends_on:
+      control-plane:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - brutor-network
+
+networks:
+  # A fixed name, not prefixed with the project, so that containers started
+  # outside this file (the demo system, your own MCP servers and agents) can
+  # join it and reach the gateway as http://core:8100.
+  brutor-network:
+    driver: bridge
+    name: brutor-network
+  # Core gateway and skill runner only. internal: no outbound route at all.
+  skill-runner-net:
+    driver: bridge
+    internal: true
+
+volumes:
+  postgres_data:
+  redis_data:
+  control_logs:
+  control_data:
+  # The core gateway's media store (BRUTOR_MEDIA_FILESYSTEM_DIR).
+  brutor-media:

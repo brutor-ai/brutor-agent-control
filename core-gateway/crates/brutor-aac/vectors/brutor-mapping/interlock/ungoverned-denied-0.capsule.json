@@ -1,0 +1,65 @@
+{
+  "action_id": "mcp/pl-0006",
+  "action_type": "decide",
+  "ai.brutor": {
+    "attestation": {
+      "numbers_canonicalized": false,
+      "observation": "in_path"
+    },
+    "context": {
+      "proxy_log_id": "pl-0006",
+      "root_task_id": "task-9f2",
+      "surface": "mcp",
+      "turn_id": "turn-3"
+    },
+    "lossy": [
+      "attestation_tier_not_projected",
+      "payload_digests_opaque"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "0a0ba2348e086853e9990152f11acbf541dbef6a9685003ff324ab7671b1206f",
+    "record_schema": "ai.brutor/action-record/v1",
+    "system": "ungoverned",
+    "verdict": "denied"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "not_applicable",
+    "ledger_mode": "standalone"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "a86dbe653f32cb2a9d0279391339118cb6fc7e9447d30e4c4c124207385a5d4d",
+  "constraints": [
+    {
+      "blocking": true,
+      "check_type": "ai.brutor.agent_grant",
+      "id": "ai.brutor.grant.tool_scope",
+      "result": "fail",
+      "severity": "high"
+    }
+  ],
+  "developer": "urn:brutor:ungoverned",
+  "disposition": {
+    "approver": "policy",
+    "decision": "reject",
+    "human_disposed": false,
+    "verdict_class": "denied"
+  },
+  "format_version": "4",
+  "model_attestation": {
+    "compute_attestation": {
+      "ai.brutor.input_digest": "67fe86763cc697fdd97fd8a487c965a389b79317172c71a8230f13ac9c3c36f8",
+      "runtime": "brutor-gateway"
+    }
+  },
+  "operator": "tenant-acme",
+  "references": [
+    {
+      "digest": "8fabdfb42c1c91fe61af6fbf17e0ac599e48094ecdc61ab3f38a18fb383d4898",
+      "digest_alg": "SHA-256",
+      "type": "ai.brutor.proxy-log-row"
+    }
+  ],
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-19T10:00:05.000Z"
+}

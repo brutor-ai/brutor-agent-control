@@ -1,0 +1,51 @@
+{
+  "action_id": "adjudication/ad-1",
+  "action_type": "fyi",
+  "ai.brutor": {
+    "chain": {
+      "parent_record_id": "f83a6188ac6cdb3c05670afb262e37232020e131c78f96deba6f68ce8f549e5b",
+      "relation": "adjudicates"
+    },
+    "context": {
+      "check_id": "groundedness",
+      "record_type": "ai.brutor.adjudication"
+    },
+    "lossy": [
+      "attestation_tier_not_projected",
+      "chain_relation_unregistered",
+      "verdict_unregistered"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "e7d12fe0d6b4722d1d6d1202c7ec0d6911d60bf4b180e34ae932357e60defa13",
+    "record_schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "sys-claims-triage",
+      "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+      "contract_version": 3
+    },
+    "verdict": "adjudication"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "not_applicable",
+    "ledger_mode": "chained"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "9d47470bff7e7404f6031961e628abaf991eb1fbcb3adf0f811c21867d1df580",
+  "chain": {
+    "parent_capsule_id": "b407a7a787e761636c854c40f7a7e569aa9286e8add5aaeec8a4f77d76c6d397",
+    "relation": "ai.brutor.adjudicates"
+  },
+  "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+  "disposition": {
+    "approver": "human",
+    "authority": "grader-pool-1",
+    "decision": "accept",
+    "human_disposed": true,
+    "verdict_class": "ai.brutor.adjudication"
+  },
+  "format_version": "4",
+  "operator": "tenant-acme",
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-19T16:00:00.000Z"
+}

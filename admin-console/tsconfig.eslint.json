@@ -1,0 +1,21 @@
+{
+  // Lint-only project. `tsconfig.json` deliberately EXCLUDES test files so the
+  // build stays fast, but type-aware ESLint rules need every file it lints to
+  // belong to a TypeScript program — a file outside the project errors out
+  // rather than being checked. This config is that program: the same compiler
+  // options, widened to cover tests, config files and the build scripts.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true
+  },
+  "include": [
+    "src",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "*.config.js",
+    "scripts/**/*"
+  ],
+  "exclude": ["dist", "node_modules", "enterprise"]
+}

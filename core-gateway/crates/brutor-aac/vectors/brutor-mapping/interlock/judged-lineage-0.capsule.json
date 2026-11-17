@@ -1,0 +1,69 @@
+{
+  "action_id": "llm/pl-0010",
+  "action_type": "decide",
+  "ai.brutor": {
+    "attestation": {
+      "numbers_canonicalized": false,
+      "observation": "in_path"
+    },
+    "context": {
+      "proxy_log_id": "pl-0010",
+      "root_task_id": "task-9f2",
+      "surface": "llm",
+      "turn_id": "turn-3"
+    },
+    "effect_attestation": "gate_observed",
+    "lossy": [
+      "attestation_tier_not_projected",
+      "payload_digests_opaque"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "478ec8d6b8dcaae8fda7dacaa346638d558f3e029f057491dc33b332109c2541",
+    "record_schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "sys-claims-triage",
+      "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+      "contract_version": 3
+    },
+    "verdict": "executed"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "confirmed",
+    "ledger_mode": "standalone"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "41d5a26f20abb4db841015d618a4a297b4401118f21cf5fa228daceb9a569a93",
+  "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+  "disposition": {
+    "approver": "policy",
+    "decision": "accept",
+    "human_disposed": false,
+    "verdict_class": "executed"
+  },
+  "effect": {
+    "effect_attestation": "gate_executed",
+    "request_digest": "47b373b049acd21dda800e7bb9310a6d4e1c1fc1ed1486aa203df5de60e4d420",
+    "response_digest": "2bb678fd32ffed94d0aaf75507bce5ac1dbcea83c1ee8f3f66f1e4748921473d",
+    "status": "confirmed",
+    "type": "inference_completion"
+  },
+  "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+  "format_version": "4",
+  "model_attestation": {
+    "compute_attestation": {
+      "ai.brutor.input_digest": "47b373b049acd21dda800e7bb9310a6d4e1c1fc1ed1486aa203df5de60e4d420",
+      "runtime": "brutor-gateway"
+    }
+  },
+  "operator": "tenant-acme",
+  "references": [
+    {
+      "digest": "6e21a26f1dee487ea1d81b9eb0b47bd77bcb5c168ea4dd2d629d5c577bdd0c9c",
+      "digest_alg": "SHA-256",
+      "type": "ai.brutor.proxy-log-row"
+    }
+  ],
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-19T14:00:00.000Z"
+}

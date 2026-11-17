@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/brutor-ai/brutor-agent-control/security/policy
+    about: Do not open a public issue for a vulnerability. Follow SECURITY.md (private vulnerability reporting, or e-mail).
+  - name: Documentation
+    url: https://docs.brutor.ai
+    about: Installation, configuration and the API.

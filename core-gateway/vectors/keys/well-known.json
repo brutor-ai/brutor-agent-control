@@ -1,0 +1,30 @@
+{
+  "issuer": "urn:brutor:deployment:vectors",
+  "keys": [
+    {
+      "alg": "EdDSA",
+      "crv": "Ed25519",
+      "issuer": "urn:brutor:deployment:vectors",
+      "kid": "618f4b0227a9bc2f6c4cdc4b4814c0da1b351bae87f07f2899a622323e2fe911",
+      "kty": "OKP",
+      "scope": "deployment",
+      "status": "active",
+      "use": "sig",
+      "x": "YY9LAiepvC9sTNxLSBTA2hs1G66H8H8omaYiMj4v6RE"
+    },
+    {
+      "alg": "EdDSA",
+      "crv": "Ed25519",
+      "issuer": "urn:brutor:deployment:vectors",
+      "kid": "cb9f8793fe80e894c831d1a6798fe2ef24958f990a9f6d5abd349f0d335c482b",
+      "kty": "OKP",
+      "scope": "deployment",
+      "status": "retired",
+      "use": "sig",
+      "x": "y5-Hk_6A6JTIMdGmeY_i7ySVj5kKn21avTSfDTNcSCs"
+    }
+  ],
+  "record_schema": "ai.brutor/action-record/v1",
+  "statement_content_type": "application/vnd.brutor.action-record+json",
+  "tree_head_content_type": "application/vnd.brutor.tree-head+cbor"
+}

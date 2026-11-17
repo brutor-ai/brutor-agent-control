@@ -1,0 +1,5 @@
+{
+  "description": "The corpus witness (an RFC 9943 transparency service). Its Ed25519 public key is the pin for every scitt receipt in the corpus.",
+  "operator": "corpus-witness",
+  "witness_key_hex": "3f09ef99ddf662818513adac94d6e220186225f5d99ce94ca7263a4bbaf08699"
+}

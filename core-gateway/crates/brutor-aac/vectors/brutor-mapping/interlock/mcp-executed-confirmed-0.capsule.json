@@ -1,0 +1,100 @@
+{
+  "action_id": "mcp/pl-0001",
+  "action_type": "decide",
+  "ai.brutor": {
+    "attestation": {
+      "numbers_canonicalized": false,
+      "observation": "in_path"
+    },
+    "context": {
+      "autonomy_level": "supervised",
+      "autonomy_provenance": "contract",
+      "http_status": 200,
+      "proxy_log_id": "pl-0001",
+      "root_task_id": "task-9f2",
+      "server_version": "1.4.0",
+      "surface": "mcp",
+      "tool_definition_hash": "1236b98d7e42cb3068972c2f59cce2ba402fa45b026829a16378864392f88a2d",
+      "turn_id": "turn-3"
+    },
+    "effect_attestation": "gate_observed",
+    "lossy": [
+      "attestation_tier_not_projected",
+      "payload_digests_opaque"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "0a15ab6576ae0d16b30d7644a9a6c4c627684d1512349af47b979fa680c7a2b8",
+    "record_schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "sys-claims-triage",
+      "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+      "contract_version": 3
+    },
+    "verdict": "executed"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "confirmed",
+    "ledger_mode": "standalone"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "76cc1dbc7f6ba0b52898afc7a806eaa0f95a98d9bd98e960c791931cb33c9227",
+  "compliance": {
+    "framework_tags": [
+      "hipaa.phi",
+      "soc2.cc7.2"
+    ]
+  },
+  "constraints": [
+    {
+      "blocking": false,
+      "check_type": "ai.brutor.guardrail",
+      "id": "ai.brutor.guardrail.pii",
+      "result": "pass",
+      "severity": "info"
+    }
+  ],
+  "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+  "disposition": {
+    "approver": "policy",
+    "decision": "accept",
+    "human_disposed": false,
+    "verdict_class": "executed"
+  },
+  "effect": {
+    "effect_attestation": "gate_executed",
+    "request_digest": "4c56f7fdf27b1c99125ab45a609c589e105bf718830fb76b4b95ee2d1f39c07d",
+    "response_digest": "74a0b3397ceafcc207549301a28fae51348c3aaeed9f7457313ae36731c0978c",
+    "status": "confirmed",
+    "type": "tools/call:lookup_claim"
+  },
+  "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+  "format_version": "4",
+  "model_attestation": {
+    "compute_attestation": {
+      "ai.brutor.input_digest": "4c56f7fdf27b1c99125ab45a609c589e105bf718830fb76b4b95ee2d1f39c07d",
+      "ai.brutor.output_digest": "74a0b3397ceafcc207549301a28fae51348c3aaeed9f7457313ae36731c0978c",
+      "runtime": "brutor-gateway"
+    }
+  },
+  "operator": "tenant-acme",
+  "references": [
+    {
+      "digest": "fd4cfc870cb632a9b45cd3f14d9545299be81c69d3323075fd5dfdd5b9f15a62",
+      "digest_alg": "SHA-256",
+      "type": "ai.brutor.proxy-log-row"
+    },
+    {
+      "digest": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+      "digest_alg": "SHA-256",
+      "type": "ai.brutor.ai-system-contract"
+    },
+    {
+      "digest": "1236b98d7e42cb3068972c2f59cce2ba402fa45b026829a16378864392f88a2d",
+      "digest_alg": "SHA-256",
+      "type": "ai.brutor.mcp-tool-definition"
+    }
+  ],
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-19T10:00:00.123Z"
+}

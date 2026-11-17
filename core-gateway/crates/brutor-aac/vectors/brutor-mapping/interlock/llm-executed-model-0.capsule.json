@@ -1,0 +1,72 @@
+{
+  "action_id": "llm/pl-0002",
+  "action_type": "decide",
+  "ai.brutor": {
+    "attestation": {
+      "numbers_canonicalized": false,
+      "observation": "in_path"
+    },
+    "context": {
+      "proxy_log_id": "pl-0002",
+      "root_task_id": "task-9f2",
+      "surface": "llm",
+      "turn_id": "turn-3"
+    },
+    "effect_attestation": "gate_observed",
+    "lossy": [
+      "attestation_tier_not_projected",
+      "payload_digests_opaque"
+    ],
+    "mapping": "ai.brutor/aac-mapping/v1",
+    "record_id": "8fdb5a71b87643083c1fd85c24de2c663878e3315d2d9addfb139580e8ede37b",
+    "record_schema": "ai.brutor/action-record/v1",
+    "system": {
+      "ai_system_id": "sys-claims-triage",
+      "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+      "contract_version": 3
+    },
+    "verdict": "executed"
+  },
+  "assurance": {
+    "attestation_mode": "self_attested",
+    "effect_mode": "confirmed",
+    "ledger_mode": "standalone"
+  },
+  "canonicalization_id": "jcs",
+  "capsule_id": "ca719d624dce6c7bdc58f36ad50478e302619ad4bdeaa656b5ba520818f94479",
+  "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+  "disposition": {
+    "approver": "policy",
+    "decision": "accept",
+    "human_disposed": false,
+    "verdict_class": "executed"
+  },
+  "effect": {
+    "effect_attestation": "gate_executed",
+    "request_digest": "b07f6f88bdc42398c868376deff93653905d0154bea9fcd71ae5437a188e8100",
+    "response_digest": "8aa23c311f7ec5dae99e717cfc5dd03b0110c5344a7458e40250706d672f5198",
+    "status": "confirmed",
+    "type": "inference_completion"
+  },
+  "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+  "format_version": "4",
+  "model_attestation": {
+    "compute_attestation": {
+      "ai.brutor.input_digest": "b07f6f88bdc42398c868376deff93653905d0154bea9fcd71ae5437a188e8100",
+      "ai.brutor.output_digest": "8aa23c311f7ec5dae99e717cfc5dd03b0110c5344a7458e40250706d672f5198",
+      "runtime": "brutor-gateway"
+    },
+    "model_id": "gpt-5.1",
+    "provider": "openai"
+  },
+  "operator": "tenant-acme",
+  "references": [
+    {
+      "digest": "660a888914b99de0cc40904000d219d970a786eb121a837ffdadd2b1dfab3b33",
+      "digest_alg": "SHA-256",
+      "type": "ai.brutor.proxy-log-row"
+    }
+  ],
+  "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+  "timestamp": "2026-09-19T10:00:01.000Z"
+}

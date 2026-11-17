@@ -1,0 +1,99 @@
+# Copyright 2026 Brutor AI Ltd.
+# SPDX-License-Identifier: Apache-2.0
+
+# Publishes the five Community images, by hand only ("Run workflow" on a
+# release tag; the version is the tag without its "v"), through
+# package/docker-bake.hcl: the one place the image names, tags and the
+# version and revision labels are written. Every image for one architecture on
+# its native runner, then one manifest per image over both. No repository
+# secret: GITHUB_TOKEN with `packages: write` is all it uses. Each image is
+# built through the same file on every pull request by its component's
+# workflow.
+
+name: Publish the Community images
+
+on:
+  workflow_dispatch:
+
+# Image publishes queue, never cancel mid-push.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  community-publish:
+    if: github.event_name == 'workflow_dispatch'
+    timeout-minutes: 90
+    name: Publish the Community images (${{ matrix.arch.suffix }})
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - { runner: ubuntu-latest, suffix: amd64 }
+          - { runner: ubuntu-24.04-arm, suffix: arm64 }
+    runs-on: ${{ matrix.arch.runner }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      # The registry of the bake file's REGISTRY variable.
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # adapted: the source builds one image per job with docker/build-push-action; here every image is built and pushed by the bake file, which names them
+      - name: Build and push every Community image for this architecture
+        env:
+          RELEASE: ${{ github.ref_name }}
+          SUFFIX: ${{ matrix.arch.suffix }}
+        run: |
+          VERSION="${RELEASE#v}" REVISION="$GITHUB_SHA" TAG_SUFFIX="-$SUFFIX" \
+            docker buildx bake -f package/docker-bake.hcl --push
+
+  community-manifest:
+    if: github.event_name == 'workflow_dispatch'
+    needs: community-publish
+    timeout-minutes: 15
+    name: One manifest per image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # adapted: the image names are read from the bake file (its --print), never written here
+      - name: One manifest over both architectures
+        env:
+          RELEASE: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          images=$(VERSION="${RELEASE#v}" docker buildx bake -f package/docker-bake.hcl --print | jq -r '.target[].tags[]')
+          test "$(echo "$images" | wc -l)" -eq 5
+          for image in $images; do
+            docker buildx imagetools create -t "$image" "$image-amd64" "$image-arm64"
+            docker buildx imagetools inspect "$image"
+          done

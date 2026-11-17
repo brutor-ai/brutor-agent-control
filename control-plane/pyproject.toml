@@ -1,0 +1,245 @@
+[project]
+name = "brutor-agent-control-plane"
+version = "0.11.32"
+description = "Brutor Agent Control: the control plane (Community Edition)"
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    # ---------------------------------------------------------------------
+    # The COMMUNITY Edition's dependencies: what the
+    # `app` package, the migrations (`alembic/`), `gunicorn.conf.py` and
+    # `main.py` import, and nothing else. `tests/test_packaging.py` scans the
+    # imports and holds this list to them in both directions. The libraries
+    # only Enterprise Edition code imports (docker, kubernetes, qdrant-client,
+    # aiohttp, croniter, python-dateutil) are dependencies of
+    # the Enterprise package: `enterprise/pyproject.toml`.
+    # ---------------------------------------------------------------------
+    # Core FastAPI and web framework
+    # Upper-bounded on purpose. `tests/test_community_openapi_snapshot.py` compares the
+    # generated OpenAPI document byte-for-byte against a committed fixture,
+    # and FastAPI + Pydantic *are* the schema generator. With an open upper
+    # bound, CI resolves whatever shipped that morning and the snapshot
+    # breaks with nobody having touched the code — which is exactly what
+    # happened when Pydantic changed file-upload emission from
+    # `format: "binary"` to `contentMediaType`, and again when it started
+    # emitting `ValidationError.ctx` / `.input`.
+    #
+    # Neither package is pinned exactly: the bound is the next minor, so
+    # patch fixes still arrive and an upgrade stays a deliberate act with a
+    # snapshot review attached. Same reasoning as the starlette ceiling
+    # below, which was added for the same class of problem.
+    # Verified against 0.141: `tests/traffic_import/test_usage_import_endpoint.py`
+    # used to walk `route.dependant` and reassign `sub.call` to neutralise
+    # auth, which broke when 0.141 changed the dependency-tree shape. That
+    # fixture now overrides `get_current_admin` — a stable public callable —
+    # so the ceiling tracks the API surface rather than FastAPI internals.
+    "fastapi>=0.115.0,<0.142.0",
+    "starlette>=1.3.1,<1.4.0",
+    # `app/core/sync_bridge.py` imports it by name (it also arrives with
+    # starlette).
+    "anyio>=4.0",
+    "uvicorn[standard]>=0.34.3",
+    # The server process: `gunicorn app.app:create_app --config gunicorn.conf.py`.
+    "gunicorn>=23.0.0",
+    "httpx>=0.24.0",
+    # The outbound policy's transport (app/services/outbound_http.py).
+    "httpcore>=1.0",
+    "click>=8.2.1",
+    # Upper-bounded at the major version. mcp 2.0.0 renamed
+    # `streamablehttp_client` to `streamable_http_client`, so an unbounded
+    # `>=1.12.2` let CI resolve 2.0.0 and every module importing it failed
+    # at collection — the suite could not even start. Local environments
+    # pinned earlier kept working, which is what made it look like a CI
+    # fault rather than a dependency one.
+    #
+    # Without the `cli` extra: nothing here imports typer or rich (the
+    # extra was declared and unused).
+    #
+    # Moving to 2.x is a real migration (that rename is unlikely to be the
+    # only break), not something to pick up implicitly on the next CI run.
+    #
+    # The floor is 1.30: earlier versions let the client send credentials
+    # across a redirect (CVE-2026-116685) and fetch `$ref` URLs from a tool's
+    # output schema (CVE-2026-116686). mcp >= 1.20 requires `pyjwt[crypto]`,
+    # so `import jwt` now loads pyca/cryptography. That was banned from 0.8.0
+    # to 0.11.30 after a SIGILL under Colima on Apple Silicon; it is allowed again
+    # because Colima is not a supported target (Compose and K8s are). Current aarch64 wheels bundle OpenSSL, not aws-lc, but the crash was
+    # never retested on that setup: a Colima report would start here.
+    "mcp>=1.30.0,<2",
+    # Upper bound: see the note on `fastapi` above — this is the other
+    # half of the OpenAPI schema generator.
+    "pydantic[email]>=2.5.0,<2.14.0",
+    "pyjwt>=2.10.1",
+    "python-dotenv>=1.1.1",
+    "python-ulid>=2.7.0,<3.0.0",
+    # Security
+    #
+    # OAuth signing + token-at-rest encryption use two narrow libraries,
+    # chosen in 0.8.0 and pinned byte-for-byte by the regression suite under
+    # tests/test_*crypto*:
+    #   - PyNaCl       — libsodium-backed Ed25519
+    #                    (a2a/card_signing.py)
+    #   - pycryptodome — AES-128-CBC primitive
+    #                    (oauth/encryption_service.py Fernet impl)
+    # plus stdlib `hmac` + `hashlib` for PBKDF2-SHA256 and HMAC-SHA256.
+    # pyca/cryptography is present through `pyjwt[crypto]` (see `mcp` above).
+    "pynacl>=1.5.0",
+    "pycryptodome>=3.20.0",
+    # Note on `authlib`: removed in 0.8.0 — it was a declared dep that
+    # nothing in app/ actually imported (the OAuth flow ships
+    # hand-rolled HTTP).
+    "bcrypt >= 4.0.0, < 5.0.0",
+    "pyotp>=2.9.0",  # TOTP 2FA
+    "qrcode[pil]>=7.4",  # QR code generation
+    # Database and ORM
+    "sqlalchemy>=2.0.0,<2.1",  # 2.1 swaps the default PG driver to psycopg v3 and is untested here (0.11.12 outage)
+    "alembic>=1.13.0",
+    # The PostgreSQL driver, built from source against the system's libpq
+    # (the images: Debian's libpq-dev to build, libpq5 at run time; a
+    # developer: pg_config on the PATH, e.g. `brew install libpq` on macOS).
+    # Not psycopg2-binary: its wheel bundles libpq, OpenSSL and Kerberos
+    # without their licence texts (owner decision L1).
+    "psycopg2>=2.9.0",
+    # Redis async client. Used by (1) the System Operations health probe
+    # (`app/services/system_ops/overview.py`) and (2) the cache-invalidation
+    # publisher: `app/app.py` opens `app.state.redis` at startup and
+    # `app/services/cache_invalidation.py` publishes on
+    # `brutor:cache:invalidate`, which every gateway-core replica subscribes
+    # to so admin cache-clears / config changes evict proxy caches instantly.
+    # The Rust proxy talks to Redis via its own redis-rs client.
+    "redis>=5.0.0",
+    # Image processing (icons)
+    "pillow>=10.0.0",
+    # File upload handling: FastAPI needs it installed to accept form and
+    # file uploads; it is not imported by name.
+    "python-multipart>=0.0.6",
+    # S3 / S3-compatible object storage for the scheduled proxy_logs
+    # audit export. Used only by `app/services/audit_export/` and
+    # imported lazily inside that module — `import boto3` is deferred
+    # until an S3 destination actually fires, so deployments that don't
+    # configure one pay zero startup cost. Also covers GCS via
+    # `endpoint_url=https://storage.googleapis.com` + HMAC creds and
+    # any other S3-compatible backend (MinIO, R2, Wasabi). A future
+    # Splunk HEC sink uses httpx, not boto3.
+    "boto3>=1.34.0",
+    # Imported by name for its exception and configuration types
+    # (`app/services/audit_export/`, the guardrail provider probe); it also arrives
+    # with boto3.
+    "botocore>=1.34.0",
+    # YAML import/export for argument policies (POLICY-10 policy-as-code).
+    # Use the C-loader for speed and ruamel-free for stable round-tripping
+    # of comments isn't needed — the importer canonicalizes.
+    "PyYAML>=6.0",
+]
+
+# Build backend. Without this, pip falls back to setuptools' flat-layout
+# auto-discovery, which walks the top-level directories and refuses to
+# guess when it finds more than one candidate:
+#
+#   error: Multiple top-level packages discovered in a flat-layout:
+#          ['app', 'alembic', 'openapi'].
+#
+# Only `app` is an importable package. `alembic/` holds migration scripts
+# run by the Alembic CLI and is not imported; it does not ship in the wheel.
+# Saying so explicitly is also what stops the next non-package directory
+# added at the top level from breaking `pip install -e .` again.
+[build-system]
+# 77 is the first setuptools that reads a PEP 639 licence expression
+# (`license = "Apache-2.0"` as a string, `license-files`); the repository cut
+# writes one into the Community `pyproject.toml`, and an older setuptools
+# refuses it. The images build with the floor: `pip install -e .`
+# builds in an isolated environment with what is required here.
+# `tests/test_image_names.py` holds the floor.
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.0.0",
+    # Imported by the suite (schema checks). It also arrives with `mcp`; the
+    # suite does not rely on that.
+    "jsonschema>=4.0.0",
+    # `tests/test_undefined_names.py`: the gate against a name used and neither
+    # defined nor imported.
+    "pyflakes>=3.2.0",
+]
+
+[project.scripts]
+# `app/cli.py`: run, `init`, `edition-reset`. `tests/test_packaging.py`
+# imports the target, so it names a module that exists.
+brutor-agent-control-plane = "app.cli:main"
+
+# `pytest --cov` reads this. The floor is [tool.coverage.report] fail_under.
+[tool.coverage.run]
+source = ["app"]
+branch = true
+
+[tool.coverage.report]
+# The Community package (`app`) under the Enterprise-mode run, which is what
+# `pytest --cov=app` measures: 82.19 % when the floor was set. Only goes up.
+fail_under = 82
+
+# The floor of every measurement, by edition under test and package measured
+# (`tests/coverage_floors.py` holds a run to them; `fail_under` above is the
+# first). Whole percent, the measured value rounded down. Only go up.
+#   pytest --cov=app --cov=brutor_enterprise                  # Enterprise mode
+#   BRUTOR_TEST_EDITION=community pytest --cov=app tests/     # Community mode
+[tool.brutor.coverage-floors.enterprise]
+app = 82                # measured 82.20 %
+brutor_enterprise = 73  # measured 73.44 %
+
+[tool.brutor.coverage-floors.community]
+app = 80                # measured 80.51 %
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# The Enterprise Edition package is not installed in
+# development: tests import `brutor_enterprise` from `enterprise/`. The
+# repository root is listed so that the Enterprise suite (`enterprise/tests`,
+# not a package) can import the Community suite's helpers (`tests.…`) however
+# pytest is started.
+pythonpath = ["enterprise", "."]
+# What plain `pytest` runs: both suites for the
+# Enterprise Edition, which is the default edition under test
+# (`tests/app_factory.py`): the Community suite (`tests/`) against the
+# Enterprise composition, then the Enterprise Edition's own
+# (`enterprise/tests/`). The Community Edition's run is the Community suite
+# alone, with nothing of `enterprise/` needed on the path:
+#
+#     BRUTOR_TEST_EDITION=community pytest tests/
+#
+# (`enterprise/tests` refuses to start in a Community run and says so.)
+testpaths = ["tests", "enterprise/tests"]
+# Exclude live-tagged suites from the default `pytest` invocation so
+# CI / dev runs don't touch real provider APIs or the running stack.
+# Run them explicitly with `pytest -m live_api` / `pytest -m live_e2e`.
+# Without this, plain `pytest` would collect hundreds of parameterised
+# `live_api` cases that each then self-skip on a missing key — adds
+# collection overhead and noise to no benefit.
+addopts = "-m 'not live_api and not live_e2e'"
+markers = [
+    # Hits real provider APIs (OpenAI / Anthropic / Google etc) with
+    # live keys. Excluded from the default test run because it costs
+    # real money and depends on network + provider availability. Run
+    # explicitly with `pytest -m live_api` after dropping keys into
+    # tests/.secrets/provider_keys.env.
+    "live_api: tests that hit real third-party LLM provider APIs",
+    # End-to-end smoke tests that drive the running stack (DB +
+    # control plane on :5050 + Rust proxy on :8100) over HTTP. Skipped
+    # by default: the suite needs all three components live AND at
+    # least one provider key present in tests/.secrets/provider_keys.env.
+    # Run with: pytest -m live_e2e tests/live/ -v
+    "live_e2e: end-to-end tests against a running control + proxy stack",
+    # tests/refusal_write_detector.py: the test knowingly
+    # watches a request flush a change, another session commit, and the
+    # request refuse — a write the suite's shared SQLite connection keeps
+    # and a server loses. Takes reason="...".
+    "refusal_keeps_write: the test declares a write that the shared SQLite connection keeps and a server would lose",
+]
+

@@ -1,0 +1,2156 @@
+{
+  "cases": [
+    {
+      "description": "MCP tool call allowed, upstream ok: confirmed effect, controls, tags, references",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "mcp/pl-0001",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "context": {
+                "autonomy_level": "supervised",
+                "autonomy_provenance": "contract",
+                "http_status": 200,
+                "proxy_log_id": "pl-0001",
+                "root_task_id": "task-9f2",
+                "server_version": "1.4.0",
+                "surface": "mcp",
+                "tool_definition_hash": "1236b98d7e42cb3068972c2f59cce2ba402fa45b026829a16378864392f88a2d",
+                "turn_id": "turn-3"
+              },
+              "effect_attestation": "gate_observed",
+              "lossy": [
+                "attestation_tier_not_projected",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "0a15ab6576ae0d16b30d7644a9a6c4c627684d1512349af47b979fa680c7a2b8",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "executed"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "confirmed",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "76cc1dbc7f6ba0b52898afc7a806eaa0f95a98d9bd98e960c791931cb33c9227",
+            "compliance": {
+              "framework_tags": [
+                "hipaa.phi",
+                "soc2.cc7.2"
+              ]
+            },
+            "constraints": [
+              {
+                "blocking": false,
+                "check_type": "ai.brutor.guardrail",
+                "id": "ai.brutor.guardrail.pii",
+                "result": "pass",
+                "severity": "info"
+              }
+            ],
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "accept",
+              "human_disposed": false,
+              "verdict_class": "executed"
+            },
+            "effect": {
+              "effect_attestation": "gate_executed",
+              "request_digest": "4c56f7fdf27b1c99125ab45a609c589e105bf718830fb76b4b95ee2d1f39c07d",
+              "response_digest": "74a0b3397ceafcc207549301a28fae51348c3aaeed9f7457313ae36731c0978c",
+              "status": "confirmed",
+              "type": "tools/call:lookup_claim"
+            },
+            "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "4c56f7fdf27b1c99125ab45a609c589e105bf718830fb76b4b95ee2d1f39c07d",
+                "ai.brutor.output_digest": "74a0b3397ceafcc207549301a28fae51348c3aaeed9f7457313ae36731c0978c",
+                "runtime": "brutor-gateway"
+              }
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "fd4cfc870cb632a9b45cd3f14d9545299be81c69d3323075fd5dfdd5b9f15a62",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              },
+              {
+                "digest": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.ai-system-contract"
+              },
+              {
+                "digest": "1236b98d7e42cb3068972c2f59cce2ba402fa45b026829a16378864392f88a2d",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.mcp-tool-definition"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:00:00.123Z"
+          },
+          "capsule_id": "76cc1dbc7f6ba0b52898afc7a806eaa0f95a98d9bd98e960c791931cb33c9227",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a0582076cc1dbc7f6ba0b52898afc7a806eaa0f95a98d9bd98e960c791931cb33c9227584032f08730af72fbfe1d8e7184fabb8e7efed0c1bbd5833b05dfb7bbc4c664605fb33b78af02e871a4d1fb77cb3c305264f99345f3da53f179e31c685ddf65f00f",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "payload_digests_opaque"
+          ],
+          "record_id": "0a15ab6576ae0d16b30d7644a9a6c4c627684d1512349af47b979fa680c7a2b8"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "mcp/pl-0001",
+          "attestation": {
+            "input_digest": "4c56f7fdf27b1c99125ab45a609c589e105bf718830fb76b4b95ee2d1f39c07d",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "output_digest": "74a0b3397ceafcc207549301a28fae51348c3aaeed9f7457313ae36731c0978c",
+            "runtime": "brutor-gateway"
+          },
+          "context": {
+            "autonomy_level": "supervised",
+            "autonomy_provenance": "contract",
+            "http_status": 200,
+            "proxy_log_id": "pl-0001",
+            "root_task_id": "task-9f2",
+            "server_version": "1.4.0",
+            "surface": "mcp",
+            "tags": [
+              "hipaa.phi",
+              "soc2.cc7.2"
+            ],
+            "tool_definition_hash": "1236b98d7e42cb3068972c2f59cce2ba402fa45b026829a16378864392f88a2d",
+            "turn_id": "turn-3"
+          },
+          "controls": [
+            {
+              "blocking": false,
+              "id": "ai.brutor.guardrail.pii",
+              "kind": "guardrail",
+              "result": "pass",
+              "severity": "info"
+            }
+          ],
+          "disposition": {
+            "approver": "policy",
+            "decision": "accept",
+            "human_disposed": false
+          },
+          "effect": {
+            "attestation": "gate_observed",
+            "request_digest": "4c56f7fdf27b1c99125ab45a609c589e105bf718830fb76b4b95ee2d1f39c07d",
+            "response_digest": "74a0b3397ceafcc207549301a28fae51348c3aaeed9f7457313ae36731c0978c",
+            "status": "confirmed",
+            "type": "tools/call:lookup_claim"
+          },
+          "epoch": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "0a15ab6576ae0d16b30d7644a9a6c4c627684d1512349af47b979fa680c7a2b8",
+          "references": [
+            {
+              "digest": "fd4cfc870cb632a9b45cd3f14d9545299be81c69d3323075fd5dfdd5b9f15a62",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            },
+            {
+              "digest": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.ai-system-contract"
+            },
+            {
+              "digest": "1236b98d7e42cb3068972c2f59cce2ba402fa45b026829a16378864392f88a2d",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.mcp-tool-definition"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T10:00:00.123Z",
+          "verdict": "executed"
+        }
+      ],
+      "name": "mcp-executed-confirmed"
+    },
+    {
+      "description": "LLM completion: model attestation; effect.type is a CPB provisional value",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "llm/pl-0002",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "context": {
+                "proxy_log_id": "pl-0002",
+                "root_task_id": "task-9f2",
+                "surface": "llm",
+                "turn_id": "turn-3"
+              },
+              "effect_attestation": "gate_observed",
+              "lossy": [
+                "attestation_tier_not_projected",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "8fdb5a71b87643083c1fd85c24de2c663878e3315d2d9addfb139580e8ede37b",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "executed"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "confirmed",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "ca719d624dce6c7bdc58f36ad50478e302619ad4bdeaa656b5ba520818f94479",
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "accept",
+              "human_disposed": false,
+              "verdict_class": "executed"
+            },
+            "effect": {
+              "effect_attestation": "gate_executed",
+              "request_digest": "b07f6f88bdc42398c868376deff93653905d0154bea9fcd71ae5437a188e8100",
+              "response_digest": "8aa23c311f7ec5dae99e717cfc5dd03b0110c5344a7458e40250706d672f5198",
+              "status": "confirmed",
+              "type": "inference_completion"
+            },
+            "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "b07f6f88bdc42398c868376deff93653905d0154bea9fcd71ae5437a188e8100",
+                "ai.brutor.output_digest": "8aa23c311f7ec5dae99e717cfc5dd03b0110c5344a7458e40250706d672f5198",
+                "runtime": "brutor-gateway"
+              },
+              "model_id": "gpt-5.1",
+              "provider": "openai"
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "660a888914b99de0cc40904000d219d970a786eb121a837ffdadd2b1dfab3b33",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:00:01.000Z"
+          },
+          "capsule_id": "ca719d624dce6c7bdc58f36ad50478e302619ad4bdeaa656b5ba520818f94479",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a05820ca719d624dce6c7bdc58f36ad50478e302619ad4bdeaa656b5ba520818f944795840c4781c51855648338840670a1ef382d698fe930bafe9e3dd9fed404f53a0c36ecd3e018f7f10c4146d6b21c1033db19f175b79e59cc36a0b3877df8c3c478c0e",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "payload_digests_opaque"
+          ],
+          "record_id": "8fdb5a71b87643083c1fd85c24de2c663878e3315d2d9addfb139580e8ede37b"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "llm/pl-0002",
+          "attestation": {
+            "input_digest": "b07f6f88bdc42398c868376deff93653905d0154bea9fcd71ae5437a188e8100",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "output_digest": "8aa23c311f7ec5dae99e717cfc5dd03b0110c5344a7458e40250706d672f5198",
+            "runtime": "brutor-gateway"
+          },
+          "context": {
+            "proxy_log_id": "pl-0002",
+            "root_task_id": "task-9f2",
+            "surface": "llm",
+            "turn_id": "turn-3"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "accept",
+            "human_disposed": false
+          },
+          "effect": {
+            "attestation": "gate_observed",
+            "request_digest": "b07f6f88bdc42398c868376deff93653905d0154bea9fcd71ae5437a188e8100",
+            "response_digest": "8aa23c311f7ec5dae99e717cfc5dd03b0110c5344a7458e40250706d672f5198",
+            "status": "confirmed",
+            "type": "inference_completion"
+          },
+          "epoch": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+          "kind": "decide",
+          "model": {
+            "model_id": "gpt-5.1",
+            "provider": "openai"
+          },
+          "operator": "tenant-acme",
+          "record_id": "8fdb5a71b87643083c1fd85c24de2c663878e3315d2d9addfb139580e8ede37b",
+          "references": [
+            {
+              "digest": "660a888914b99de0cc40904000d219d970a786eb121a837ffdadd2b1dfab3b33",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T10:00:01.000Z",
+          "verdict": "executed"
+        }
+      ],
+      "name": "llm-executed-model"
+    },
+    {
+      "description": "guardrail block: no effect, blocking control failed",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "mcp/pl-0003",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "context": {
+                "proxy_log_id": "pl-0003",
+                "root_task_id": "task-9f2",
+                "surface": "mcp",
+                "turn_id": "turn-3"
+              },
+              "lossy": [
+                "attestation_tier_not_projected",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "f16b6a10c7e662cb555825737dd36f43c6ff149ca41c55c749fa21f1bcfdcc95",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "blocked"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "cb5ef6cebc55a29f3cdbdb3d0bee7d971a11d22ff7b107bb4743040eae464e21",
+            "constraints": [
+              {
+                "blocking": true,
+                "check_type": "ai.brutor.guardrail",
+                "id": "ai.brutor.guardrail.prompt_injection",
+                "result": "fail",
+                "severity": "high"
+              }
+            ],
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "reject",
+              "human_disposed": false,
+              "verdict_class": "blocked"
+            },
+            "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "aa6e42b5647341dba1807030aef00c0b7a881f0ecfa7f64b74809441d7bf3b7a",
+                "runtime": "brutor-gateway"
+              }
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "d56aa689432c8a763e1d0a11971a618086d81029e2de1f9a6ec6e893b3c58896",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:00:02.000Z"
+          },
+          "capsule_id": "cb5ef6cebc55a29f3cdbdb3d0bee7d971a11d22ff7b107bb4743040eae464e21",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a05820cb5ef6cebc55a29f3cdbdb3d0bee7d971a11d22ff7b107bb4743040eae464e215840c1dc55ee68f9bb49b8afb9c456ea549c9ef7fbb0217c0a0adb649602ebdc714486381977d825f8e5164651c1f039aa3150cb1e840945e42c439ba0696e8e050c",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "payload_digests_opaque"
+          ],
+          "record_id": "f16b6a10c7e662cb555825737dd36f43c6ff149ca41c55c749fa21f1bcfdcc95"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "mcp/pl-0003",
+          "attestation": {
+            "input_digest": "aa6e42b5647341dba1807030aef00c0b7a881f0ecfa7f64b74809441d7bf3b7a",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "runtime": "brutor-gateway"
+          },
+          "context": {
+            "proxy_log_id": "pl-0003",
+            "root_task_id": "task-9f2",
+            "surface": "mcp",
+            "turn_id": "turn-3"
+          },
+          "controls": [
+            {
+              "blocking": true,
+              "id": "ai.brutor.guardrail.prompt_injection",
+              "kind": "guardrail",
+              "result": "fail",
+              "severity": "high"
+            }
+          ],
+          "disposition": {
+            "approver": "policy",
+            "decision": "reject",
+            "human_disposed": false
+          },
+          "epoch": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "f16b6a10c7e662cb555825737dd36f43c6ff149ca41c55c749fa21f1bcfdcc95",
+          "references": [
+            {
+              "digest": "d56aa689432c8a763e1d0a11971a618086d81029e2de1f9a6ec6e893b3c58896",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T10:00:02.000Z",
+          "verdict": "blocked"
+        }
+      ],
+      "name": "mcp-blocked-guardrail"
+    },
+    {
+      "description": "tool isError: failed effect, dispatched_unconfirmed",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "mcp/pl-0004",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "context": {
+                "proxy_log_id": "pl-0004",
+                "root_task_id": "task-9f2",
+                "surface": "mcp",
+                "turn_id": "turn-3"
+              },
+              "effect_attestation": "gate_observed",
+              "lossy": [
+                "attestation_tier_not_projected",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "ab8eb032c00b41e243d64bfd20b8ea86ea0a8c88d783fb4ced292b20301d0ae6",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "errored"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "dispatched_unconfirmed",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "e1aa33dfeae5de6ba644aa5105cc1125e80c8081c2b6596079468a490cc5c74f",
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "accept",
+              "human_disposed": false,
+              "verdict_class": "errored"
+            },
+            "effect": {
+              "effect_attestation": "gate_executed",
+              "request_digest": "41ab68fb1052145f741c743bfb92f3bf060b6345c7049ea29e69f1239903cb4d",
+              "response_digest": "4ab2ef1ae6586edb0621b76257a0a2c2f3519183ce3239ac7949c74927d092df",
+              "status": "failed",
+              "type": "tools/call:file_claim"
+            },
+            "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "41ab68fb1052145f741c743bfb92f3bf060b6345c7049ea29e69f1239903cb4d",
+                "runtime": "brutor-gateway"
+              }
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "989adc78055daafe280cab3d04e1b99a3db2830030b81512a8eb6e3bc47610dc",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:00:03.000Z"
+          },
+          "capsule_id": "e1aa33dfeae5de6ba644aa5105cc1125e80c8081c2b6596079468a490cc5c74f",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a05820e1aa33dfeae5de6ba644aa5105cc1125e80c8081c2b6596079468a490cc5c74f584058ef13bc60201a30b7741a312f5854e28fa6f5e937af15aeea75ee596e26916f5e0c4717638ab7939c55c48703699c48f66df3be01c36d0afc30a632cfb16d06",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "payload_digests_opaque"
+          ],
+          "record_id": "ab8eb032c00b41e243d64bfd20b8ea86ea0a8c88d783fb4ced292b20301d0ae6"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "mcp/pl-0004",
+          "attestation": {
+            "input_digest": "41ab68fb1052145f741c743bfb92f3bf060b6345c7049ea29e69f1239903cb4d",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "runtime": "brutor-gateway"
+          },
+          "context": {
+            "proxy_log_id": "pl-0004",
+            "root_task_id": "task-9f2",
+            "surface": "mcp",
+            "turn_id": "turn-3"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "accept",
+            "human_disposed": false
+          },
+          "effect": {
+            "attestation": "gate_observed",
+            "request_digest": "41ab68fb1052145f741c743bfb92f3bf060b6345c7049ea29e69f1239903cb4d",
+            "response_digest": "4ab2ef1ae6586edb0621b76257a0a2c2f3519183ce3239ac7949c74927d092df",
+            "status": "failed",
+            "type": "tools/call:file_claim"
+          },
+          "epoch": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "ab8eb032c00b41e243d64bfd20b8ea86ea0a8c88d783fb4ced292b20301d0ae6",
+          "references": [
+            {
+              "digest": "989adc78055daafe280cab3d04e1b99a3db2830030b81512a8eb6e3bc47610dc",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T10:00:03.000Z",
+          "verdict": "errored"
+        }
+      ],
+      "name": "mcp-errored-failed"
+    },
+    {
+      "description": "A2A timeout after dispatch",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "a2a/pl-0005",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "context": {
+                "proxy_log_id": "pl-0005",
+                "root_task_id": "task-9f2",
+                "surface": "a2a",
+                "turn_id": "turn-3"
+              },
+              "effect_attestation": "gate_observed",
+              "lossy": [
+                "attestation_tier_not_projected",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "92fc30ebac3442e078b54d848b10e6881c0328245fb63a7d83a9fc468bb2b29f",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "timeout"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "dispatched_unconfirmed",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "507d251feb73cea423f0cb8d7fdb0f5d202e0c3d1c5c2071dd5efa39415c1685",
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "accept",
+              "human_disposed": false,
+              "verdict_class": "timeout"
+            },
+            "effect": {
+              "effect_attestation": "gate_executed",
+              "request_digest": "ae6dc746c76b4fb752dc4ca3b11f64ca8f055e9966450183141efdec0e0a564b",
+              "status": "dispatched",
+              "type": "a2a:message"
+            },
+            "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "ae6dc746c76b4fb752dc4ca3b11f64ca8f055e9966450183141efdec0e0a564b",
+                "runtime": "brutor-gateway"
+              }
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "1217de9c635c03bda45dfbebd5dd79cfb217f68f58e4cd68333cfd1f29bd3ea8",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:00:04.000Z"
+          },
+          "capsule_id": "507d251feb73cea423f0cb8d7fdb0f5d202e0c3d1c5c2071dd5efa39415c1685",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a05820507d251feb73cea423f0cb8d7fdb0f5d202e0c3d1c5c2071dd5efa39415c168558402e12e2209e1e788ea2959c70eec81b86c695474e4009945c12cfa95298db212e6818a44eb458d166e6679c538244cdf056ff1ccb6a17eed46bf9d39af4d5b601",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "payload_digests_opaque"
+          ],
+          "record_id": "92fc30ebac3442e078b54d848b10e6881c0328245fb63a7d83a9fc468bb2b29f"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "a2a/pl-0005",
+          "attestation": {
+            "input_digest": "ae6dc746c76b4fb752dc4ca3b11f64ca8f055e9966450183141efdec0e0a564b",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "runtime": "brutor-gateway"
+          },
+          "context": {
+            "proxy_log_id": "pl-0005",
+            "root_task_id": "task-9f2",
+            "surface": "a2a",
+            "turn_id": "turn-3"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "accept",
+            "human_disposed": false
+          },
+          "effect": {
+            "attestation": "gate_observed",
+            "request_digest": "ae6dc746c76b4fb752dc4ca3b11f64ca8f055e9966450183141efdec0e0a564b",
+            "status": "dispatched",
+            "type": "a2a:message"
+          },
+          "epoch": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "92fc30ebac3442e078b54d848b10e6881c0328245fb63a7d83a9fc468bb2b29f",
+          "references": [
+            {
+              "digest": "1217de9c635c03bda45dfbebd5dd79cfb217f68f58e4cd68333cfd1f29bd3ea8",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T10:00:04.000Z",
+          "verdict": "timeout"
+        }
+      ],
+      "name": "a2a-timeout-dispatched"
+    },
+    {
+      "description": "no AI System: developer = urn:brutor:ungoverned",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "mcp/pl-0006",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "context": {
+                "proxy_log_id": "pl-0006",
+                "root_task_id": "task-9f2",
+                "surface": "mcp",
+                "turn_id": "turn-3"
+              },
+              "lossy": [
+                "attestation_tier_not_projected",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "0a0ba2348e086853e9990152f11acbf541dbef6a9685003ff324ab7671b1206f",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": "ungoverned",
+              "verdict": "denied"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "a86dbe653f32cb2a9d0279391339118cb6fc7e9447d30e4c4c124207385a5d4d",
+            "constraints": [
+              {
+                "blocking": true,
+                "check_type": "ai.brutor.agent_grant",
+                "id": "ai.brutor.grant.tool_scope",
+                "result": "fail",
+                "severity": "high"
+              }
+            ],
+            "developer": "urn:brutor:ungoverned",
+            "disposition": {
+              "approver": "policy",
+              "decision": "reject",
+              "human_disposed": false,
+              "verdict_class": "denied"
+            },
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "67fe86763cc697fdd97fd8a487c965a389b79317172c71a8230f13ac9c3c36f8",
+                "runtime": "brutor-gateway"
+              }
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "8fabdfb42c1c91fe61af6fbf17e0ac599e48094ecdc61ab3f38a18fb383d4898",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:00:05.000Z"
+          },
+          "capsule_id": "a86dbe653f32cb2a9d0279391339118cb6fc7e9447d30e4c4c124207385a5d4d",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a05820a86dbe653f32cb2a9d0279391339118cb6fc7e9447d30e4c4c124207385a5d4d584084b2f4452e2df454d8c4991251b8ce67d1a6a53bfa7f7a4ae1621bc3edf958666e2ccec6c91cb8232467c1ec672271bf4bbb126c70b2834baf9c83bd3729310f",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "payload_digests_opaque"
+          ],
+          "record_id": "0a0ba2348e086853e9990152f11acbf541dbef6a9685003ff324ab7671b1206f"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "mcp/pl-0006",
+          "attestation": {
+            "input_digest": "67fe86763cc697fdd97fd8a487c965a389b79317172c71a8230f13ac9c3c36f8",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "runtime": "brutor-gateway"
+          },
+          "context": {
+            "proxy_log_id": "pl-0006",
+            "root_task_id": "task-9f2",
+            "surface": "mcp",
+            "turn_id": "turn-3"
+          },
+          "controls": [
+            {
+              "blocking": true,
+              "id": "ai.brutor.grant.tool_scope",
+              "kind": "agent_grant",
+              "result": "fail",
+              "severity": "high"
+            }
+          ],
+          "disposition": {
+            "approver": "policy",
+            "decision": "reject",
+            "human_disposed": false
+          },
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "0a0ba2348e086853e9990152f11acbf541dbef6a9685003ff324ab7671b1206f",
+          "references": [
+            {
+              "digest": "8fabdfb42c1c91fe61af6fbf17e0ac599e48094ecdc61ab3f38a18fb383d4898",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": "ungoverned",
+          "timestamp": "2026-09-19T10:00:05.000Z",
+          "verdict": "denied"
+        }
+      ],
+      "name": "ungoverned-denied"
+    },
+    {
+      "description": "awaiting_human (planned carve) superseded by a human-approved execution",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "mcp/pl-0007",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "context": {
+                "approval_request_id": "apr-77",
+                "proxy_log_id": "pl-0007",
+                "root_task_id": "task-9f2",
+                "surface": "mcp",
+                "turn_id": "turn-3"
+              },
+              "effect_attestation": "gate_observed",
+              "lossy": [
+                "attestation_tier_not_projected",
+                "effect_attestation_planned_carve",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "awaiting_human"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "1928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd2",
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "needs_input",
+              "human_disposed": false,
+              "verdict_class": "hitl_dispatched"
+            },
+            "effect": {
+              "status": "planned",
+              "type": "tools/call:pay_claim"
+            },
+            "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "e9cffb1998797109109a4f829382870ce2834214a9b3725ef4af25eea2d56941",
+                "runtime": "brutor-gateway"
+              }
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "2f97a050307ae650430ce417c38296d01a7f67345b6ea10deecd85f0c3f72c11",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:01:00.000Z"
+          },
+          "capsule_id": "1928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd2",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a058201928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd258404b459c1fe9f784d622132039698db82f6adf2f5d9ede90e65f5536939f3dc2d649a3738e574aa3bed9cdb0b9538939bc76c79bd85a26ae34dbdb48cf2c9c750f",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "effect_attestation_planned_carve",
+            "payload_digests_opaque"
+          ],
+          "record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3"
+        },
+        {
+          "capsule": {
+            "action_id": "mcp/pl-0008",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "chain": {
+                "parent_record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+                "relation": "supersedes"
+              },
+              "context": {
+                "proxy_log_id": "pl-0008",
+                "root_task_id": "task-9f2",
+                "surface": "mcp",
+                "turn_id": "turn-3"
+              },
+              "effect_attestation": "gate_observed",
+              "lossy": [
+                "attestation_tier_not_projected",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "d2a874fa77ea4c3097f8773e83fcd88e3ee37c39621c4bd24d845f3887d63a82",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "executed"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "confirmed",
+              "ledger_mode": "chained"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "445aa62672b9f6acc312c7ffd86de35ab773780cb0b3fc2ff329e89029218729",
+            "chain": {
+              "parent_capsule_id": "1928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd2",
+              "relation": "supersedes"
+            },
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "human",
+              "authority": "apr-77",
+              "decision": "accept",
+              "human_disposed": true,
+              "verdict_class": "executed"
+            },
+            "effect": {
+              "effect_attestation": "gate_executed",
+              "request_digest": "a105c9b050e6c026d7bee2b8c8f1802e6a9295a2e1da10bdfe51c607218f652e",
+              "response_digest": "1f0d8210b722a10145af7ba15e10a5c25f8e9d17151799c208a961a164c0c355",
+              "status": "confirmed",
+              "type": "tools/call:pay_claim"
+            },
+            "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "a105c9b050e6c026d7bee2b8c8f1802e6a9295a2e1da10bdfe51c607218f652e",
+                "runtime": "brutor-gateway"
+              }
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "855df2ac51fdb887d46af1234f6d3db80f29ef03ddd987f0d7019e9306f98b6d",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:05:00.000Z"
+          },
+          "capsule_id": "445aa62672b9f6acc312c7ffd86de35ab773780cb0b3fc2ff329e89029218729",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a05820445aa62672b9f6acc312c7ffd86de35ab773780cb0b3fc2ff329e890292187295840e7d19f948fa4d91790ede8fb990adf0bc19ec33092e8ade384737fcda2b5b632c1081dbf842420d194887d6708b7b740587f7679366575eddfe17d9ff558d40d",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "payload_digests_opaque"
+          ],
+          "record_id": "d2a874fa77ea4c3097f8773e83fcd88e3ee37c39621c4bd24d845f3887d63a82"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "mcp/pl-0007",
+          "attestation": {
+            "input_digest": "e9cffb1998797109109a4f829382870ce2834214a9b3725ef4af25eea2d56941",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "runtime": "brutor-gateway"
+          },
+          "context": {
+            "approval_request_id": "apr-77",
+            "proxy_log_id": "pl-0007",
+            "root_task_id": "task-9f2",
+            "surface": "mcp",
+            "turn_id": "turn-3"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "needs_input",
+            "human_disposed": false
+          },
+          "effect": {
+            "attestation": "gate_observed",
+            "status": "planned",
+            "type": "tools/call:pay_claim"
+          },
+          "epoch": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+          "references": [
+            {
+              "digest": "2f97a050307ae650430ce417c38296d01a7f67345b6ea10deecd85f0c3f72c11",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T10:01:00.000Z",
+          "verdict": "awaiting_human"
+        },
+        {
+          "action_id": "mcp/pl-0008",
+          "attestation": {
+            "input_digest": "a105c9b050e6c026d7bee2b8c8f1802e6a9295a2e1da10bdfe51c607218f652e",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "runtime": "brutor-gateway"
+          },
+          "chain": {
+            "parent_record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+            "relation": "supersedes"
+          },
+          "context": {
+            "proxy_log_id": "pl-0008",
+            "root_task_id": "task-9f2",
+            "surface": "mcp",
+            "turn_id": "turn-3"
+          },
+          "disposition": {
+            "approver": "human",
+            "authority": "apr-77",
+            "decision": "accept",
+            "human_disposed": true
+          },
+          "effect": {
+            "attestation": "gate_observed",
+            "request_digest": "a105c9b050e6c026d7bee2b8c8f1802e6a9295a2e1da10bdfe51c607218f652e",
+            "response_digest": "1f0d8210b722a10145af7ba15e10a5c25f8e9d17151799c208a961a164c0c355",
+            "status": "confirmed",
+            "type": "tools/call:pay_claim"
+          },
+          "epoch": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "d2a874fa77ea4c3097f8773e83fcd88e3ee37c39621c4bd24d845f3887d63a82",
+          "references": [
+            {
+              "digest": "855df2ac51fdb887d46af1234f6d3db80f29ef03ddd987f0d7019e9306f98b6d",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T10:05:00.000Z",
+          "verdict": "executed"
+        }
+      ],
+      "name": "approval-granted"
+    },
+    {
+      "description": "non-executing closure: resolved ⟨supersedes⟩, human",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "mcp/pl-0007",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "context": {
+                "approval_request_id": "apr-77",
+                "proxy_log_id": "pl-0007",
+                "root_task_id": "task-9f2",
+                "surface": "mcp",
+                "turn_id": "turn-3"
+              },
+              "effect_attestation": "gate_observed",
+              "lossy": [
+                "attestation_tier_not_projected",
+                "effect_attestation_planned_carve",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "awaiting_human"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "1928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd2",
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "needs_input",
+              "human_disposed": false,
+              "verdict_class": "hitl_dispatched"
+            },
+            "effect": {
+              "status": "planned",
+              "type": "tools/call:pay_claim"
+            },
+            "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "e9cffb1998797109109a4f829382870ce2834214a9b3725ef4af25eea2d56941",
+                "runtime": "brutor-gateway"
+              }
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "2f97a050307ae650430ce417c38296d01a7f67345b6ea10deecd85f0c3f72c11",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:01:00.000Z"
+          },
+          "capsule_id": "1928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd2",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a058201928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd258404b459c1fe9f784d622132039698db82f6adf2f5d9ede90e65f5536939f3dc2d649a3738e574aa3bed9cdb0b9538939bc76c79bd85a26ae34dbdb48cf2c9c750f",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "effect_attestation_planned_carve",
+            "payload_digests_opaque"
+          ],
+          "record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3"
+        },
+        {
+          "capsule": {
+            "action_id": "approval/apr-77-reject",
+            "action_type": "decide",
+            "ai.brutor": {
+              "chain": {
+                "parent_record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+                "relation": "supersedes"
+              },
+              "lossy": [
+                "attestation_tier_not_projected"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "1034b91311e1ba47d73ca987cb546a73c3b31ca3782483c15cac48a2493e8756",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "resolved"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "chained"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "34fc99f376b2b1d2ae93ebc5191e34e453ca448f9b058b9bbb79893a5525c562",
+            "chain": {
+              "parent_capsule_id": "1928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd2",
+              "relation": "supersedes"
+            },
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "human",
+              "authority": "apr-77",
+              "decision": "reject",
+              "human_disposed": true,
+              "verdict_class": "resolved"
+            },
+            "format_version": "4",
+            "operator": "tenant-acme",
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:06:00.000Z"
+          },
+          "capsule_id": "34fc99f376b2b1d2ae93ebc5191e34e453ca448f9b058b9bbb79893a5525c562",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a0582034fc99f376b2b1d2ae93ebc5191e34e453ca448f9b058b9bbb79893a5525c562584094f09049244e58cc6f61a8c38694570d9b11204f6a5522c0b1795a4386d22582feecf8a67ac9f43caee45a98dfa56508b857b57d11b5ea0c0df088eeb0d9b40d",
+          "lossy": [
+            "attestation_tier_not_projected"
+          ],
+          "record_id": "1034b91311e1ba47d73ca987cb546a73c3b31ca3782483c15cac48a2493e8756"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "mcp/pl-0007",
+          "attestation": {
+            "input_digest": "e9cffb1998797109109a4f829382870ce2834214a9b3725ef4af25eea2d56941",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "runtime": "brutor-gateway"
+          },
+          "context": {
+            "approval_request_id": "apr-77",
+            "proxy_log_id": "pl-0007",
+            "root_task_id": "task-9f2",
+            "surface": "mcp",
+            "turn_id": "turn-3"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "needs_input",
+            "human_disposed": false
+          },
+          "effect": {
+            "attestation": "gate_observed",
+            "status": "planned",
+            "type": "tools/call:pay_claim"
+          },
+          "epoch": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+          "references": [
+            {
+              "digest": "2f97a050307ae650430ce417c38296d01a7f67345b6ea10deecd85f0c3f72c11",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T10:01:00.000Z",
+          "verdict": "awaiting_human"
+        },
+        {
+          "action_id": "approval/apr-77-reject",
+          "chain": {
+            "parent_record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+            "relation": "supersedes"
+          },
+          "disposition": {
+            "approver": "human",
+            "authority": "apr-77",
+            "decision": "reject",
+            "human_disposed": true
+          },
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "1034b91311e1ba47d73ca987cb546a73c3b31ca3782483c15cac48a2493e8756",
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T10:06:00.000Z",
+          "verdict": "resolved"
+        }
+      ],
+      "name": "approval-rejected"
+    },
+    {
+      "description": "approval lapsed: expired ⟨supersedes⟩",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "mcp/pl-0007",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "context": {
+                "approval_request_id": "apr-77",
+                "proxy_log_id": "pl-0007",
+                "root_task_id": "task-9f2",
+                "surface": "mcp",
+                "turn_id": "turn-3"
+              },
+              "effect_attestation": "gate_observed",
+              "lossy": [
+                "attestation_tier_not_projected",
+                "effect_attestation_planned_carve",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "awaiting_human"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "1928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd2",
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "needs_input",
+              "human_disposed": false,
+              "verdict_class": "hitl_dispatched"
+            },
+            "effect": {
+              "status": "planned",
+              "type": "tools/call:pay_claim"
+            },
+            "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "e9cffb1998797109109a4f829382870ce2834214a9b3725ef4af25eea2d56941",
+                "runtime": "brutor-gateway"
+              }
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "2f97a050307ae650430ce417c38296d01a7f67345b6ea10deecd85f0c3f72c11",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T10:01:00.000Z"
+          },
+          "capsule_id": "1928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd2",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a058201928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd258404b459c1fe9f784d622132039698db82f6adf2f5d9ede90e65f5536939f3dc2d649a3738e574aa3bed9cdb0b9538939bc76c79bd85a26ae34dbdb48cf2c9c750f",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "effect_attestation_planned_carve",
+            "payload_digests_opaque"
+          ],
+          "record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3"
+        },
+        {
+          "capsule": {
+            "action_id": "approval/apr-77-expired",
+            "action_type": "decide",
+            "ai.brutor": {
+              "chain": {
+                "parent_record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+                "relation": "supersedes"
+              },
+              "context": {
+                "approval_request_id": "apr-77",
+                "record_type": "ai.brutor.approval-expired"
+              },
+              "lossy": [
+                "attestation_tier_not_projected"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "5afe664a5288aaa9922b6dbc484c4e329ce536165930091b7af878061dba18e3",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "expired"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "chained"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "944867ea54ae67770595dbfe69df6ce94aef911214c2bfb6d82f039bf67be1b3",
+            "chain": {
+              "parent_capsule_id": "1928b651c6de282f1bb0ee5f2391232c48569cbee7215ad4a5b8058cc38a3bd2",
+              "relation": "supersedes"
+            },
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "deferred",
+              "human_disposed": false,
+              "verdict_class": "expired"
+            },
+            "format_version": "4",
+            "operator": "tenant-acme",
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-20T10:01:00.000Z"
+          },
+          "capsule_id": "944867ea54ae67770595dbfe69df6ce94aef911214c2bfb6d82f039bf67be1b3",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a05820944867ea54ae67770595dbfe69df6ce94aef911214c2bfb6d82f039bf67be1b358408d82407a6deed5edc13be7fb49d398a3a1564c5b7596bd618db76e2faca3a7146bdf70f44c75d2b4600b29e268f41cb5a66638304975813e1436e1756647a70b",
+          "lossy": [
+            "attestation_tier_not_projected"
+          ],
+          "record_id": "5afe664a5288aaa9922b6dbc484c4e329ce536165930091b7af878061dba18e3"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "mcp/pl-0007",
+          "attestation": {
+            "input_digest": "e9cffb1998797109109a4f829382870ce2834214a9b3725ef4af25eea2d56941",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "runtime": "brutor-gateway"
+          },
+          "context": {
+            "approval_request_id": "apr-77",
+            "proxy_log_id": "pl-0007",
+            "root_task_id": "task-9f2",
+            "surface": "mcp",
+            "turn_id": "turn-3"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "needs_input",
+            "human_disposed": false
+          },
+          "effect": {
+            "attestation": "gate_observed",
+            "status": "planned",
+            "type": "tools/call:pay_claim"
+          },
+          "epoch": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+          "references": [
+            {
+              "digest": "2f97a050307ae650430ce417c38296d01a7f67345b6ea10deecd85f0c3f72c11",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T10:01:00.000Z",
+          "verdict": "awaiting_human"
+        },
+        {
+          "action_id": "approval/apr-77-expired",
+          "chain": {
+            "parent_record_id": "236789f47a32b58b9932ec6883fcd1c46bc7f8fec2f5cc8bcf9924d026945ab3",
+            "relation": "supersedes"
+          },
+          "context": {
+            "approval_request_id": "apr-77",
+            "record_type": "ai.brutor.approval-expired"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "deferred",
+            "human_disposed": false
+          },
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "5afe664a5288aaa9922b6dbc484c4e329ce536165930091b7af878061dba18e3",
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-20T10:01:00.000Z",
+          "verdict": "expired"
+        }
+      ],
+      "name": "approval-expired"
+    },
+    {
+      "description": "contract promotion: fyi epoch_boundary",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "contract/sys-claims-triage/4",
+            "action_type": "fyi",
+            "ai.brutor": {
+              "context": {
+                "contract_version": "4",
+                "record_type": "ai.brutor.epoch-boundary"
+              },
+              "lossy": [
+                "attestation_tier_not_projected"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "a542fc92333275d108eefa4486ba3fc1ce8d08750a623827e31082a7a4b7ecba",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "epoch_boundary"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "f117c3d9b4675c0152b4d213d8d95a4d223b1d325fcbcc259da1390a940a5a03",
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "accept",
+              "human_disposed": false,
+              "verdict_class": "epoch_boundary"
+            },
+            "epoch_id": "contract:eeccc2cd14556cd4596545b5ab081cea5705e111ee448ecd995b1f8a2c157fc7",
+            "format_version": "4",
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "eeccc2cd14556cd4596545b5ab081cea5705e111ee448ecd995b1f8a2c157fc7",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.ai-system-contract"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T12:00:00.000Z"
+          },
+          "capsule_id": "f117c3d9b4675c0152b4d213d8d95a4d223b1d325fcbcc259da1390a940a5a03",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a05820f117c3d9b4675c0152b4d213d8d95a4d223b1d325fcbcc259da1390a940a5a0358400f00a274c1d7d4ad0da9cf96dd386b83124fcf301ed01e79d8396cc583cf1cc5942f85040682e5294cfcc118b48d3a8cb0e0248513ba882ff310810a28e04905",
+          "lossy": [
+            "attestation_tier_not_projected"
+          ],
+          "record_id": "a542fc92333275d108eefa4486ba3fc1ce8d08750a623827e31082a7a4b7ecba"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "contract/sys-claims-triage/4",
+          "context": {
+            "contract_version": "4",
+            "record_type": "ai.brutor.epoch-boundary"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "accept",
+            "human_disposed": false
+          },
+          "epoch": "contract:eeccc2cd14556cd4596545b5ab081cea5705e111ee448ecd995b1f8a2c157fc7",
+          "kind": "fyi",
+          "operator": "tenant-acme",
+          "record_id": "a542fc92333275d108eefa4486ba3fc1ce8d08750a623827e31082a7a4b7ecba",
+          "references": [
+            {
+              "digest": "eeccc2cd14556cd4596545b5ab081cea5705e111ee448ecd995b1f8a2c157fc7",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.ai-system-contract"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T12:00:00.000Z",
+          "verdict": "epoch_boundary"
+        }
+      ],
+      "name": "epoch-boundary"
+    },
+    {
+      "description": "fyi declaration: unregistered verdict, reference purpose kept in the extension",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "declaration/profile-1",
+            "action_type": "fyi",
+            "ai.brutor": {
+              "context": {
+                "catalog_version": "2026.09",
+                "framework_id": "eu-ai-act",
+                "record_type": "ai.brutor.declaration"
+              },
+              "lossy": [
+                "attestation_tier_not_projected",
+                "reference_purpose_untranslated",
+                "verdict_unregistered"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "79796e83714298882ae4d57bf3df7d9d0ab3f7eeff587dcc31fd4f4a52d197a5",
+              "record_schema": "ai.brutor/action-record/v1",
+              "reference_purposes": [
+                "declared_text"
+              ],
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "recorded"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "abae615cdeb5f37c4d680f5fc4a9c221f22c5b2239cdfe6c6ee1214bff12a42f",
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "accept",
+              "human_disposed": false,
+              "verdict_class": "ai.brutor.recorded"
+            },
+            "format_version": "4",
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "9368a7d21e018f64ae3327d2f25cd4d7693b2d85328e4bb680bcfcbd4c26b90e",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.notice-text"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T12:30:00.000Z"
+          },
+          "capsule_id": "abae615cdeb5f37c4d680f5fc4a9c221f22c5b2239cdfe6c6ee1214bff12a42f",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a05820abae615cdeb5f37c4d680f5fc4a9c221f22c5b2239cdfe6c6ee1214bff12a42f5840c8f161608082f496f4ac357db82d5b651bdf49f0a39d45e299d5e7a38af07956295b48fc5f514c75bae0f763ab3c2892310daa3c2dd82f250a208745092e940d",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "reference_purpose_untranslated",
+            "verdict_unregistered"
+          ],
+          "record_id": "79796e83714298882ae4d57bf3df7d9d0ab3f7eeff587dcc31fd4f4a52d197a5"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "declaration/profile-1",
+          "context": {
+            "catalog_version": "2026.09",
+            "framework_id": "eu-ai-act",
+            "record_type": "ai.brutor.declaration"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "accept",
+            "human_disposed": false
+          },
+          "kind": "fyi",
+          "operator": "tenant-acme",
+          "record_id": "79796e83714298882ae4d57bf3df7d9d0ab3f7eeff587dcc31fd4f4a52d197a5",
+          "references": [
+            {
+              "digest": "9368a7d21e018f64ae3327d2f25cd4d7693b2d85328e4bb680bcfcbd4c26b90e",
+              "digest_alg": "SHA-256",
+              "purpose": "declared_text",
+              "type": "ai.brutor.notice-text"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T12:30:00.000Z",
+          "verdict": "recorded"
+        }
+      ],
+      "name": "declaration-recorded"
+    },
+    {
+      "description": "references: [] is committed (tri-state preserved)",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "report/r-1",
+            "action_type": "fyi",
+            "ai.brutor": {
+              "context": {
+                "record_type": "ai.brutor.report",
+                "report_id": "r-1"
+              },
+              "lossy": [
+                "attestation_tier_not_projected",
+                "verdict_unregistered"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "5b30bf96c4dca5f08c7e07ebd58983ee5f6681bd932ebfb8858fb7be50f87a6e",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": "ungoverned",
+              "verdict": "recorded"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "03d1e628fad349118f0931c9fd623159699be0a20a446d9dd4a1cb73e5a0cedd",
+            "developer": "urn:brutor:ungoverned",
+            "disposition": {
+              "approver": "policy",
+              "decision": "accept",
+              "human_disposed": false,
+              "verdict_class": "ai.brutor.recorded"
+            },
+            "format_version": "4",
+            "operator": "tenant-acme",
+            "references": [],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T13:00:00.000Z"
+          },
+          "capsule_id": "03d1e628fad349118f0931c9fd623159699be0a20a446d9dd4a1cb73e5a0cedd",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a0582003d1e628fad349118f0931c9fd623159699be0a20a446d9dd4a1cb73e5a0cedd584025620155dd060285a7041aabdb376f0d3689b38570b20dc8cfd27dc42e8bad72e58f458a6771d744ff6e80c0f782327da23a69ea7dc2ff912a0f78ae9c7b1205",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "verdict_unregistered"
+          ],
+          "record_id": "5b30bf96c4dca5f08c7e07ebd58983ee5f6681bd932ebfb8858fb7be50f87a6e"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "report/r-1",
+          "context": {
+            "record_type": "ai.brutor.report",
+            "report_id": "r-1"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "accept",
+            "human_disposed": false
+          },
+          "kind": "fyi",
+          "operator": "tenant-acme",
+          "record_id": "5b30bf96c4dca5f08c7e07ebd58983ee5f6681bd932ebfb8858fb7be50f87a6e",
+          "references": [],
+          "schema": "ai.brutor/action-record/v1",
+          "system": "ungoverned",
+          "timestamp": "2026-09-19T13:00:00.000Z",
+          "verdict": "recorded"
+        }
+      ],
+      "name": "report-empty-references"
+    },
+    {
+      "description": "executed turn → assessment ⟨assesses⟩ → adjudication ⟨adjudicates⟩",
+      "expected": [
+        {
+          "capsule": {
+            "action_id": "llm/pl-0010",
+            "action_type": "decide",
+            "ai.brutor": {
+              "attestation": {
+                "numbers_canonicalized": false,
+                "observation": "in_path"
+              },
+              "context": {
+                "proxy_log_id": "pl-0010",
+                "root_task_id": "task-9f2",
+                "surface": "llm",
+                "turn_id": "turn-3"
+              },
+              "effect_attestation": "gate_observed",
+              "lossy": [
+                "attestation_tier_not_projected",
+                "payload_digests_opaque"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "478ec8d6b8dcaae8fda7dacaa346638d558f3e029f057491dc33b332109c2541",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "executed"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "confirmed",
+              "ledger_mode": "standalone"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "41d5a26f20abb4db841015d618a4a297b4401118f21cf5fa228daceb9a569a93",
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "accept",
+              "human_disposed": false,
+              "verdict_class": "executed"
+            },
+            "effect": {
+              "effect_attestation": "gate_executed",
+              "request_digest": "47b373b049acd21dda800e7bb9310a6d4e1c1fc1ed1486aa203df5de60e4d420",
+              "response_digest": "2bb678fd32ffed94d0aaf75507bce5ac1dbcea83c1ee8f3f66f1e4748921473d",
+              "status": "confirmed",
+              "type": "inference_completion"
+            },
+            "epoch_id": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "format_version": "4",
+            "model_attestation": {
+              "compute_attestation": {
+                "ai.brutor.input_digest": "47b373b049acd21dda800e7bb9310a6d4e1c1fc1ed1486aa203df5de60e4d420",
+                "runtime": "brutor-gateway"
+              }
+            },
+            "operator": "tenant-acme",
+            "references": [
+              {
+                "digest": "6e21a26f1dee487ea1d81b9eb0b47bd77bcb5c168ea4dd2d629d5c577bdd0c9c",
+                "digest_alg": "SHA-256",
+                "type": "ai.brutor.proxy-log-row"
+              }
+            ],
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T14:00:00.000Z"
+          },
+          "capsule_id": "41d5a26f20abb4db841015d618a4a297b4401118f21cf5fa228daceb9a569a93",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a0582041d5a26f20abb4db841015d618a4a297b4401118f21cf5fa228daceb9a569a9358406ca008e676628babf382e85577a0342940d45a4485ae0015e1648dc20f30c5230631f18cbe1de4f9262f7a4a8d9fa22c7eb37a7048115602e1d0a5e4e849550c",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "payload_digests_opaque"
+          ],
+          "record_id": "478ec8d6b8dcaae8fda7dacaa346638d558f3e029f057491dc33b332109c2541"
+        },
+        {
+          "capsule": {
+            "action_id": "assessment/as-1",
+            "action_type": "fyi",
+            "ai.brutor": {
+              "chain": {
+                "parent_record_id": "478ec8d6b8dcaae8fda7dacaa346638d558f3e029f057491dc33b332109c2541",
+                "relation": "assesses"
+              },
+              "context": {
+                "check_id": "groundedness",
+                "evaluator_fingerprint": "10e86c6514d40f2a3e861b31847340ee8c8ed181029a17b042f137121d28863e",
+                "record_type": "ai.brutor.assessment"
+              },
+              "lossy": [
+                "attestation_tier_not_projected",
+                "chain_relation_unregistered",
+                "verdict_unregistered"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "f83a6188ac6cdb3c05670afb262e37232020e131c78f96deba6f68ce8f549e5b",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "assessment"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "chained"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "b407a7a787e761636c854c40f7a7e569aa9286e8add5aaeec8a4f77d76c6d397",
+            "chain": {
+              "parent_capsule_id": "41d5a26f20abb4db841015d618a4a297b4401118f21cf5fa228daceb9a569a93",
+              "relation": "ai.brutor.assesses"
+            },
+            "constraints": [
+              {
+                "blocking": false,
+                "check_type": "ai.brutor.judged",
+                "evidence_digest": "78dc1d948c5af4fa59dcc4092af33a4f7ddd57e6ee0bdcaf5a660c20b584233d",
+                "id": "ai.brutor.judge.groundedness",
+                "result": "pass"
+              }
+            ],
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "policy",
+              "decision": "accept",
+              "human_disposed": false,
+              "verdict_class": "ai.brutor.assessment"
+            },
+            "format_version": "4",
+            "operator": "tenant-acme",
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T15:00:00.000Z"
+          },
+          "capsule_id": "b407a7a787e761636c854c40f7a7e569aa9286e8add5aaeec8a4f77d76c6d397",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a05820b407a7a787e761636c854c40f7a7e569aa9286e8add5aaeec8a4f77d76c6d39758401f7e82da1c0b8fd3cc0aa36295141ca22a315d39dba5fb152cddc5323a8179e007b7d4b72406f8e3a7e57a0c5d4841f1a71caabcc8753d3314d279ebf3ab5d01",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "chain_relation_unregistered",
+            "verdict_unregistered"
+          ],
+          "record_id": "f83a6188ac6cdb3c05670afb262e37232020e131c78f96deba6f68ce8f549e5b"
+        },
+        {
+          "capsule": {
+            "action_id": "adjudication/ad-1",
+            "action_type": "fyi",
+            "ai.brutor": {
+              "chain": {
+                "parent_record_id": "f83a6188ac6cdb3c05670afb262e37232020e131c78f96deba6f68ce8f549e5b",
+                "relation": "adjudicates"
+              },
+              "context": {
+                "check_id": "groundedness",
+                "record_type": "ai.brutor.adjudication"
+              },
+              "lossy": [
+                "attestation_tier_not_projected",
+                "chain_relation_unregistered",
+                "verdict_unregistered"
+              ],
+              "mapping": "ai.brutor/aac-mapping/v1",
+              "record_id": "e7d12fe0d6b4722d1d6d1202c7ec0d6911d60bf4b180e34ae932357e60defa13",
+              "record_schema": "ai.brutor/action-record/v1",
+              "system": {
+                "ai_system_id": "sys-claims-triage",
+                "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+                "contract_version": 3
+              },
+              "verdict": "adjudication"
+            },
+            "assurance": {
+              "attestation_mode": "self_attested",
+              "effect_mode": "not_applicable",
+              "ledger_mode": "chained"
+            },
+            "canonicalization_id": "jcs",
+            "capsule_id": "9d47470bff7e7404f6031961e628abaf991eb1fbcb3adf0f811c21867d1df580",
+            "chain": {
+              "parent_capsule_id": "b407a7a787e761636c854c40f7a7e569aa9286e8add5aaeec8a4f77d76c6d397",
+              "relation": "ai.brutor.adjudicates"
+            },
+            "developer": "urn:brutor:ai-system:sys-claims-triage@contract-v3",
+            "disposition": {
+              "approver": "human",
+              "authority": "grader-pool-1",
+              "decision": "accept",
+              "human_disposed": true,
+              "verdict_class": "ai.brutor.adjudication"
+            },
+            "format_version": "4",
+            "operator": "tenant-acme",
+            "spec_version": "draft-mih-scitt-agent-action-capsule-04",
+            "timestamp": "2026-09-19T16:00:00.000Z"
+          },
+          "capsule_id": "9d47470bff7e7404f6031961e628abaf991eb1fbcb3adf0f811c21867d1df580",
+          "envelope_hex": "d284584ca301270378236170706c69636174696f6e2f6167656e742d616374696f6e2d63617073756c652d69640458202152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12a058209d47470bff7e7404f6031961e628abaf991eb1fbcb3adf0f811c21867d1df58058400bd902cde83f559363197dbf8c6fb653e78e0484c57b045abebe9d922243f321b4b4c4c69caed32771b245f18359f71c1675c9582871620748dc4e8046208e0e",
+          "lossy": [
+            "attestation_tier_not_projected",
+            "chain_relation_unregistered",
+            "verdict_unregistered"
+          ],
+          "record_id": "e7d12fe0d6b4722d1d6d1202c7ec0d6911d60bf4b180e34ae932357e60defa13"
+        }
+      ],
+      "lineage": [
+        {
+          "action_id": "llm/pl-0010",
+          "attestation": {
+            "input_digest": "47b373b049acd21dda800e7bb9310a6d4e1c1fc1ed1486aa203df5de60e4d420",
+            "numbers_canonicalized": false,
+            "observation": "in_path",
+            "runtime": "brutor-gateway"
+          },
+          "context": {
+            "proxy_log_id": "pl-0010",
+            "root_task_id": "task-9f2",
+            "surface": "llm",
+            "turn_id": "turn-3"
+          },
+          "disposition": {
+            "approver": "policy",
+            "decision": "accept",
+            "human_disposed": false
+          },
+          "effect": {
+            "attestation": "gate_observed",
+            "request_digest": "47b373b049acd21dda800e7bb9310a6d4e1c1fc1ed1486aa203df5de60e4d420",
+            "response_digest": "2bb678fd32ffed94d0aaf75507bce5ac1dbcea83c1ee8f3f66f1e4748921473d",
+            "status": "confirmed",
+            "type": "inference_completion"
+          },
+          "epoch": "contract:ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+          "kind": "decide",
+          "operator": "tenant-acme",
+          "record_id": "478ec8d6b8dcaae8fda7dacaa346638d558f3e029f057491dc33b332109c2541",
+          "references": [
+            {
+              "digest": "6e21a26f1dee487ea1d81b9eb0b47bd77bcb5c168ea4dd2d629d5c577bdd0c9c",
+              "digest_alg": "SHA-256",
+              "type": "ai.brutor.proxy-log-row"
+            }
+          ],
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T14:00:00.000Z",
+          "verdict": "executed"
+        },
+        {
+          "action_id": "assessment/as-1",
+          "chain": {
+            "parent_record_id": "478ec8d6b8dcaae8fda7dacaa346638d558f3e029f057491dc33b332109c2541",
+            "relation": "assesses"
+          },
+          "context": {
+            "check_id": "groundedness",
+            "evaluator_fingerprint": "10e86c6514d40f2a3e861b31847340ee8c8ed181029a17b042f137121d28863e",
+            "record_type": "ai.brutor.assessment"
+          },
+          "controls": [
+            {
+              "blocking": false,
+              "evidence_digest": "78dc1d948c5af4fa59dcc4092af33a4f7ddd57e6ee0bdcaf5a660c20b584233d",
+              "id": "ai.brutor.judge.groundedness",
+              "kind": "judged",
+              "result": "pass"
+            }
+          ],
+          "disposition": {
+            "approver": "policy",
+            "decision": "accept",
+            "human_disposed": false
+          },
+          "kind": "fyi",
+          "operator": "tenant-acme",
+          "record_id": "f83a6188ac6cdb3c05670afb262e37232020e131c78f96deba6f68ce8f549e5b",
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T15:00:00.000Z",
+          "verdict": "assessment"
+        },
+        {
+          "action_id": "adjudication/ad-1",
+          "chain": {
+            "parent_record_id": "f83a6188ac6cdb3c05670afb262e37232020e131c78f96deba6f68ce8f549e5b",
+            "relation": "adjudicates"
+          },
+          "context": {
+            "check_id": "groundedness",
+            "record_type": "ai.brutor.adjudication"
+          },
+          "disposition": {
+            "approver": "human",
+            "authority": "grader-pool-1",
+            "decision": "accept",
+            "human_disposed": true
+          },
+          "kind": "fyi",
+          "operator": "tenant-acme",
+          "record_id": "e7d12fe0d6b4722d1d6d1202c7ec0d6911d60bf4b180e34ae932357e60defa13",
+          "schema": "ai.brutor/action-record/v1",
+          "system": {
+            "ai_system_id": "sys-claims-triage",
+            "contract_hash": "ca50959454fe0ff3e41184761d2af5034dc83a774e9e94ddf29c2188611ea9b4",
+            "contract_version": 3
+          },
+          "timestamp": "2026-09-19T16:00:00.000Z",
+          "verdict": "adjudication"
+        }
+      ],
+      "name": "judged-lineage"
+    }
+  ],
+  "count": 13,
+  "mapping": "ai.brutor/aac-mapping/v1",
+  "record_schema": "ai.brutor/action-record/v1",
+  "spec": "draft-mih-scitt-agent-action-capsule-04",
+  "test_key_seed_hex": "4242424242424242424242424242424242424242424242424242424242424242",
+  "test_public_key_hex": "2152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12"
+}

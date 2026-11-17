@@ -1,0 +1,98 @@
+/*
+ * Copyright 2026 Brutor AI Ltd.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * Shared component classes.
+ *
+ * Deliberately small. A class belongs here only when neither Tailwind nor
+ * a theme token provides it:
+ *
+ *   `.animate-spin` / `.animate-pulse`  Tailwind core plugins provide both.
+ *                                       A copy here with different timings
+ *                                       would make the same class animate
+ *                                       differently in the two apps.
+ *   `.bg-primary-pale`, `.border-primary`
+ *                                       Tailwind utilities generated from
+ *                                       the preset's brand scale.
+ *
+ * Before adding anything here, check whether a Tailwind utility or a theme
+ * token already does the job.
+ */
+
+/* ── Modals ─────────────────────────────────────────────────────────────
+ *
+ * The MCP registry subtree marks its dialogs with `modal-overlay` /
+ * `modal-content`. Without these rules the two classes resolve to nothing
+ * and a "modal" renders as an unstyled in-flow div.
+ *
+ * `:where()` gives them zero specificity, so any utility on the element
+ * still wins.
+ */
+
+:where(.modal-overlay) {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background-color: rgba(15, 23, 42, 0.5);
+}
+
+:where(.modal-content) {
+    background-color: var(--color-surface);
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px var(--color-shadow), 0 8px 10px -6px var(--color-shadow);
+    width: 100%;
+    max-width: 56rem;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+[data-theme='dark'] :where(.modal-overlay),
+[data-theme='high-contrast'] :where(.modal-overlay) {
+    background-color: rgba(0, 0, 0, 0.65);
+}
+
+/* ── Portal header ──────────────────────────────────────────────────── */
+
+/* Themed via the header tokens so it follows the theme and the tenant. */
+.header-gradient {
+    background: linear-gradient(to right, var(--color-header-from), var(--color-header-to));
+}
+
+/* ── Logo ───────────────────────────────────────────────────────────── */
+
+@keyframes brutor-float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-1px) rotate(1deg); }
+    66% { transform: translateY(1px) rotate(-1deg); }
+}
+
+.brutor-logo:hover svg {
+    animation: brutor-float 3s ease-in-out infinite;
+}
+
+/* ── Toast / dialog entrances ───────────────────────────────────────── */
+
+@keyframes slide-in-right {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-out-right {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes scale-in {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.animate-slide-in-right { animation: slide-in-right 0.3s ease-out; }
+.animate-slide-out-right { animation: slide-out-right 0.2s ease-in; }
+.animate-scale-in { animation: scale-in 0.2s ease-out; }

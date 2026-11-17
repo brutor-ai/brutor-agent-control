@@ -1,0 +1,82 @@
+[package]
+name = "brutor-skill-runner"
+version = "0.11.32"
+edition = "2024"
+description = "Brutor Agent Control Skill Runner: the sandbox that runs Agent Skill scripts (isolated subprocess executor)"
+license = "Apache-2.0"
+authors = ["Brutor AI Ltd"]
+# Not published: Brutor's own crate (the third-party licences file leaves it out).
+publish = false
+
+# Rationale for being its own crate (rather than a workspace member of
+# gateway-core): the runner is shipped as a SEPARATE container with a
+# strictly minimal trust surface — no DB credentials, no encryption
+# keys, no OAuth tokens. Compiling it as a sibling crate guarantees it
+# cannot accidentally `use crate::services::oauth::tokens` or any other
+# secret-touching code from the proxy. The boundary is enforced by
+# the build system, not just operator discipline.
+
+[lib]
+name = "brutor_skill_runner"
+path = "src/lib.rs"
+
+[[bin]]
+name = "brutor-skill-runner"
+path = "src/main.rs"
+
+[dependencies]
+# HTTP server (only /execute, /health, /metrics — no admin surface)
+axum = { version = "0.8", features = ["macros"] }
+tower-http = { version = "0.6", features = ["trace", "request-id"] }
+
+# Async runtime — full features needed for tokio::process + timeouts
+tokio = { version = "1", features = ["full"] }
+
+# JSON / serde
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# JWT verification (HS256 with shared secret from proxy). NOT used for
+# signing — runner never mints tokens, only verifies.
+jsonwebtoken = "9"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Metrics (Prometheus text format)
+# `default-features = false` drops the `protobuf` feature (and with it
+# protobuf 2.x, RUSTSEC-2024-0437, no 2.x fix). Only the text exposition
+# format is served, so nothing is lost.
+prometheus = { version = "0.13", default-features = false }
+
+# Markdown link parser for SKILL.md. The parser in `src/executor.rs` is
+# written against this crate's regex syntax; keep the two in step.
+regex-lite = "0.1"
+
+# Time / IDs
+chrono = { version = "0.4", features = ["serde"] }
+ulid = "1"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Config
+dotenvy = "0.15"
+# Process-group kill for timed-out scripts (see executor::run_subprocess).
+libc = "0.2"
+
+[dev-dependencies]
+# In-process HTTP client for testing axum routes without a real server.
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+[profile.release]
+# Smaller binary → smaller runtime image. The runner has no hot path
+# we'd want to optimise for further than this — startup is once-per-
+# container, requests are one subprocess each.
+strip = true
+lto = "thin"
+codegen-units = 1

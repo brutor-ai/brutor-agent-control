@@ -1,0 +1,69 @@
+# Development infrastructure for the control plane, Community Edition:
+# PostgreSQL and Valkey (which speaks Redis's protocol), and nothing else.
+# The control plane, the Core Gateway and the Admin Console run from source
+# against it.
+#
+#   docker compose up -d
+#
+# Both are published on this machine only (DATA_BIND_ADDRESS). The control
+# plane is then given:
+#
+#   DATABASE_URL=postgresql://brutor:<DB_PASSWORD>@localhost:5432/ai_gateway
+#   REDIS_URL=redis://localhost:6379/0
+#
+# The Enterprise Edition's features need more (Qdrant, the skill runner, a
+# sample MCP server): those are in
+# enterprise/docker-compose.yml, which is started together with this file.
+
+services:
+  postgres:
+    image: postgres:16.14-alpine
+    container_name: brutor-postgres-dev
+    environment:
+      POSTGRES_USER: ${DB_USER:-brutor}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-brutor123}
+      POSTGRES_DB: ${DB_NAME:-ai_gateway}
+    ports:
+      - "${DATA_BIND_ADDRESS:-127.0.0.1}:${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-brutor} -d ${DB_NAME:-ai_gateway}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - brutor-network-dev
+
+  # The service is named `redis`, as in the packages: what it runs is Valkey.
+  redis:
+    image: valkey/valkey:9.1.3-alpine
+    container_name: brutor-redis-dev
+    command: >
+      valkey-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "${DATA_BIND_ADDRESS:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data-dev:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - brutor-network-dev
+
+volumes:
+  postgres_data-dev:
+    driver: local
+  redis_data-dev:
+    driver: local
+
+networks:
+  brutor-network-dev:
+    driver: bridge

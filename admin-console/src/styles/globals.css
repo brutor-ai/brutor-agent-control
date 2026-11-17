@@ -1,0 +1,176 @@
+/*
+ * Copyright 2026 Brutor AI Ltd.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * Admin console stylesheet.
+ *
+ * Theme tokens, the reset, layout primitives and shared component classes
+ * all come from `brutor-ui-style` (vendored into src/ui-style — edit that
+ * package and run `npm run sync`, never edit the vendored copy).
+ *
+ * This file is for admin-console-specific rules only, and holds none:
+ * a rule shared with the portal belongs in the package, and Tailwind
+ * covers the rest.
+ */
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Shared design system — must come after Tailwind's layers so the token
+   variables are defined before any utility reads them. */
+@import '../ui-style/css/index.css';
+
+/* ── Composition category colours ─────────────────────────
+ *
+ * Exactly four categories, defined ONCE here, light and dark: the
+ * Composition diagram, its legend and the list view all read these.
+ * Member agents and callers are neutral (no category). Colour is never the
+ * only signal — every node also carries its category label and icon.
+ */
+:root {
+    --category-ai-resource: #2563eb;
+    --category-policy: #7c3aed;
+    --category-limit: #b45309;
+    --category-delegation-agent: #0f766e;
+}
+
+[data-theme="dark"],
+[data-theme="high-contrast"] {
+    --category-ai-resource: #60a5fa;
+    --category-policy: #a78bfa;
+    --category-limit: #fbbf24;
+    --category-delegation-agent: #2dd4bf;
+}
+
+/* Bind the category to one local variable; the rules below read only it. */
+.composition-cat-ai-resource { --composition-cat: var(--category-ai-resource); }
+.composition-cat-policy { --composition-cat: var(--category-policy); }
+.composition-cat-limit { --composition-cat: var(--category-limit); }
+.composition-cat-delegation-agent { --composition-cat: var(--category-delegation-agent); }
+
+.composition-node {
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--composition-cat, var(--color-border-strong));
+    border-left-width: 4px;
+    background-color: var(--color-surface);
+}
+/* Declared and observed: solid with a category tint. */
+.composition-node[data-state="declared_observed"],
+.composition-node[data-state="static"] {
+    background-color: color-mix(in srgb, var(--composition-cat, var(--color-border)) 8%, var(--color-surface));
+}
+/* Declared, never observed: outlined only. */
+.composition-node[data-state="declared_unobserved"] {
+    background-color: var(--color-surface);
+}
+/* External: assessed at the boundary only — dashed. */
+.composition-node[data-dashed="true"] {
+    border-style: dashed;
+}
+.composition-swatch {
+    background-color: var(--composition-cat);
+}
+.composition-ink {
+    color: var(--composition-cat);
+}
+.composition-gateway {
+    border: 2px solid var(--color-border-strong);
+    background-color: var(--color-surface-alt);
+}
+
+/* ── Composition connection status (Simple graph lines) ──────
+ *
+ * One colour per connection status, light and dark. Colour is never the
+ * only signal: each status also has its own line style (solid, dash-dot,
+ * solid + cross, dashed) — `CONNECTION_STATUS_META` in
+ * lib/compositionConnection.ts, the one mapping the Simple graph, Diagram
+ * and List all read — and the legend spells both out. `idle`
+ * (no calls) is grey on purpose: no evidence is not "all good".
+ */
+:root {
+    --connection-ok: #15803d;
+    --connection-degraded: #c2410c;
+    --connection-down: #dc2626;
+    --connection-idle: #9ca3af;
+}
+
+[data-theme="dark"],
+[data-theme="high-contrast"] {
+    --connection-ok: #4ade80;
+    --connection-degraded: #fb923c;
+    --connection-down: #f87171;
+    --connection-idle: #6b7280;
+}
+
+.composition-connection-ok { --composition-connection: var(--connection-ok); }
+.composition-connection-degraded { --composition-connection: var(--connection-degraded); }
+.composition-connection-down { --composition-connection: var(--connection-down); }
+.composition-connection-idle { --composition-connection: var(--connection-idle); }
+
+.composition-connection-stroke {
+    stroke: var(--composition-connection);
+}
+.composition-connection-fill {
+    fill: var(--composition-connection);
+}
+.composition-connection-swatch {
+    color: var(--composition-connection);
+}
+/* External delegation agent: assessed at the boundary only — dashed ring. */
+.composition-icon-ring {
+    border: 2px solid transparent;
+}
+.composition-icon-ring[data-dashed="true"] {
+    border-style: dashed;
+    border-color: var(--composition-cat, var(--color-border-strong));
+}
+/* The icon's subtle category tint — a disc, not a card box. */
+.composition-icon-disc {
+    background-color: color-mix(in srgb, var(--composition-cat) 10%, transparent);
+}
+/* The cross glyph's backing disc, so it reads over the line. */
+.composition-glyph-bg {
+    fill: var(--color-surface);
+}
+
+/* ── The run overlay (a run applied to the Simple graph) ─────────────────
+ *
+ * A badge is one action, coloured by its outcome through THE connection
+ * status mapping (`RUN_OUTCOME_META` → `CONNECTION_STATUS_META` in
+ * lib/compositionConnection.ts: answered = ok, error = degraded, blocked /
+ * held = down), so a badge and its line read alike. Colour is never alone:
+ * the outcome also has a glyph and its words in the title and the list.
+ * Something the run reached that the declared composition does not list is
+ * ringed in its own hue (distinct from the four categories and statuses)
+ * AND captioned "Not in the declared composition".
+ */
+:root {
+    --run-undeclared: #be185d;
+}
+
+[data-theme="dark"],
+[data-theme="high-contrast"] {
+    --run-undeclared: #f472b6;
+}
+
+.composition-run-badge {
+    color: var(--composition-connection);
+    border: 1.5px solid var(--composition-connection);
+    background-color: var(--color-surface);
+}
+.composition-run-badge[data-active="true"] {
+    background-color: color-mix(in srgb, var(--composition-connection) 22%, var(--color-surface));
+    outline: 2px solid var(--composition-connection);
+    outline-offset: 1px;
+}
+.composition-run-undeclared {
+    box-shadow: 0 0 0 2px var(--run-undeclared);
+    background-color: color-mix(in srgb, var(--run-undeclared) 8%, transparent);
+}
+.composition-run-undeclared-text {
+    color: var(--run-undeclared);
+}

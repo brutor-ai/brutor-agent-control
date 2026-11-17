@@ -1,0 +1,58 @@
+# =============================================================================
+# Brutor Agent Control Community Edition - build from source
+#
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up --build -d --wait
+#
+# For a clone of the source repository, where this package is deploy/compose/
+# and each component is a directory at the repository root. Laid over
+# docker-compose.yml, it builds the image of each Brutor service from its
+# component directory instead of pulling the published one, and changes
+# nothing else: every setting, port and volume stays the one docker-compose.yml
+# gives. PostgreSQL and Valkey are pulled as usual.
+#
+# The images are tagged under local names (brutor-agent-control-local/...),
+# never under the published ones. Run ./start.sh once first, or fill the empty
+# secrets in .env yourself; with COMPOSE_FILE set to
+# docker-compose.yml:docker-compose.build.yml, ./start.sh builds and starts
+# in one step and waits until every service is healthy.
+#
+# To build the images alone, under the names they are published with, see
+# package/docker-bake.hcl at the repository root.
+# =============================================================================
+
+services:
+
+  control-plane:
+    image: brutor-agent-control-local/control-plane:source
+    pull_policy: build
+    build:
+      context: ../../control-plane
+      dockerfile: Dockerfile
+
+  core:
+    image: brutor-agent-control-local/core-gateway:source
+    pull_policy: build
+    build:
+      context: ../../core-gateway
+      dockerfile: Dockerfile
+
+  skill-runner:
+    image: brutor-agent-control-local/skill-runner:source
+    pull_policy: build
+    build:
+      context: ../../skill-runner
+      dockerfile: Dockerfile
+
+  witness:
+    image: brutor-agent-control-local/witness:source
+    pull_policy: build
+    build:
+      context: ../../witness
+      dockerfile: Dockerfile
+
+  admin-console:
+    image: brutor-agent-control-local/admin-console:source
+    pull_policy: build
+    build:
+      context: ../../admin-console
+      dockerfile: Dockerfile

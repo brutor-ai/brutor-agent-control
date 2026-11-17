@@ -1,0 +1,144 @@
+# =============================================================================
+# Brutor Agent Control Core Gateway — Docker Compose (Observability Stack)
+#
+# Services:
+#   brutor-gateway-core  — The Core Gateway (Rust)
+#   otel-collector   — OpenTelemetry Collector (receives traces, metrics, logs)
+#   prometheus        — Metrics storage (scrapes Collector + Proxy)
+#   loki              — Log aggregation (receives logs from Collector)
+#   grafana           — Dashboards & exploration UI
+#
+# Data flow:
+#   Proxy --OTLP/gRPC:4317--> OTel Collector --:8889--> Prometheus
+#                                             \--HTTP--> Loki
+#   Prometheus <--scrape-- /metrics (Proxy :8100)
+#   Grafana reads from Prometheus + Loki
+#
+# Usage:
+#   docker compose up -d
+#   docker compose logs -f brutor-gateway-core
+#
+# Endpoints:
+#   Proxy API:    http://localhost:8100
+#   Grafana:      http://localhost:3010  (admin / admin)
+#   Prometheus:   http://localhost:9090
+#   Loki:         http://localhost:3100
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Brutor Agent Control Core Gateway
+  # ---------------------------------------------------------------------------
+  brutor-gateway-core:
+    build:
+      context: .
+      # The Community gateway: it needs no licence key, and this file works
+      # in a Community tree alone. For the Enterprise Edition, build
+      # `enterprise/Dockerfile` and add BRUTOR_LICENSE_KEY to the environment.
+      dockerfile: Dockerfile
+    ports:
+      - "8100:8100"
+    environment:
+      # Required: the gateway refuses to start without each of them. The
+      # variables it reads are in .env.example (generated from the registry,
+      # src/env_vars.rs); a variable of a typed kind is left out here rather
+      # than passed empty, which the gateway refuses.
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
+      REDIS_URL: ${REDIS_URL:?Set REDIS_URL in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set ENCRYPTION_KEY in .env}
+
+      # Optional: logging
+      RUST_LOG: ${RUST_LOG:-brutor_gateway_core=info,tower_http=info}
+
+      # Telemetry — send OTLP to the collector
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: brutor-gateway-core
+      BRUTOR_METRICS_ENABLED: "true"
+      # /metrics has its own listener (never the public :8100). Not
+      # published: only Prometheus on this network scrapes it.
+      BRUTOR_METRICS_LISTEN_ADDR: 0.0.0.0:9464
+    depends_on:
+      otel-collector:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # OpenTelemetry Collector
+  # The single entry point for all telemetry (traces, metrics, logs).
+  # Proxy sends OTLP/gRPC to :4317. Collector fans out to backends.
+  # ---------------------------------------------------------------------------
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.117.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./deploy/otel-collector/config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8889:8889"   # Prometheus metrics export
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Prometheus
+  # Scrapes metrics from both the OTel Collector and the Proxy directly.
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Loki
+  # Receives structured JSON logs from the OTel Collector via OTLP HTTP.
+  # ---------------------------------------------------------------------------
+  loki:
+    image: grafana/loki:3.3.2
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Grafana
+  # Pre-configured with Prometheus and Loki datasources.
+  # Login: admin / admin (change on first login)
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:11.4.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3010:3000"
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  loki-data:
+  grafana-data:

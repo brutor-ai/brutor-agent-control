@@ -1,0 +1,296 @@
+<!doctype html>
+<!--
+  Copyright 2026 Brutor AI Ltd.
+  SPDX-License-Identifier: Apache-2.0
+-->
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Brutor Evidence Verifier</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --panel: #ffffff; --ink: #1c1d1f; --muted: #5d6167; --line: #dcdde0;
+    --ok: #1f7a4d; --ok-bg: #e6f4ec; --err: #b3261e; --err-bg: #fbe9e7;
+    --warn: #8a5a00; --warn-bg: #fdf3dc; --info: #2f5d9e; --info-bg: #e8eff9;
+    --skip: #5d6167; --skip-bg: #eeeff1; --accent: #2f5d9e;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141517; --panel: #1d1f22; --ink: #e8e9eb; --muted: #a0a4ab; --line: #34373c;
+      --ok: #6fd3a0; --ok-bg: #173226; --err: #ff8a80; --err-bg: #3a1d1b;
+      --warn: #f2c46b; --warn-bg: #3a2f17; --info: #8fb4ec; --info-bg: #1b2a40;
+      --skip: #a0a4ab; --skip-bg: #2a2d31; --accent: #8fb4ec;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141517; --panel: #1d1f22; --ink: #e8e9eb; --muted: #a0a4ab; --line: #34373c;
+    --ok: #6fd3a0; --ok-bg: #173226; --err: #ff8a80; --err-bg: #3a1d1b;
+    --warn: #f2c46b; --warn-bg: #3a2f17; --info: #8fb4ec; --info-bg: #1b2a40;
+    --skip: #a0a4ab; --skip-bg: #2a2d31; --accent: #8fb4ec;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 28px 0 10px; }
+  p.lede { color: var(--muted); margin: 0 0 20px; max-width: 70ch; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .drop { border: 1.5px dashed var(--line); border-radius: 10px; background: var(--panel);
+    padding: 16px; min-height: 110px; cursor: pointer; transition: border-color .15s; }
+  .drop.over, .drop:focus-within { border-color: var(--accent); }
+  .drop strong { display: block; }
+  .drop .name { font-family: var(--mono); font-size: 13px; color: var(--muted); word-break: break-all; }
+  .drop input[type=file] { display: none; }
+  label.field { display: block; margin-top: 12px; font-size: 13px; color: var(--muted); }
+  input[type=text], textarea { width: 100%; margin-top: 4px; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 13px var(--mono); }
+  textarea { min-height: 64px; resize: vertical; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+  button { font: inherit; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--bg); cursor: pointer; }
+  button.ghost { background: transparent; color: var(--accent); }
+  button:disabled { opacity: .5; cursor: default; }
+  .status { color: var(--muted); font-size: 13px; }
+  .summary { border-radius: 10px; padding: 14px 16px; margin-top: 20px; border: 1px solid var(--line); background: var(--panel); }
+  .summary.ok { border-color: var(--ok); } .summary.err { border-color: var(--err); }
+  .summary .big { font-size: 17px; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 14px; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+  td.detail { word-break: break-word; }
+  code, .mono { font-family: var(--mono); font-size: 12.5px; word-break: break-all; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .p-ok { color: var(--ok); background: var(--ok-bg); } .p-failed, .p-error { color: var(--err); background: var(--err-bg); }
+  .p-warning { color: var(--warn); background: var(--warn-bg); } .p-info { color: var(--info); background: var(--info-bg); }
+  .p-skipped { color: var(--skip); background: var(--skip-bg); }
+  details { margin-top: 16px; } summary { cursor: pointer; color: var(--muted); }
+  pre { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow: auto; font: 12px var(--mono); max-height: 420px; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12.5px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tabs button { background: transparent; color: var(--muted); border-color: var(--line); }
+  .tabs button[aria-selected=true] { color: var(--ink); border-color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Evidence verifier</h1>
+  <p class="lede">Checks a Brutor evidence bundle or action record entirely in this browser: nothing is uploaded and no network request is made.
+    Each check below states only what it established for the files you supplied. Conclusions about the system the evidence describes are yours to draw.</p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-bundle" aria-selected="true">Bundle</button>
+    <button role="tab" id="tab-record" aria-selected="false">Record + statement</button>
+  </div>
+
+  <section id="pane-bundle">
+    <div class="grid">
+      <div class="drop" id="drop-bundle" tabindex="0">
+        <strong>Evidence bundle (JSON)</strong>
+        <span class="status">Drop a file here or click to choose. A bundle API response is accepted too.</span>
+        <div class="name" id="name-bundle"></div>
+        <input type="file" id="file-bundle" accept=".json,application/json">
+      </div>
+      <div class="drop" id="drop-keys" tabindex="0">
+        <strong>Trusted keys (optional)</strong>
+        <span class="status">A <code>/.well-known/brutor-evidence-keys.json</code> document. Without one, signatures are checked under the keys the statements name.</span>
+        <div class="name" id="name-keys"></div>
+        <input type="file" id="file-keys" accept=".json,application/json">
+      </div>
+    </div>
+    <label class="field">Expected bundle digest (optional — from the producer's <code>ai.brutor.bundle</code> record)
+      <input type="text" id="expected" placeholder="64 hex" spellcheck="false"></label>
+    <label class="field">Pinned witness keys (optional, Ed25519 hex, comma-separated)
+      <input type="text" id="witness" placeholder="hex, hex" spellcheck="false"></label>
+    <label class="field">Pinned TSA certificates (optional, SHA-256 of the certificate DER, comma-separated)
+      <input type="text" id="tsa" placeholder="hex" spellcheck="false"></label>
+  </section>
+
+  <section id="pane-record" hidden>
+    <div class="grid">
+      <div class="drop" id="drop-record" tabindex="0">
+        <strong>Action record (JSON)</strong>
+        <span class="status">Drop a file here or click to choose.</span>
+        <div class="name" id="name-record"></div>
+        <input type="file" id="file-record" accept=".json,application/json">
+      </div>
+      <div class="drop" id="drop-keys2" tabindex="0">
+        <strong>Trusted keys (optional)</strong>
+        <span class="status">Shared with the Bundle tab.</span>
+        <div class="name" id="name-keys2"></div>
+        <input type="file" id="file-keys2" accept=".json,application/json">
+      </div>
+    </div>
+    <label class="field">Signed Statement (base64, optional)
+      <textarea id="statement" spellcheck="false" placeholder="0oRY…"></textarea></label>
+  </section>
+
+  <div class="row">
+    <button id="run" disabled>Run checks</button>
+    <button class="ghost" id="clear">Clear</button>
+    <span class="status" id="status">Loading verifier…</span>
+  </div>
+
+  <div id="out"></div>
+
+  <footer>
+    brutor-verify <span id="ver"></span> (WebAssembly) · Rules: the bundle verification rules · Formats: RFC 9052 COSE_Sign1, RFC 9943 Signed Statements,
+    RFC 9942 receipts, RFC 6962 / 9162 Merkle proofs, RFC 3161 timestamps, RFC 8785 JCS · Finding codes are stable across releases.
+  </footer>
+</main>
+
+<script src="brutor_verify.js"></script>
+<script src="brutor_verify_wasm.js"></script>
+<script>
+(function () {
+  "use strict";
+  var state = { bundle: null, bundleName: "", keys: "", keysName: "", record: null, recordName: "", tab: "bundle" };
+  var $ = function (id) { return document.getElementById(id); };
+  var ready = false;
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function list(s) { return s.split(/[\s,]+/).filter(Boolean); }
+
+  function init() {
+    try {
+      if (window.BRUTOR_VERIFY_WASM_B64) {
+        var bin = atob(window.BRUTOR_VERIFY_WASM_B64);
+        var bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        wasm_bindgen.initSync({ module: bytes });
+        return Promise.resolve();
+      }
+      return wasm_bindgen({ module_or_path: "brutor_verify_bg.wasm" });
+    } catch (e) { return Promise.reject(e); }
+  }
+
+  init().then(function () {
+    ready = true;
+    $("ver").textContent = wasm_bindgen.version();
+    $("status").textContent = "Ready — works offline.";
+    refresh();
+  }).catch(function (e) {
+    $("status").textContent = "The verifier could not load: " + e;
+  });
+
+  function refresh() {
+    var have = state.tab === "bundle" ? !!state.bundle : !!state.record;
+    $("run").disabled = !(ready && have);
+  }
+
+  function readInto(file, cb) {
+    var r = new FileReader();
+    r.onload = function () { cb(String(r.result)); };
+    r.onerror = function () { $("status").textContent = "Could not read " + file.name; };
+    r.readAsText(file);
+  }
+
+  function wireDrop(dropId, inputId, onText) {
+    var d = $(dropId), inp = $(inputId);
+    d.addEventListener("click", function () { inp.click(); });
+    d.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inp.click(); } });
+    inp.addEventListener("change", function () { if (inp.files[0]) readInto(inp.files[0], function (t) { onText(t, inp.files[0].name); }); });
+    ["dragenter", "dragover"].forEach(function (ev) { d.addEventListener(ev, function (e) { e.preventDefault(); d.classList.add("over"); }); });
+    ["dragleave", "drop"].forEach(function (ev) { d.addEventListener(ev, function (e) { e.preventDefault(); d.classList.remove("over"); }); });
+    d.addEventListener("drop", function (e) {
+      var f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) readInto(f, function (t) { onText(t, f.name); });
+    });
+  }
+
+  function setKeys(t, n) {
+    state.keys = t; state.keysName = n;
+    $("name-keys").textContent = n; $("name-keys2").textContent = n;
+  }
+  wireDrop("drop-bundle", "file-bundle", function (t, n) { state.bundle = t; $("name-bundle").textContent = n; refresh(); });
+  wireDrop("drop-keys", "file-keys", setKeys);
+  wireDrop("drop-keys2", "file-keys2", setKeys);
+  wireDrop("drop-record", "file-record", function (t, n) {
+    state.record = t; $("name-record").textContent = n;
+    // A corpus vector carries record + statement together.
+    try {
+      var v = JSON.parse(t);
+      if (v && v.record && typeof v.record === "object") {
+        state.record = JSON.stringify(v.record);
+        if (v.statement_b64) $("statement").value = v.statement_b64;
+      }
+    } catch (e) { /* the verifier reports unreadable input */ }
+    refresh();
+  });
+
+  function selectTab(tab) {
+    state.tab = tab;
+    $("tab-bundle").setAttribute("aria-selected", tab === "bundle");
+    $("tab-record").setAttribute("aria-selected", tab === "record");
+    $("pane-bundle").hidden = tab !== "bundle";
+    $("pane-record").hidden = tab !== "record";
+    refresh();
+  }
+  $("tab-bundle").addEventListener("click", function () { selectTab("bundle"); });
+  $("tab-record").addEventListener("click", function () { selectTab("record"); });
+
+  $("clear").addEventListener("click", function () {
+    state.bundle = state.record = null; setKeys("", "");
+    ["name-bundle", "name-record"].forEach(function (id) { $(id).textContent = ""; });
+    ["expected", "witness", "tsa", "statement"].forEach(function (id) { $(id).value = ""; });
+    $("out").innerHTML = ""; refresh();
+  });
+
+  $("run").addEventListener("click", function () {
+    var raw;
+    if (state.tab === "bundle") {
+      raw = wasm_bindgen.verify_bundle_json_with(state.bundle, state.keys, JSON.stringify({
+        expected_digest: $("expected").value.trim(),
+        witness_keys: list($("witness").value),
+        tsa_pins: list($("tsa").value)
+      }));
+    } else {
+      raw = wasm_bindgen.verify_record_json(state.record, $("statement").value.trim(), state.keys);
+    }
+    render(JSON.parse(raw));
+  });
+
+  function pill(kind, text) { return '<span class="pill p-' + esc(kind) + '">' + esc(text || kind) + "</span>"; }
+
+  function render(r) {
+    var counts = { error: 0, warning: 0, info: 0 };
+    (r.findings || []).forEach(function (f) { counts[f.severity] = (counts[f.severity] || 0) + 1; });
+    var head = r.exit_code === 2 ? "The input could not be read."
+      : r.ok ? "No check raised an error."
+      : counts.error + " error finding" + (counts.error === 1 ? "" : "s") + ".";
+    var h = '<div class="summary ' + (r.ok ? "ok" : "err") + '"><div class="big">' + esc(head) + "</div>" +
+      '<div class="status">' + esc(r.artefact) + " · " + counts.error + " error, " + counts.warning + " warning, " + counts.info +
+      " info · exit code " + esc(r.exit_code) + (r.facts && r.facts.bundle_digest ? ' · digest <span class="mono">' + esc(r.facts.bundle_digest) + "</span>" : "") +
+      (r.facts && r.facts.record_id ? ' · record_id <span class="mono">' + esc(r.facts.record_id) + "</span>" : "") + "</div></div>";
+    if ((r.checks || []).length) {
+      h += "<h2>Checks</h2><table><thead><tr><th>Check</th><th>Outcome</th><th>What it established</th></tr></thead><tbody>";
+      r.checks.forEach(function (c) {
+        h += "<tr><td>" + esc(c.name) + "</td><td>" + pill(c.outcome) + '</td><td class="detail">' + esc(c.detail) + "</td></tr>";
+      });
+      h += "</tbody></table>";
+    }
+    if ((r.findings || []).length) {
+      h += "<h2>Findings</h2><table><thead><tr><th>Severity</th><th>Code</th><th>Detail</th></tr></thead><tbody>";
+      r.findings.forEach(function (f) {
+        h += "<tr><td>" + pill(f.severity) + "</td><td><code>" + esc(f.code) + "</code>" +
+          (f.rule ? ' <span class="status">rule ' + esc(f.rule) + "</span>" : "") + '</td><td class="detail">' + esc(f.detail) +
+          (f.record_id ? '<div class="mono status">record ' + esc(f.record_id) + "</div>" : "") + "</td></tr>";
+      });
+      h += "</tbody></table>";
+    }
+    h += "<details><summary>Structured report (JSON)</summary><pre>" + esc(JSON.stringify(r, null, 2)) + "</pre></details>";
+    $("out").innerHTML = h;
+  }
+})();
+</script>
+</body>
+</html>

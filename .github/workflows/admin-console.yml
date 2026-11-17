@@ -1,0 +1,107 @@
+# Copyright 2026 Brutor AI Ltd.
+# SPDX-License-Identifier: Apache-2.0
+
+# The Admin Console (admin-console/): the dependency audit, type check, build,
+# the bundle scan (no Enterprise route or navigation id in the build), the
+# tests with their coverage floors, lint under its warning cap, and the
+# Community image built (through package/docker-bake.hcl) and started. No
+# repository secret.
+
+name: Admin Console
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "admin-console/**"
+      - ".github/workflows/admin-console.yml"
+      - "package/docker-bake.hcl"
+  pull_request:
+    paths:
+      - "admin-console/**"
+      - ".github/workflows/admin-console.yml"
+      - "package/docker-bake.hcl"
+  workflow_dispatch:
+
+# One run per ref at a time. A newer push cancels the superseded run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: admin-console
+
+jobs:
+  community-alone:
+    timeout-minutes: 30
+    name: Type check, lint, tests, build, bundle scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      # adapted: this repository has no Enterprise tree to delete; the step asserts that
+      - name: The Enterprise tree is not here
+        run: test ! -e enterprise
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin-console/package-lock.json
+
+      - run: npm ci
+
+      - name: No Enterprise package was installed
+        run: test ! -e node_modules/monaco-editor && test ! -e node_modules/javascript-obfuscator
+
+      - name: Dependency audit (production dependencies, high and above)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Type check, sources and tests
+        run: npm run type-check
+
+      - name: Build
+        run: npm run build
+
+      - name: Scan the build for Enterprise routes and navigation ids
+        run: npm run scan:bundle
+
+      - name: Run tests (with the build present, so the bundle scan test runs too)
+        run: npm run test:coverage
+
+      - name: Lint
+        run: npm run lint
+
+  community-image:
+    timeout-minutes: 60
+    name: Community image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      # adapted: the image is built through package/docker-bake.hcl, as publish-images.yml builds it, under a local tag (the bake file is the one place the published names are written)
+      - name: Build the Community image
+        working-directory: .
+        run: docker buildx bake -f package/docker-bake.hcl admin-console --load --set admin-console.tags=admin-console:ci
+
+      # adapted: the image under its local tag (the build step above)
+      - name: Start the Community image and load the page
+        run: |
+          docker run -d --name community-admin-ui -p 3002:3002 \
+            -e BRUTOR_CONTROL_PLANE_PUBLIC_URL=http://localhost:5050 \
+            admin-console:ci
+          for i in {1..30}; do
+            curl -fs http://localhost:3002/ >/dev/null && break
+            sleep 2
+          done
+          curl -fs http://localhost:3002/ | grep -q '<script'
+          docker exec community-admin-ui cat /usr/share/nginx/html/env-config.js | grep -q "BRUTOR_CONTROL_PLANE_PUBLIC_URL"
+          docker rm -f community-admin-ui

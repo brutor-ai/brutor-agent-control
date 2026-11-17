@@ -1,0 +1,5 @@
+{
+ "names": {
+  "brutor-license": "the private crate the Enterprise Edition depends on for its licence check: editions.yaml names it in the licence feature's entry (the dependency is the Enterprise workspace's only), and check_editions.py checks that the Community manifest and lock file do not name it"
+ }
+}
