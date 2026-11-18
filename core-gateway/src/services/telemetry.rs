@@ -186,7 +186,7 @@ pub fn log_filter(env: &Env) -> EnvFilter {
 pub fn shutdown() {
     // SdkTracerProvider shutdown happens via Drop when the global provider
     // is replaced. We trigger it by setting a no-op provider.
-    let _ = opentelemetry::global::set_tracer_provider(
+    opentelemetry::global::set_tracer_provider(
         opentelemetry_sdk::trace::SdkTracerProvider::builder().build(),
     );
 }

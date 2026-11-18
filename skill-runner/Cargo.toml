@@ -38,7 +38,7 @@ serde_json = "1"
 
 # JWT verification (HS256 with shared secret from proxy). NOT used for
 # signing — runner never mints tokens, only verifies.
-jsonwebtoken = "9"
+jsonwebtoken = { version = "10.3", features = ["aws_lc_rs"] }
 
 # Logging
 tracing = "0.1"

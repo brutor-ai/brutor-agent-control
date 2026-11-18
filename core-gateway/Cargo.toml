@@ -90,7 +90,7 @@ serde_json = "1"
 # gateway-control via PyYAML.
 
 # Auth & Crypto
-jsonwebtoken = "9"
+jsonwebtoken = { version = "10.3", features = ["aws_lc_rs"] }
 sha2 = "0.10"
 hex = "0.4"
 hmac = "0.12"
@@ -117,14 +117,14 @@ serde_urlencoded = "0.7"
 # Observability — Logging, Distributed Tracing, Metrics
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "registry"] }
-tracing-opentelemetry = "0.29"
+tracing-opentelemetry = "0.33"
 
 # OpenTelemetry — trace export via OTLP (Datadog, New Relic, Grafana Tempo, Jaeger)
-opentelemetry = "0.28"
-opentelemetry_sdk = { version = "0.28", features = ["rt-tokio"] }
+opentelemetry = "0.32"
+opentelemetry_sdk = { version = "0.32.1", features = ["rt-tokio"] }
 # Defaults off: they add the HTTP exporter and a blocking reqwest
 # client, metrics and logs pipelines this crate does not use.
-opentelemetry-otlp = { version = "0.28", default-features = false, features = ["grpc-tonic", "trace"] }
+opentelemetry-otlp = { version = "0.32", default-features = false, features = ["grpc-tonic", "trace"] }
 
 # Prometheus metrics — exposes /metrics endpoint for scraping
 metrics = "0.24"
