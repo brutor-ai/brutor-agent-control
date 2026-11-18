@@ -28,6 +28,11 @@ const USER: i32 = 4201;
 
 fn user_auth(workspace: Option<&str>) -> AuthContext {
     AuthContext {
+        credential_kind: brutor_gateway_core::models::auth::CredentialKind::HumanSession,
+        credential_assurance: None,
+        credential_ref: None,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: AuthType::GatewayJwt,
         tenant_id: T.to_string(),
         gateway_user_id: Some(USER.to_string()),

@@ -25,7 +25,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import private_references
+from tests import private_references, siblings
 from tests.private_references import Declared
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -155,11 +155,31 @@ def test_the_reference_scan_finds_each_kind_and_leaves_public_standards_alone():
     private_references.check_the_scanner()
 
 
+# The root workflow of the public repository runs this scanner over the whole
+# repository: there, it is the only copy.
+PUBLIC_SCAN = f"python3 {siblings.THIS[1]}/tests/private_references.py . "
+
+
 def test_the_scanner_is_the_same_file_as_the_trial_services():
-    theirs = ROOT.parent / "brutor-trial-service" / "tests" / "private_references.py"
-    if not theirs.is_file():
-        pytest.skip("brutor-trial-service is not checked out beside this repository")
+    """Beside the trial service's repository, its copy is this file. In the
+    public repository the trial service is `deploy/compose/` and `witness/`,
+    which carry no copy and no tests; the root workflow scans the repository
+    with this file, which is then the one scanner."""
     mine = (ROOT / "tests" / "private_references.py").read_text(encoding="utf-8")
-    assert mine == theirs.read_text(encoding="utf-8"), (
-        "tests/private_references.py differs from brutor-trial-service/tests/private_references.py"
-    )
+    theirs = ROOT.parent / "brutor-trial-service" / "tests" / "private_references.py"
+    if theirs.is_file():
+        assert mine == theirs.read_text(encoding="utf-8"), (
+            "tests/private_references.py differs from brutor-trial-service/tests/private_references.py"
+        )
+        return
+    public = siblings.public_root(ROOT)
+    if public is None:
+        pytest.skip(
+            f"the trial service's copy is not at {theirs}, and this checkout is not the public repository's "
+            f"{siblings.THIS[1]}/ (whose root workflow runs this scanner): nothing to compare it with"
+        )
+    workflow = public / ".github" / "workflows" / "repository.yml"
+    assert workflow.is_file(), f"{workflow} does not exist: nothing scans the public repository"
+    assert PUBLIC_SCAN in workflow.read_text(encoding="utf-8"), f"{workflow} does not run {PUBLIC_SCAN.strip()}"
+    for part in ("deploy/compose", "witness"):
+        assert not (public / part / "tests" / "private_references.py").exists(), part

@@ -1334,6 +1334,11 @@ mod tests {
         let mut l = crate::services::proxy_logger::build_proxy_log(
             "llm",
             &crate::models::auth::AuthContext {
+                credential_kind: crate::models::auth::CredentialKind::ApiKey,
+                credential_assurance: Some(crate::models::auth::CredentialAssurance::Key),
+                credential_ref: None,
+                credential_detail: Default::default(),
+                identity_verdict: None,
                 auth_type: crate::models::auth::AuthType::ApiKey,
                 tenant_id: "t1".into(),
                 gateway_user_id: None,

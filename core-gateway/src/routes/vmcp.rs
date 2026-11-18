@@ -116,7 +116,7 @@ pub(crate) async fn proxy(
     // resource-group resolution per upstream. Without this the
     // resource-group capability filter doesn't cascade into VMCP
     // tools/list responses.
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -130,6 +130,9 @@ pub(crate) async fn proxy(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     // The tenant's "Virtual MCP servers" switch (`tenant_features`).
     if let Err(sentence) = crate::services::tenant_features::require(

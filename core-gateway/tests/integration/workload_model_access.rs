@@ -425,8 +425,9 @@ async fn a_model_the_agents_group_does_not_hold_is_refused(pool: PgPool, route: 
     assert_eq!(world.provider_calls().await, 0, "{route:?}");
 }
 
-/// An agent that is a member of no group reaches no model — also when it
-/// names a group that holds the model.
+/// An agent that is a member of no group is refused at authentication
+/// (`AGENT_NOT_BOUND`) and reaches no model — also when it names a group
+/// that holds the model.
 async fn an_agent_in_no_group_is_refused(pool: PgPool, route: Route) {
     let world = seed(&pool).await;
     for model in ["test-gpt", "test-gem"] {
@@ -434,10 +435,7 @@ async fn an_agent_in_no_group_is_refused(pool: PgPool, route: Route) {
     }
     let (status, body) = send(app(&pool), route.request(&world.token())).await;
     assert_eq!(status, StatusCode::FORBIDDEN, "{route:?}: {body}");
-    assert!(
-        body.contains("does not grant access to model"),
-        "{route:?}: {body}"
-    );
+    assert!(body.contains("AGENT_NOT_BOUND"), "{route:?}: {body}");
 
     let (status, body) = send(app(&pool), route.request_for(&world.token(), T, Some(RG))).await;
     assert_eq!(
@@ -445,10 +443,7 @@ async fn an_agent_in_no_group_is_refused(pool: PgPool, route: Route) {
         StatusCode::FORBIDDEN,
         "{route:?}: an agent in no group names one: {body}"
     );
-    assert!(
-        body.contains("resource_group_not_member"),
-        "{route:?}: {body}"
-    );
+    assert!(body.contains("AGENT_NOT_BOUND"), "{route:?}: {body}");
     assert_eq!(world.provider_calls().await, 0, "{route:?}");
 }
 
@@ -658,25 +653,30 @@ fn every_route_is_covered() {
 // The acting group
 // ---------------------------------------------------------------------------
 
-/// An agent of several groups acts in ONE per request: the group it names
-/// when it is a member of it, otherwise its oldest membership. The group it
-/// acts in must itself hold the model; another of its groups holding it does
-/// not serve the call (a key of the acting group would not be served
-/// either).
+/// An agent of several groups acts in ONE per request: the group it names.
+/// Naming none is refused (`resource_group_required`): which group governs
+/// the call is never guessed. The group it acts in must itself hold the
+/// model; another of its groups holding it does not serve the call (a key of
+/// the acting group would not be served either).
 #[sqlx::test(migrations = "./tests/migrations")]
-async fn an_agent_of_several_groups_acts_in_the_one_it_names_or_its_oldest(pool: PgPool) {
+async fn an_agent_of_several_groups_acts_in_the_one_it_names(pool: PgPool) {
     let world = seed_served(&pool).await; // RG first
     join(&pool, AGENT, RG_B, T).await;
     let token = world.token();
 
-    // No group named: the oldest membership.
+    // No group named: refused, never the oldest membership.
     let (status, body) = send(app(&pool), chat(&token, MODEL, None)).await;
-    assert_eq!(status, StatusCode::OK, "oldest membership: {body}");
+    assert_eq!(status, StatusCode::FORBIDDEN, "{body}");
+    assert!(body.contains("resource_group_required"), "{body}");
+
+    // RG named: the call runs there.
+    let (status, body) = send(app(&pool), chat(&token, MODEL, Some(RG))).await;
+    assert_eq!(status, StatusCode::OK, "the named group: {body}");
     let (_, _, group, agent, _) = row(&pool, "http_status_code = 200").await;
     assert_eq!(group.as_deref(), Some(RG));
     assert_eq!(agent.as_deref(), Some(AGENT));
     // ... which does not hold MODEL_B.
-    let (status, body) = send(app(&pool), chat(&token, MODEL_B, None)).await;
+    let (status, body) = send(app(&pool), chat(&token, MODEL_B, Some(RG))).await;
     assert_eq!(status, StatusCode::FORBIDDEN, "{body}");
     assert!(body.contains("does not grant access to model"), "{body}");
 
@@ -716,13 +716,10 @@ async fn a_membership_of_an_inactive_group_reaches_no_model(pool: PgPool) {
     assert_eq!(status, StatusCode::FORBIDDEN, "{body}");
     // Refused as an agent of no group, not as one acting in the inactive
     // group (which model access would refuse too).
-    assert!(
-        body.contains("an agent that is a member of no resource group"),
-        "{body}"
-    );
+    assert!(body.contains("AGENT_NOT_BOUND"), "{body}");
     let (status, body) = send(app(&pool), chat(&world.token(), MODEL, Some(RG))).await;
     assert_eq!(status, StatusCode::FORBIDDEN, "named: {body}");
-    assert!(body.contains("resource_group_not_member"), "{body}");
+    assert!(body.contains("AGENT_NOT_BOUND"), "{body}");
     assert_eq!(world.provider_calls().await, 0);
 }
 

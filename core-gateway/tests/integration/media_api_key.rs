@@ -1581,21 +1581,21 @@ async fn a_workload_identity_reaches_its_tenants_files_and_jobs_and_nobody_elses
         .headers_mut()
         .insert("x-resource-group", RG.parse().unwrap());
     let (status, body) = send(app.clone(), named_group).await;
-    // Naming a group the agent is not a member of is
-    // refused at authentication (403); before, the header was not read here
-    // and the answer was the 401 of an agent in no group, asked next.
+    // An agent in no group is refused at authentication (403
+    // `AGENT_NOT_BOUND`), whether or not it names a group.
     assert_eq!(
         status,
         StatusCode::FORBIDDEN,
         "an agent in no group names one in a header: {body}"
     );
-    assert!(body.contains("resource_group_not_member"), "{body}");
+    assert!(body.contains("AGENT_NOT_BOUND"), "{body}");
     let (status, body) = send(app.clone(), bearer_file_request("GET", &file_id, &token, T)).await;
     assert_eq!(
         status,
-        StatusCode::UNAUTHORIZED,
+        StatusCode::FORBIDDEN,
         "an agent in no group: {body}"
     );
+    assert!(body.contains("AGENT_NOT_BOUND"), "{body}");
 
     // Back in its group, it deletes the file.
     sqlx::query(

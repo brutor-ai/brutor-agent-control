@@ -1,9 +1,9 @@
 // Copyright 2026 Brutor AI Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
-//! Guard: the third-party licences file of this service (owner decision,
-//! legal answer 5: third-party packages ship unmodified with their licence
-//! texts, in each image and in the repository).
+//! Guard: the third-party licences file of this service. Third-party
+//! packages ship unmodified with their licence texts, in each image and in
+//! the repository.
 //!
 //! * `about.toml` accepts exactly the licences `deny.toml` allows, in the
 //!   same order: the list is written once, in `deny.toml`, and `cargo about`

@@ -1,0 +1,321 @@
+{
+  "schema": "brutor/identity-policy-resolver-cases/1",
+  "ladder": ["key", "bound_key", "workload", "workload_pop"],
+  "policy_fields": ["mode", "min_assurance", "allow_user_keys", "allowed_issuers", "max_token_lifetime_s", "max_key_ttl_days"],
+  "constants": {
+    "development_default": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+    "production_stages": ["active", "deprecated", "retired"],
+    "production_floor": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false},
+    "high_risk_tiers": ["high", "unacceptable"],
+    "high_risk_floor": {"mode": "enforce", "allow_user_keys": false},
+    "high_risk_production_floor": {"min_assurance": "workload_pop"},
+    "token_lifetime_ceiling_s": 3600,
+    "default_max_user_key_ttl_days": 90,
+    "judge_reason_order": ["below_minimum", "token_lifetime_exceeds_policy", "issuer_not_allowed", "user_key_not_allowed"]
+  },
+  "resolver_cases": [
+    {
+      "name": "plain_group_gets_the_development_default",
+      "input": {"tenant_default": null, "chain": [{"id": "rg-team", "is_ai_system": false, "lifecycle_stage": null, "risk_tier": null, "identity_policy": null}]},
+      "expect": {"effective": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "default"}, "min_assurance": {"kind": "default"}, "allow_user_keys": {"kind": "default"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "ai_system_without_a_stage_gets_the_development_default",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": null, "risk_tier": null, "identity_policy": null}]},
+      "expect": {"effective": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "default"}, "min_assurance": {"kind": "default"}, "allow_user_keys": {"kind": "default"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "lifecycle_proposed_is_development",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": "proposed", "risk_tier": "limited", "identity_policy": null}]},
+      "expect": {"effective": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "default"}, "min_assurance": {"kind": "default"}, "allow_user_keys": {"kind": "default"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "lifecycle_approved_is_development",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": "approved", "risk_tier": "minimal", "identity_policy": null}]},
+      "expect": {"effective": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "default"}, "min_assurance": {"kind": "default"}, "allow_user_keys": {"kind": "default"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "lifecycle_active_is_the_production_floor",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": "limited", "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active"}, "min_assurance": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "lifecycle_deprecated_is_as_active",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": "deprecated", "risk_tier": null, "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-a", "stage": "deprecated"}, "min_assurance": {"kind": "lifecycle", "group_id": "sys-a", "stage": "deprecated"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-a", "stage": "deprecated"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "lifecycle_retired_is_as_active",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": "retired", "risk_tier": null, "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-a", "stage": "retired"}, "min_assurance": {"kind": "lifecycle", "group_id": "sys-a", "stage": "retired"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-a", "stage": "retired"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "explicit_tenant_default_applies_to_a_plain_group",
+      "input": {"tenant_default": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 1800, "max_key_ttl_days": 30, "max_user_key_ttl_days": 60}, "chain": [{"id": "rg-team", "is_ai_system": false, "lifecycle_stage": null, "risk_tier": null, "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 1800, "max_key_ttl_days": 30}, "sources": {"mode": {"kind": "tenant_default"}, "min_assurance": {"kind": "tenant_default"}, "allow_user_keys": {"kind": "tenant_default"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "tenant_default"}, "max_key_ttl_days": {"kind": "tenant_default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 1800, "max_key_ttl_days": 30}, "max_user_key_ttl_days": 60, "put_refused_fields": []}
+    },
+    {
+      "name": "explicit_tenant_default_tightens_an_active_system",
+      "input": {"tenant_default": {"mode": "audit", "min_assurance": "workload_pop", "allow_user_keys": true, "allowed_issuers": ["idp-spire"], "max_token_lifetime_s": 900, "max_key_ttl_days": null, "max_user_key_ttl_days": 90}, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": null, "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": ["idp-spire"], "max_token_lifetime_s": 900, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active"}, "min_assurance": {"kind": "tenant_default"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active"}, "allowed_issuers": {"kind": "tenant_default"}, "max_token_lifetime_s": {"kind": "tenant_default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": ["idp-spire"], "max_token_lifetime_s": 900, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "explicit_policy_on_a_development_system_tightens_the_default",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": "approved", "risk_tier": null, "identity_policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": ["idp-k8s"], "max_token_lifetime_s": 600, "max_key_ttl_days": 14}}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": ["idp-k8s"], "max_token_lifetime_s": 600, "max_key_ttl_days": 14}, "sources": {"mode": {"kind": "explicit", "group_id": "sys-a"}, "min_assurance": {"kind": "explicit", "group_id": "sys-a"}, "allow_user_keys": {"kind": "explicit", "group_id": "sys-a"}, "allowed_issuers": {"kind": "explicit", "group_id": "sys-a"}, "max_token_lifetime_s": {"kind": "explicit", "group_id": "sys-a"}, "max_key_ttl_days": {"kind": "explicit", "group_id": "sys-a"}}, "inherited_floor": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "stricter_wins_field_by_field_down_the_hierarchy",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-parent", "is_ai_system": true, "lifecycle_stage": "approved", "risk_tier": null, "identity_policy": {"mode": "audit", "min_assurance": "workload", "allow_user_keys": true, "allowed_issuers": ["idp-a", "idp-b"], "max_token_lifetime_s": 1800, "max_key_ttl_days": 60}}, {"id": "rg-child", "is_ai_system": false, "lifecycle_stage": null, "risk_tier": null, "identity_policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": true, "allowed_issuers": ["idp-b"], "max_token_lifetime_s": 1800, "max_key_ttl_days": 30}}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": true, "allowed_issuers": ["idp-b"], "max_token_lifetime_s": 1800, "max_key_ttl_days": 30}, "sources": {"mode": {"kind": "explicit", "group_id": "rg-child"}, "min_assurance": {"kind": "explicit", "group_id": "sys-parent"}, "allow_user_keys": {"kind": "default"}, "allowed_issuers": {"kind": "intersection"}, "max_token_lifetime_s": {"kind": "explicit", "group_id": "sys-parent"}, "max_key_ttl_days": {"kind": "explicit", "group_id": "rg-child"}}, "inherited_floor": {"mode": "audit", "min_assurance": "workload", "allow_user_keys": true, "allowed_issuers": ["idp-a", "idp-b"], "max_token_lifetime_s": 1800, "max_key_ttl_days": 60}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "a_child_cannot_relax_its_parent",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-parent", "is_ai_system": true, "lifecycle_stage": "approved", "risk_tier": null, "identity_policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": ["idp-a", "idp-b"], "max_token_lifetime_s": 1800, "max_key_ttl_days": 60}}, {"id": "rg-child", "is_ai_system": false, "lifecycle_stage": null, "risk_tier": null, "identity_policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": ["idp-b", "idp-c"], "max_token_lifetime_s": 3600, "max_key_ttl_days": 30}}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": ["idp-b"], "max_token_lifetime_s": 1800, "max_key_ttl_days": 30}, "sources": {"mode": {"kind": "explicit", "group_id": "sys-parent"}, "min_assurance": {"kind": "explicit", "group_id": "sys-parent"}, "allow_user_keys": {"kind": "explicit", "group_id": "sys-parent"}, "allowed_issuers": {"kind": "intersection"}, "max_token_lifetime_s": {"kind": "explicit", "group_id": "sys-parent"}, "max_key_ttl_days": {"kind": "explicit", "group_id": "rg-child"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": ["idp-a", "idp-b"], "max_token_lifetime_s": 1800, "max_key_ttl_days": 60}, "max_user_key_ttl_days": 90, "put_refused_fields": ["mode", "min_assurance", "allow_user_keys", "allowed_issuers", "max_token_lifetime_s"]}
+    },
+    {
+      "name": "an_explicit_policy_cannot_relax_the_production_floor",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": null, "identity_policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active"}, "min_assurance": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": ["mode", "min_assurance", "allow_user_keys"]}
+    },
+    {
+      "name": "a_sub_group_of_an_active_system_is_production",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-parent", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": null, "identity_policy": null}, {"id": "rg-dev", "is_ai_system": false, "lifecycle_stage": null, "risk_tier": null, "identity_policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-parent", "stage": "active"}, "min_assurance": {"kind": "lifecycle", "group_id": "sys-parent", "stage": "active"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-parent", "stage": "active"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": ["mode", "min_assurance", "allow_user_keys"]}
+    },
+    {
+      "name": "a_proposed_ai_system_nested_under_an_active_one_is_production",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-parent", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": null, "identity_policy": null}, {"id": "sys-child", "is_ai_system": true, "lifecycle_stage": "proposed", "risk_tier": null, "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-parent", "stage": "active"}, "min_assurance": {"kind": "lifecycle", "group_id": "sys-parent", "stage": "active"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-parent", "stage": "active"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "a_call_attributed_to_an_ancestor_system_is_judged_by_the_stricter_policy",
+      "input": {"tenant_default": null, "attributed_ai_system_id": "sys-parent", "chain": [{"id": "sys-parent", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": null, "identity_policy": null}, {"id": "rg-worker", "is_ai_system": false, "lifecycle_stage": null, "risk_tier": null, "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-parent", "stage": "active"}, "min_assurance": {"kind": "lifecycle", "group_id": "sys-parent", "stage": "active"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-parent", "stage": "active"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "high_risk_in_approved_enforces_and_refuses_user_keys",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-hr", "is_ai_system": true, "lifecycle_stage": "approved", "risk_tier": "high", "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "key", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "risk_floor", "group_id": "sys-hr", "risk_tier": "high"}, "min_assurance": {"kind": "default"}, "allow_user_keys": {"kind": "risk_floor", "group_id": "sys-hr", "risk_tier": "high"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "key", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "high_risk_in_active_requires_workload_pop",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-hr", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": "high", "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-hr", "stage": "active"}, "min_assurance": {"kind": "risk_floor", "group_id": "sys-hr", "risk_tier": "high"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-hr", "stage": "active"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "unacceptable_risk_is_treated_as_high",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-x", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": "unacceptable", "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-x", "stage": "active"}, "min_assurance": {"kind": "risk_floor", "group_id": "sys-x", "risk_tier": "unacceptable"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-x", "stage": "active"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "a_sub_group_of_a_high_risk_active_system_requires_workload_pop",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-hr", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": "high", "identity_policy": null}, {"id": "rg-worker", "is_ai_system": false, "lifecycle_stage": null, "risk_tier": null, "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-hr", "stage": "active"}, "min_assurance": {"kind": "risk_floor", "group_id": "sys-hr", "risk_tier": "high"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-hr", "stage": "active"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "a_tenant_default_cannot_lower_the_high_risk_floor",
+      "input": {"tenant_default": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null, "max_user_key_ttl_days": 90}, "chain": [{"id": "sys-hr", "is_ai_system": true, "lifecycle_stage": "deprecated", "risk_tier": "high", "identity_policy": null}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-hr", "stage": "deprecated"}, "min_assurance": {"kind": "risk_floor", "group_id": "sys-hr", "risk_tier": "high"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-hr", "stage": "deprecated"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "a_gate_exception_lowers_the_production_floor_to_bound_key",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": "limited", "identity_policy": null, "gate_exception": {"requirement": "workload_identity_enforced", "granted_level": "bound_key"}}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "bound_key", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active", "lowered_by_exception": true}, "min_assurance": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active", "lowered_by_exception": true}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-a", "stage": "active", "lowered_by_exception": true}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "bound_key", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "a_gate_exception_does_not_lower_an_explicit_policy",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-a", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": null, "identity_policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "gate_exception": {"requirement": "workload_identity_enforced", "granted_level": "bound_key"}}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "explicit", "group_id": "sys-a"}, "min_assurance": {"kind": "explicit", "group_id": "sys-a"}, "allow_user_keys": {"kind": "explicit", "group_id": "sys-a"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "bound_key", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    },
+    {
+      "name": "a_gate_exception_is_ignored_for_high_risk",
+      "input": {"tenant_default": null, "chain": [{"id": "sys-hr", "is_ai_system": true, "lifecycle_stage": "active", "risk_tier": "high", "identity_policy": null, "gate_exception": {"requirement": "workload_identity_enforced", "granted_level": "bound_key"}}]},
+      "expect": {"effective": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "sources": {"mode": {"kind": "lifecycle", "group_id": "sys-hr", "stage": "active"}, "min_assurance": {"kind": "risk_floor", "group_id": "sys-hr", "risk_tier": "high"}, "allow_user_keys": {"kind": "lifecycle", "group_id": "sys-hr", "stage": "active"}, "allowed_issuers": {"kind": "default"}, "max_token_lifetime_s": {"kind": "default"}, "max_key_ttl_days": {"kind": "default"}}, "inherited_floor": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null}, "max_user_key_ttl_days": 90, "put_refused_fields": []}
+    }
+  ],
+  "judge_cases": [
+    {
+      "name": "key_meets_the_development_default",
+      "policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "api_key", "assurance": "key", "is_user_key": false, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "met", "reason": null, "required": "key"}
+    },
+    {
+      "name": "personal_key_meets_the_development_default",
+      "policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "api_key", "assurance": "key", "is_user_key": true, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "met", "reason": null, "required": "key"}
+    },
+    {
+      "name": "key_is_refused_by_the_production_floor",
+      "policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "api_key", "assurance": "key", "is_user_key": false, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "refused", "reason": "below_minimum", "required": "workload"}
+    },
+    {
+      "name": "key_below_an_audit_policy_is_recorded_not_refused",
+      "policy": {"mode": "audit", "min_assurance": "workload", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "api_key", "assurance": "key", "is_user_key": false, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "below_policy", "reason": "below_minimum", "required": "workload"}
+    },
+    {
+      "name": "workload_token_meets_the_production_floor",
+      "policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "workload_token", "assurance": "workload", "is_user_key": false, "idp_server_id": "idp-spire", "token_lifetime_s": 300},
+      "expect": {"outcome": "met", "reason": null, "required": "workload"}
+    },
+    {
+      "name": "personal_key_is_refused_where_user_keys_are_not_allowed",
+      "policy": {"mode": "enforce", "min_assurance": "key", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "api_key", "assurance": "key", "is_user_key": true, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "refused", "reason": "user_key_not_allowed", "required": "key"}
+    },
+    {
+      "name": "below_minimum_is_named_before_user_key",
+      "policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "api_key", "assurance": "key", "is_user_key": true, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "refused", "reason": "below_minimum", "required": "workload"}
+    },
+    {
+      "name": "workload_token_from_an_issuer_outside_allowed_issuers_is_refused",
+      "policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": ["idp-spire"], "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "workload_token", "assurance": "workload", "is_user_key": false, "idp_server_id": "idp-github", "token_lifetime_s": 300},
+      "expect": {"outcome": "refused", "reason": "issuer_not_allowed", "required": "workload"}
+    },
+    {
+      "name": "empty_allowed_issuers_accepts_no_workload_token",
+      "policy": {"mode": "audit", "min_assurance": "workload", "allow_user_keys": true, "allowed_issuers": [], "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "workload_token", "assurance": "workload", "is_user_key": false, "idp_server_id": "idp-spire", "token_lifetime_s": 300},
+      "expect": {"outcome": "below_policy", "reason": "issuer_not_allowed", "required": "workload"}
+    },
+    {
+      "name": "token_longer_than_the_policy_lifetime_is_refused",
+      "policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 600, "max_key_ttl_days": null},
+      "credential": {"kind": "workload_token", "assurance": "workload", "is_user_key": false, "idp_server_id": "idp-spire", "token_lifetime_s": 900},
+      "expect": {"outcome": "refused", "reason": "token_lifetime_exceeds_policy", "required": "workload"}
+    },
+    {
+      "name": "platform_service_is_exempt_from_the_production_floor",
+      "policy": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": ["idp-spire"], "max_token_lifetime_s": 600, "max_key_ttl_days": null},
+      "credential": {"kind": "platform_service", "assurance": null, "is_user_key": false, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "exempt", "reason": null, "required": "workload_pop"}
+    },
+    {
+      "name": "human_session_is_exempt",
+      "policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "human_session", "assurance": null, "is_user_key": false, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "exempt", "reason": null, "required": "workload"}
+    },
+    {
+      "name": "anonymous_is_below_every_level",
+      "policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "anonymous", "assurance": null, "is_user_key": false, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "below_policy", "reason": "below_minimum", "required": "key"}
+    },
+    {
+      "name": "anonymous_is_refused_under_enforce",
+      "policy": {"mode": "enforce", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "anonymous", "assurance": null, "is_user_key": false, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "refused", "reason": "below_minimum", "required": "key"}
+    },
+    {
+      "name": "bound_key_meets_an_exception_lowered_floor",
+      "policy": {"mode": "enforce", "min_assurance": "bound_key", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": 30},
+      "credential": {"kind": "api_key", "assurance": "bound_key", "is_user_key": false, "idp_server_id": null, "token_lifetime_s": null},
+      "expect": {"outcome": "met", "reason": null, "required": "bound_key"}
+    },
+    {
+      "name": "workload_pop_meets_the_high_risk_floor",
+      "policy": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "x509_svid", "assurance": "workload_pop", "is_user_key": false, "idp_server_id": "idp-spire", "token_lifetime_s": null},
+      "expect": {"outcome": "met", "reason": null, "required": "workload_pop"}
+    },
+    {
+      "name": "workload_is_refused_by_the_high_risk_floor",
+      "policy": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "workload_token", "assurance": "workload", "is_user_key": false, "idp_server_id": "idp-spire", "token_lifetime_s": 300},
+      "expect": {"outcome": "refused", "reason": "below_minimum", "required": "workload_pop"}
+    },
+    {
+      "name": "x509_svid_from_an_issuer_outside_allowed_issuers_is_refused",
+      "policy": {"mode": "enforce", "min_assurance": "workload_pop", "allow_user_keys": false, "allowed_issuers": ["idp-spire"], "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "credential": {"kind": "x509_svid", "assurance": "workload_pop", "is_user_key": false, "idp_server_id": "idp-other", "token_lifetime_s": null},
+      "expect": {"outcome": "refused", "reason": "issuer_not_allowed", "required": "workload_pop"}
+    }
+  ],
+  "validation_cases": [
+    {
+      "name": "a_complete_policy_is_accepted",
+      "policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": 30},
+      "valid": true
+    },
+    {
+      "name": "lifetime_above_the_ceiling_is_refused",
+      "policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 7200, "max_key_ttl_days": null},
+      "valid": false,
+      "field": "max_token_lifetime_s"
+    },
+    {
+      "name": "lifetime_below_60_is_refused",
+      "policy": {"mode": "enforce", "min_assurance": "workload", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 59, "max_key_ttl_days": null},
+      "valid": false,
+      "field": "max_token_lifetime_s"
+    },
+    {
+      "name": "unknown_level_is_refused",
+      "policy": {"mode": "enforce", "min_assurance": "gold", "allow_user_keys": false, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "valid": false,
+      "field": "min_assurance"
+    },
+    {
+      "name": "unknown_mode_is_refused",
+      "policy": {"mode": "monitor", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "valid": false,
+      "field": "mode"
+    },
+    {
+      "name": "a_missing_field_is_refused",
+      "policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600},
+      "valid": false,
+      "field": "max_key_ttl_days"
+    },
+    {
+      "name": "an_extra_field_is_refused",
+      "policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null, "max_user_key_ttl_days": 30},
+      "valid": false,
+      "field": "max_user_key_ttl_days"
+    },
+    {
+      "name": "key_ttl_zero_is_refused",
+      "policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": 0},
+      "valid": false,
+      "field": "max_key_ttl_days"
+    },
+    {
+      "name": "key_ttl_above_3650_is_refused",
+      "policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": 3651},
+      "valid": false,
+      "field": "max_key_ttl_days"
+    },
+    {
+      "name": "duplicate_issuers_are_refused",
+      "policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": ["idp-a", "idp-a"], "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "valid": false,
+      "field": "allowed_issuers"
+    },
+    {
+      "name": "a_string_boolean_is_refused",
+      "policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": "false", "allowed_issuers": null, "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "valid": false,
+      "field": "allow_user_keys"
+    },
+    {
+      "name": "an_empty_issuer_list_is_refused",
+      "policy": {"mode": "audit", "min_assurance": "key", "allow_user_keys": true, "allowed_issuers": [], "max_token_lifetime_s": 3600, "max_key_ttl_days": null},
+      "valid": false,
+      "field": "allowed_issuers"
+    }
+  ]
+}

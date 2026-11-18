@@ -410,7 +410,7 @@ async fn proxy_request(
     };
 
     // Auth (MCP endpoints support anonymous)
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -424,6 +424,9 @@ async fn proxy_request(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     let trace_root_kind = root_kind_for_auth(&auth_ctx.auth_type, call_chain.depth == 0);
 
@@ -987,7 +990,6 @@ async fn proxy_request(
     // Inject upstream OAuth token.
     // Priority: 1) Stored OAuth token (via MCP JWT) 2) Static auth_token from mcp_servers table
     let mut injected_token = false;
-    let mut auth_ctx = auth_ctx; // make mutable so we can enrich with IdP info
 
     // Try to decode MCP JWT from Authorization header and look up stored OAuth token
     if let Some(bearer) = headers

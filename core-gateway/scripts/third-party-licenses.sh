@@ -6,8 +6,8 @@
 # version, its SPDX licence and the full licence texts (one copy of each
 # distinct text), from the committed Cargo.lock, by cargo-about.
 #
-# Owner decision (legal answer 5, 2026-11-16): third-party packages ship
-# unmodified with their licence texts, in each image and in the repository.
+# Third-party packages ship unmodified with their licence texts, in each
+# image and in the repository.
 #
 #   scripts/third-party-licenses.sh                       # rewrite THIRD_PARTY_LICENSES
 #   scripts/third-party-licenses.sh --check               # fail when it is not current

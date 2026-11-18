@@ -1104,6 +1104,11 @@ async fn a_failed_group_lookup_refuses_as_unavailable_not_as_no_group(pool: PgPo
     // A signed-in member of the group, no API key: the lookup is the
     // membership query.
     let auth = AuthContext {
+        credential_kind: brutor_gateway_core::models::auth::CredentialKind::HumanSession,
+        credential_assurance: None,
+        credential_ref: None,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: AuthType::GatewayJwt,
         tenant_id: T.to_string(),
         gateway_user_id: Some("9730".to_string()),

@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import os
 import re
-from pathlib import Path
 
 os.environ.setdefault("DATABASE_URL", "postgresql://test:test@127.0.0.1:1/test")
 os.environ.setdefault("JWT_SECRET", "test-jwt-secret-not-for-production")
@@ -26,6 +25,8 @@ os.environ.setdefault("ENCRYPTION_KEY", "a" * 44 + "=")
 
 import pytest
 from pydantic import ValidationError
+
+from tests import siblings
 
 from app.services.compliance.profile import (
     EU_ANNEX_III_AREAS,
@@ -68,23 +69,21 @@ def test_not_declared_is_still_allowed():
     assert EuAiActBlock.model_validate({}).model_dump(exclude_unset=True) == {}
 
 
-CONSOLE = (
-    Path(__file__).resolve().parents[2]
-    / "brutor-gateway-admin" / "src" / "lib" / "complianceEvidenceTypes.ts"
-)
+# The console's lists, in the Admin Console beside this repository
+# (`tests/siblings.py`: its repository, or `admin-console/` in the public one).
+CONSOLE = "src/lib/complianceEvidenceTypes.ts"
 
 
 def _ts_list(source: str, name: str) -> tuple:
     m = re.search(rf"export const {name} = \[([^\]]*)\] as const", source)
-    assert m, f"{name} not found in {CONSOLE.name}"
+    assert m, f"{name} not found in {CONSOLE}"
     return tuple(re.findall(r"'([^']*)'", m.group(1)))
 
 
-@pytest.mark.skipif(not CONSOLE.exists(), reason="brutor-gateway-admin is not checked out beside this repository")
 @pytest.mark.parametrize("name,ours", [
     ("EU_ANNEXES", EU_ANNEXES),
     ("EU_ANNEX_III_AREAS", EU_ANNEX_III_AREAS),
     ("EU_CONFORMITY_ASSESSMENTS", EU_CONFORMITY_ASSESSMENTS),
 ])
 def test_the_console_offers_exactly_what_the_api_accepts(name, ours):
-    assert _ts_list(CONSOLE.read_text(), name) == ours
+    assert _ts_list(siblings.sibling_file("admin-console", CONSOLE).read_text(), name) == ours

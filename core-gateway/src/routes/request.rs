@@ -140,6 +140,9 @@ impl SessionRefusal {
             }
             AuthError::UnboundKey(_)
             | AuthError::GroupNotMember
+            | AuthError::AgentNotBound
+            | AuthError::GroupRequired
+            | AuthError::CredentialAssuranceInsufficient { .. }
             | AuthError::Internal(_)
             | AuthError::Unavailable(_) => None,
         }
@@ -358,10 +361,9 @@ async fn portal_user_of(
 ///
 /// The agent acts in its own resource group — the one authentication
 /// resolved (`auth::agent_acting_group`): the member group it named, else its
-/// oldest membership; naming any other group was refused there — and that
-/// group is the actor the route
-/// counts the call against, as a group key's is. An agent that is a member
-/// of no group is refused: no group's limits and policies would govern it.
+/// only one; an agent in no group, or in several that named none, was
+/// refused there (403) — and that group is the actor the route
+/// counts the call against, as a group key's is.
 /// On a route that names a model the preflight that follows decides the
 /// rest from the same token, as on chat: model access through the group,
 /// the agent's grants, the AI System's autonomy, limits, guardrails.
@@ -372,18 +374,10 @@ fn workload_agent_of(
     let Some(agent_id) = auth_ctx.actor_agent_id else {
         return Err(error(StatusCode::UNAUTHORIZED, "The token names no agent"));
     };
-    // The group authentication resolved the agent to act in (the member
-    // group it named, else its oldest membership).
-    let group = auth_ctx.resolved_group_id;
-    let Some(group) = group else {
-        tracing::warn!(
-            %tenant_id, %agent_id,
-            "workload identity refused on a media route: the agent is a member of no resource group"
-        );
-        return Err(error(
-            StatusCode::UNAUTHORIZED,
-            "The agent is a member of no resource group",
-        ));
+    // Authentication made no workload context without its acting group; a
+    // context without one is refused as authentication refuses it.
+    let Some(group) = auth_ctx.resolved_group_id else {
+        return Err(session_auth_refusal(&auth::AuthError::AgentNotBound));
     };
     Ok((tenant_id, group, agent_id))
 }
@@ -437,7 +431,12 @@ pub async fn extract_media_caller(
     client_ip: Option<String>,
     preflight: Preflight,
 ) -> Result<(String, String, String), Response> {
-    let (tenant_id, auth_ctx) = authenticate_caller(state, headers, tenant, client_ip).await?;
+    let (tenant_id, mut auth_ctx) = authenticate_caller(state, headers, tenant, client_ip).await?;
+    // The credential against the call's identity policy, for every route that
+    // authenticates its caller here (files, images, audio, video).
+    crate::services::identity_policy::judge_call(state, &mut auth_ctx)
+        .await
+        .map_err(|e| session_auth_refusal(&e))?;
     if auth_ctx.auth_type == AuthType::IdpOauth {
         return workload_agent_of(tenant_id, auth_ctx);
     }

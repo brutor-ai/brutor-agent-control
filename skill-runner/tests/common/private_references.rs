@@ -188,6 +188,15 @@ const HISTORY_PHRASES: &[&str] = &[
     "(was:",
 ];
 
+/// A decision cited instead of the rule it made: what the owner decided
+/// (`owner decision L1`, `owner ruling`), a numbered answer (`legal answer
+/// 5`), the day it was made (`decided on 2026-11-16`) and a numbered
+/// decision (`decision 11`, `Decision Q12`). The words the owner spoke in:
+/// each followed by an id (a number, or up to six capitals and a number) or
+/// not.
+const OWNER_WORDS: &[&str] = &["decision", "ruling", "instruction", "answer"];
+const DATE_WORDS: &[&str] = &["on", "in", "of", "from"];
+
 /// Files that are not prose or source of this repository: resolved
 /// dependency lists. Their hashes look like anything.
 const LOCK_FILES: &[&str] = &["Cargo.lock", "package-lock.json", "uv.lock", "poetry.lock"];
@@ -364,11 +373,119 @@ fn is_word(c: char) -> bool {
     c.is_ascii_alphanumeric() || c == '_'
 }
 
+/// The end of the id of a decision after the separators at `i`: a number,
+/// or up to six capitals and a number (`L1`, `Q12`, `D-4`).
+fn decision_id(s: &Stream, i: usize) -> Option<usize> {
+    let j = s.skip(i, " -#");
+    let mut k = j;
+    if !s.at(j).is_ascii_digit() {
+        while k - j < 6 && s.at(k).is_ascii_uppercase() {
+            k += 1;
+        }
+        if k == j {
+            return None;
+        }
+        if s.at(k) == '-' {
+            k += 1;
+        }
+    }
+    let end = s.digits(k);
+    (end > k && !is_word(s.at(end))).then_some(end)
+}
+
+/// The end of a date `2026-11-16` that starts at `i`.
+fn date_at(s: &Stream, i: usize) -> Option<usize> {
+    let shaped = s.at(i) == '2'
+        && s.at(i + 1) == '0'
+        && s.digits(i + 2) == i + 4
+        && s.at(i + 4) == '-'
+        && s.digits(i + 5) == i + 7
+        && s.at(i + 7) == '-'
+        && s.digits(i + 8) == i + 10
+        && !is_word(s.at(i + 10));
+    shaped.then_some(i + 10)
+}
+
+/// The end of a decision cited at `i`: `owner decision L1`, `legal answer
+/// 5`, `decided on 2026-11-16`, `decision 11`.
+fn cited_decision(s: &Stream, i: usize) -> Option<usize> {
+    if !s.word_starts(i) {
+        return None;
+    }
+    if s.has(i, "owner") {
+        let j = s.skip(i + 5, " -");
+        if j == i + 5 {
+            return None;
+        }
+        for word in OWNER_WORDS {
+            if s.has(j, word) {
+                let mut end = j + word.len();
+                if s.at(end).eq_ignore_ascii_case(&'s') {
+                    end += 1;
+                }
+                if !s.at(end).is_ascii_alphabetic() {
+                    return Some(decision_id(s, end).unwrap_or(end));
+                }
+            }
+        }
+        return None;
+    }
+    if s.has(i, "legal") {
+        let j = s.skip(i + 5, " -");
+        if j == i + 5 || !s.has(j, "answer") {
+            return None;
+        }
+        let mut k = j + 6;
+        if s.at(k).eq_ignore_ascii_case(&'s') {
+            k += 1;
+        }
+        let d = s.skip(k, " -#");
+        let end = s.digits(d);
+        return (end > d && !is_word(s.at(end))).then_some(end);
+    }
+    let (word, decision) = if s.has(i, "decided") {
+        (7, false)
+    } else if s.has(i, "decision") {
+        (8, true)
+    } else {
+        return None;
+    };
+    // decided on 2026-11-16, decision of 2026-11-17.
+    let mut k = i + word;
+    if decision && s.at(k).eq_ignore_ascii_case(&'s') {
+        k += 1;
+    }
+    let j = s.skip(k, " -");
+    if j > k {
+        if let Some(end) = date_at(s, j) {
+            return Some(end);
+        }
+        for preposition in DATE_WORDS {
+            let after = j + preposition.len();
+            let date = s.skip(after, " -");
+            let dated = s.has(j, preposition) && date > after;
+            if let Some(end) = dated.then(|| date_at(s, date)).flatten() {
+                return Some(end);
+            }
+        }
+    }
+    // decision 11, Decision Q12, decisions 5.
+    if !decision {
+        return None;
+    }
+    let plural = s.at(i + word).eq_ignore_ascii_case(&'s');
+    plural
+        .then(|| decision_id(s, i + word + 1))
+        .flatten()
+        .or_else(|| decision_id(s, i + word))
+}
+
 /// Every reference to a private record in `text`.
 pub fn offences(text: &str) -> Vec<Offence> {
     let s = Stream::new(text);
     let mut found = Vec::new();
     let mut public_rfc_ended = 0usize;
+    let mut decided_until = 0usize;
     let mut i = 0;
     while i < s.chars.len() {
         let c = s.at(i);
@@ -593,10 +710,19 @@ pub fn offences(text: &str) -> Vec<Offence> {
             }
         }
 
+        // "owner decision L1", "legal answer 5", "decided on 2026-11-16",
+        // "(decision 11)": a decision cited instead of the rule it made. Its
+        // date is part of it.
+        let may_cite = i >= decided_until && "old".contains(lower);
+        if let Some(to) = may_cite.then(|| cited_decision(&s, i)).flatten() {
+            found.push(s.offence(i, "cited decision", to));
+            decided_until = to;
+        }
+
         // "(2026-10-26)", "policy 2026-10-05", "since 2026-09-06": the day
         // something was decided or happened. A quoted date, a timestamp and
         // a `name: date` or `--flag date` value are data.
-        if c == '2' && s.at(i + 1) == '0' && !is_word(s.before(i)) {
+        if c == '2' && s.at(i + 1) == '0' && !is_word(s.before(i)) && i >= decided_until {
             let year = s.digits(i);
             let month = s.digits(year + 1);
             let day = s.digits(month + 1);
@@ -838,6 +964,33 @@ pub fn check_the_scanner() {
         ]
     );
 
+    // A decision cited instead of the rule it made.
+    assert_eq!(
+        kinds(
+            "# Owner decision (legal answer 5, 2026-11-16): ship them unmodified\n# (owner decision\n\
+             # L1); decided on 2026-11-16, decision of 2026-11-17"
+        ),
+        [
+            "1: cited decision: Owner decision",
+            "1: cited decision: legal answer 5",
+            "2: cited decision: owner decision L1",
+            "3: cited decision: decided on 2026-11-16",
+            "3: cited decision: decision of 2026-11-17",
+        ]
+    );
+    assert_eq!(
+        kinds(
+            "the chunk size (decision 13), Decision Q12 and decisions 5; owner ruling, legal answers #4"
+        ),
+        [
+            "1: cited decision: decision 13",
+            "1: cited decision: Decision Q12",
+            "1: cited decision: decisions 5",
+            "1: cited decision: owner ruling",
+            "1: cited decision: legal answers #4",
+        ]
+    );
+
     assert_eq!(
         kinds(
             "cd /Users/alice/src; KUBECONFIG=/home/bob.smith/.kube/config\n\
@@ -899,6 +1052,9 @@ pub fn check_the_scanner() {
         "<!-- env-registry:begin (generated from src/env_vars.rs) -->",
         "issue #42 and PR #43 of the repository; `&#169;`; SHA-256, UTF-8, SEP-1024",
         "a two-phase commit; Phase Inversion",
+        "a decision tree; the caller decides; decisions are logged; decided on the order\n\
+         waits for a decision: 1 to 300 seconds; decision_1 = 0; the owner of a decision; \
+         the resource owner decides; a legal answer",
         "<path d=\"M12 9v2m0 4h.01 M4 6h16 M4,12 S3 -1.5 2\"/>",
         "/home/<user>/.kube, /Users/<you>/src, $HOME/.aws, ~/.config, /home/brutor/.aws",
         "https://console.example.com/project/home/dashboard/ and app/home/view/; /Users/Errors",

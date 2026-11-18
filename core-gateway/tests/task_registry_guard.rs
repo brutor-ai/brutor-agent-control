@@ -44,7 +44,7 @@ const RECORDED: &[(&str, Option<&str>)] = &[
     ("video_pipeline", None),
     ("media_gc_sweep", None),
     // New: the instances that use a filesystem media store find each
-    // other in Redis, so that a second one is logged (decision 11).
+    // other in Redis, so that a second one is logged.
     ("media_filesystem_presence", None),
     ("router_state_cleanup", None),
     // `licence_check` stood here. It is the licence

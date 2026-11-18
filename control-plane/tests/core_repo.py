@@ -26,8 +26,12 @@ the core is a git checkout, the paths the tests read are exported from
 into that export. The working tree of a repository somebody is editing is
 half of a change: a guard that reads it goes red and green with their
 keystrokes, and compares this repository with a core that does not exist
-yet. Where the core is not a git checkout (an unpacked source archive) the
-tree is what there is and it is read as it is. `core_revision()` says which
+yet. The commit is the core's own repository's, or, in the public
+repository, the commit of the checkout this repository is a directory of
+(`core-gateway/` beside `control-plane/`, `.git` at their root). Where the
+core is not a git checkout (an unpacked source archive, also one unpacked
+into some other repository) the tree is what there is and it is read as it
+is. `core_revision()` says which
 of the two was read, and which commit, for a failure message.
 """
 
@@ -48,6 +52,11 @@ EXPORTED_PATHS = ("src", "enterprise/src", "tests/fixtures", "tests/migrations",
 
 # checkout -> (the directory to read, a description of what it is)
 _resolved: Dict[Path, Tuple[Path, str]] = {}
+
+# This repository's directory: the core is read at a commit of the checkout
+# that holds both when it is a directory of the same repository (the public
+# layout). A test points it at a temporary layout.
+THIS_CHECKOUT = Path(__file__).resolve().parents[1]
 
 
 CORE_REPO_ENV = "BRUTOR_CORE_REPO"
@@ -91,29 +100,50 @@ def _git(checkout: Path, *args: str) -> Optional[bytes]:
     return done.stdout if done.returncode == 0 else None
 
 
-def _head_of(checkout: Path) -> Optional[str]:
-    """The commit `checkout` is at, when `checkout` is itself the top of a
-    git work tree; `None` otherwise (not a repository, no commit yet, no
-    git, or a plain directory inside some other repository)."""
-    if not checkout.is_dir():
-        return None
-    top = _git(checkout, "rev-parse", "--show-toplevel")
+def _toplevel(directory: Path) -> Optional[Path]:
+    top = _git(directory, "rev-parse", "--show-toplevel")
     if top is None:
         return None
     try:
-        if Path(top.decode().strip()).resolve() != checkout.resolve():
-            return None
+        return Path(top.decode().strip()).resolve()
     except OSError:
         return None
+
+
+def _head_of(checkout: Path) -> Optional[Tuple[str, str, Path]]:
+    """(the commit, the core's path inside it, the repository's top) when
+    `checkout` is the top of a git work tree, or a directory of the work
+    tree this repository is in (the public layout); `None` otherwise (not
+    a repository, no commit yet, no git, or a plain directory inside some
+    other repository)."""
+    if not checkout.is_dir():
+        return None
+    top = _toplevel(checkout)
+    if top is None:
+        return None
+    try:
+        here = checkout.resolve()
+    except OSError:
+        return None
+    if top == here:
+        prefix = ""
+    elif top == _toplevel(THIS_CHECKOUT) and top in here.parents:
+        prefix = here.relative_to(top).as_posix() + "/"
+    else:
+        return None
     head = _git(checkout, "rev-parse", "HEAD")
-    return head.decode().strip() if head else None
+    return (head.decode().strip(), prefix, top) if head else None
 
 
-def _export_head(checkout: Path, head: str) -> Optional[Path]:
-    present = [p for p in EXPORTED_PATHS if _git(checkout, "cat-file", "-e", f"{head}:{p}") is not None]
+def _export_head(top: Path, head: str, prefix: str) -> Optional[Path]:
+    """The core's paths at `head`, from the repository whose top is `top`;
+    `prefix` is the core's directory in it ("" where the core is the top).
+    Run from the top: from a subdirectory, git reads paths relative to it."""
+    present = [p for p in EXPORTED_PATHS if _git(top, "cat-file", "-e", f"{head}:{prefix}{p}") is not None]
     if not present:
         return None
-    archive = _git(checkout, "archive", "--format=tar", head, *present)
+    tree = f"{head}:{prefix.rstrip('/')}" if prefix else head
+    archive = _git(top, "archive", "--format=tar", tree, *present)
     if archive is None:
         return None
     target = Path(tempfile.mkdtemp(prefix="brutor-core-head-"))
@@ -128,10 +158,12 @@ def _resolve() -> Tuple[Path, str]:
     cached = _resolved.get(checkout)
     if cached is not None:
         return cached
-    head = _head_of(checkout)
-    exported = _export_head(checkout, head) if head else None
+    found = _head_of(checkout)
+    exported = _export_head(found[2], found[0], found[1]) if found else None
     if exported is not None:
-        result = (exported, f"{checkout} at its committed HEAD, commit {head} (the working tree is not read)")
+        head, prefix, top = found
+        where = "its committed HEAD" if not prefix else f"the committed HEAD of {top}"
+        result = (exported, f"{checkout} at {where}, commit {head} (the working tree is not read)")
     else:
         result = (checkout, f"the files in {checkout} as they are (not a git checkout: there is no commit to read)")
     _resolved[checkout] = result

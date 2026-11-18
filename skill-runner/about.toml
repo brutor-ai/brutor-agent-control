@@ -1,8 +1,7 @@
 # cargo-about: the third-party licences file (THIRD_PARTY_LICENSES), written by
 # scripts/third-party-licenses.sh from the committed Cargo.lock, here and in
-# the image build. Owner decision (legal answer 5, 2026-11-16): third-party
-# packages ship unmodified with their licence texts, in each image and in the
-# repository.
+# the image build. Third-party packages ship unmodified with their licence
+# texts, in each image and in the repository.
 #
 # `accepted` is deny.toml's `allow`, the same licences in the same order
 # (tests/third_party_licenses_guard.rs holds it there): a licence outside it

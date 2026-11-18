@@ -19,6 +19,7 @@ import subprocess
 
 import pytest
 
+from tests import siblings
 from tests.source_trees import REPO
 
 # What a run or a deployment writes. `.gitignore` must ignore each.
@@ -33,9 +34,12 @@ SAMPLES = (
     ".env", ".env.local", ".env.production", "enterprise/.env",
 )
 
+# `.git` is here in this repository and at the root above `control-plane/`
+# in the public one; git answers for this directory from either (paths are
+# relative to it).
 pytestmark = pytest.mark.skipif(
-    shutil.which("git") is None or not (REPO / ".git").exists(),
-    reason="not a git checkout: what is tracked cannot be asked",
+    shutil.which("git") is None or siblings.git_root(REPO) is None,
+    reason="git is not installed" if shutil.which("git") is None else siblings.no_git_root(REPO),
 )
 
 

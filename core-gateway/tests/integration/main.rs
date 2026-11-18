@@ -28,6 +28,7 @@ pub mod common;
 mod community_composition;
 pub mod composition;
 mod context_enrichment_unavailable;
+mod credential_facts;
 pub mod credential_surface_matrix;
 mod duplicate_model_names;
 pub mod edition_guard_start;

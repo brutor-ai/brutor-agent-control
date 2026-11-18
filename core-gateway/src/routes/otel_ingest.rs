@@ -120,7 +120,7 @@ pub(crate) async fn export_traces(
     // unauthenticated caller needed only an `X-Tenant-ID` header to make the
     // gateway parse arbitrary JSON on their behalf, as often as they liked.
     // Work done for an unauthenticated caller is the whole attack.
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -134,6 +134,9 @@ pub(crate) async fn export_traces(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     let value: serde_json::Value = match serde_json::from_slice(&body) {
         Ok(v) => v,

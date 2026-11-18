@@ -810,6 +810,11 @@ mod tests {
 
     fn auth() -> AuthContext {
         AuthContext {
+            credential_kind: crate::models::auth::CredentialKind::ApiKey,
+            credential_assurance: Some(crate::models::auth::CredentialAssurance::Key),
+            credential_ref: None,
+            credential_detail: Default::default(),
+            identity_verdict: None,
             auth_type: AuthType::ApiKey,
             tenant_id: "tenant-a".to_string(),
             gateway_user_id: None,

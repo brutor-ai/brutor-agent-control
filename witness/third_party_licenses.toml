@@ -15,8 +15,8 @@ python = "3.12"
 # unpacks the wheels the image's build would choose.
 wheel_tags = ["manylinux_2_36", "manylinux_2_34", "manylinux_2_28", "manylinux_2_17", "manylinux2014"]
 tool_requirements = "third_party_licenses_tool.txt"
-# Packages the image builds from source, never from a wheel (owner decision
-# L1): psycopg-c, psycopg's C extension, compiled against Debian's libpq
+# Packages the image builds from source, never from a wheel:
+# psycopg-c, psycopg's C extension, compiled against Debian's libpq
 # (`libpq-dev` in the build stage, `libpq5` at run time), so that the native
 # library it uses is the Debian package's, whose copyright file the image
 # ships under /usr/share/doc. (psycopg-binary's wheel bundles libpq, OpenSSL,

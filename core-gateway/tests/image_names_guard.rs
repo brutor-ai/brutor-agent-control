@@ -18,6 +18,14 @@
 //!
 //! Proven against the shapes it forbids
 //! ([`the_scans_catch_the_shapes_they_forbid`]).
+//!
+//! The same workflows also have time for a cold run: on the first run on a
+//! new runner (no Cargo cache) the `test` job was cancelled by its
+//! 45-minute timeout while the benchmarks compiled, after the suite had
+//! passed, and `community-alone` by its 60-minute timeout at the same step.
+//! A timeout covers the cold run measured then with half again as much room
+//! ([`the_long_jobs_have_time_for_a_cold_run`], its reader proven by
+//! [`the_reader_finds_a_jobs_timeout`]).
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -402,4 +410,189 @@ fn the_scans_catch_the_shapes_they_forbid() {
     ] {
         assert!(derived_names(line).is_empty(), "{line}");
     }
+}
+
+// --------------------------------------------------------------- time for a cold run
+
+/// A cold run of each job, in minutes, measured on the first public run
+/// (ubuntu-latest, no Cargo cache): where the job stood when its timeout
+/// cancelled it.
+const COLD_RUN_MINUTES: &[(&str, u32)] = &[
+    // the suite done after 33 minutes, the benchmarks still compiling at 45
+    ("test", 60),
+    // the gates and the suite done after 47 minutes, the benchmarks still compiling at 60
+    ("community-alone", 75),
+];
+
+/// The `timeout-minutes` of the job `job` of a workflow, read as text: the
+/// job's block starts at `  <job>:` and ends at the next line indented by
+/// two spaces; None where the job or its timeout is not there.
+fn timeout_minutes(workflow: &str, job: &str) -> Option<u32> {
+    job_lines(workflow, job)?.into_iter().find_map(|line| {
+        line.strip_prefix("    timeout-minutes:")
+            .and_then(|v| v.trim().parse().ok())
+    })
+}
+
+/// Whether `line` opens a job: a key at the jobs' indentation (two spaces).
+fn opens_a_job(line: &str) -> bool {
+    line.starts_with("  ") && line[2..].starts_with(|c: char| !c.is_whitespace() && c != '#')
+}
+
+/// The lines of the job `job`, after its `  <job>:` line and up to the next
+/// job; None where the job is not there.
+fn job_lines<'a>(workflow: &'a str, job: &str) -> Option<Vec<&'a str>> {
+    let start = workflow.find(&format!("\n  {job}:\n"))? + 1;
+    Some(
+        workflow[start..]
+            .lines()
+            .skip(1)
+            .take_while(|line| !opens_a_job(line))
+            .collect(),
+    )
+}
+
+/// The names of the workflow's jobs, in order (the keys under `jobs:`).
+fn job_names(workflow: &str) -> Vec<&str> {
+    let Some(start) = workflow.find("\njobs:\n") else {
+        return Vec::new();
+    };
+    workflow[start + 1..]
+        .lines()
+        .skip(1)
+        .take_while(|line| line.is_empty() || line.starts_with(' ') || line.starts_with('#'))
+        .filter(|line| opens_a_job(line))
+        .filter_map(|line| line.trim_end().strip_suffix(':'))
+        .map(|name| name.trim())
+        .collect()
+}
+
+/// What runs cargo-about: the licence check, alone or inside the
+/// Community-alone script.
+const NEEDS_CARGO_ABOUT: &[&str] = &[
+    "scripts/ci-community-alone.sh",
+    "scripts/third-party-licenses.sh",
+];
+
+/// The jobs of `workflow` that reach a script of [`NEEDS_CARGO_ABOUT`]
+/// before a step installs `cargo-about` at `version` (`cargo install
+/// --locked --features cli cargo-about@<version>`).
+fn jobs_without_cargo_about<'a>(workflow: &'a str, version: &str) -> Vec<&'a str> {
+    let install = format!("cargo install --locked --features cli cargo-about@{version}");
+    job_names(workflow)
+        .into_iter()
+        .filter(|job| {
+            let lines = job_lines(workflow, job).unwrap_or_default();
+            let first_use = lines.iter().position(|line| {
+                NEEDS_CARGO_ABOUT.iter().any(|script| {
+                    line.contains(&format!("run: {script}"))
+                        || line.trim_start().starts_with(script)
+                })
+            });
+            match first_use {
+                None => false,
+                Some(i) => !lines[..i].iter().any(|line| line.contains(&install)),
+            }
+        })
+        .collect()
+}
+
+/// The cargo-about version the licence script requires (`VERSION=` in
+/// `scripts/third-party-licenses.sh`).
+fn cargo_about_version() -> String {
+    let root = roots::tree("community").expect("the Community root");
+    let script = fs::read_to_string(root.join("scripts/third-party-licenses.sh"))
+        .expect("the licence script");
+    script
+        .lines()
+        .find_map(|line| line.strip_prefix("VERSION="))
+        .expect("scripts/third-party-licenses.sh sets VERSION=")
+        .trim()
+        .to_string()
+}
+
+#[test]
+fn every_job_that_checks_the_licence_file_installs_cargo_about_first() {
+    let (path, workflow) = ci_workflow();
+    let version = cargo_about_version();
+    assert!(
+        !job_names(&workflow).is_empty(),
+        "{}: no job was read",
+        path.display()
+    );
+    assert_eq!(
+        jobs_without_cargo_about(&workflow, &version),
+        Vec::<&str>::new(),
+        "{}: these jobs run the licence check (scripts/third-party-licenses.sh, also inside \
+         scripts/ci-community-alone.sh) and do not install cargo-about {version} before it: \
+         the check fails with \"found: none\"",
+        path.display()
+    );
+}
+
+#[test]
+fn the_cargo_about_scan_catches_a_job_that_lacks_it() {
+    let install = "        run: cargo install --locked --features cli cargo-about@0.9.3\n";
+    let workflow = format!(
+        "on: push\njobs:\n  deny:\n    steps:\n      - name: Install cargo-about\n{install}      - name: Check\n        run: scripts/third-party-licenses.sh --check\n  community-alone:\n    steps:\n      - name: All\n        run: scripts/ci-community-alone.sh --prepare-template\n  late:\n    steps:\n      - run: |\n          scripts/third-party-licenses.sh --check\n      - name: Too late\n{install}  clippy:\n    steps:\n      - run: cargo clippy\n"
+    );
+    assert_eq!(
+        job_names(&workflow),
+        ["deny", "community-alone", "late", "clippy"]
+    );
+    assert_eq!(
+        jobs_without_cargo_about(&workflow, "0.9.3"),
+        ["community-alone", "late"]
+    );
+    // Another version is not the one the script needs.
+    assert_eq!(
+        jobs_without_cargo_about(&workflow, "0.9.4"),
+        ["deny", "community-alone", "late"]
+    );
+}
+
+/// The workflow that runs the tests: this repository's `ci.yml`, or the
+/// public repository's `core-gateway.yml`.
+fn ci_workflow() -> (std::path::PathBuf, String) {
+    let root = roots::tree("community").expect("the Community root");
+    let found = workflows::find(&root, COMPONENT, "docker-build.yml");
+    let path = match found.layout {
+        workflows::Layout::Own => root.join(".github/workflows/ci.yml"),
+        workflows::Layout::Monorepo => found.image.clone(),
+    };
+    let text = fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+    (path, text)
+}
+
+#[test]
+fn the_long_jobs_have_time_for_a_cold_run() {
+    let (path, workflow) = ci_workflow();
+    for (job, minutes) in COLD_RUN_MINUTES {
+        let timeout = timeout_minutes(&workflow, job)
+            .unwrap_or_else(|| panic!("{}: the job {job} has no timeout-minutes", path.display()));
+        assert!(
+            timeout * 2 >= minutes * 3,
+            "{}: the job {job} times out after {timeout} minutes; a cold run takes about {minutes}, \
+             and the timeout must be at least half as much again",
+            path.display()
+        );
+    }
+}
+
+#[test]
+fn the_reader_finds_a_jobs_timeout() {
+    let workflow = "jobs:\n  test:\n    # a comment\n    timeout-minutes: 90\n    name: Tests\n    steps:\n      - run: x\n  community-alone:\n    name: C\n    steps:\n      - run: y\n    timeout-minutes: 120\n  other:\n    name: O\n";
+    assert_eq!(timeout_minutes(workflow, "test"), Some(90));
+    assert_eq!(timeout_minutes(workflow, "community-alone"), Some(120));
+    // A job without one, and a job that is not there.
+    assert_eq!(timeout_minutes(workflow, "other"), None);
+    assert_eq!(timeout_minutes(workflow, "missing"), None);
+    // Another job's timeout is not this job's.
+    assert_eq!(
+        timeout_minutes(
+            "jobs:\n  test:\n    name: T\n  later:\n    timeout-minutes: 5\n",
+            "test"
+        ),
+        None
+    );
 }

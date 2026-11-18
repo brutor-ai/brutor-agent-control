@@ -34,6 +34,11 @@ type ChainRow = (String, Option<i64>, Option<String>, Option<String>);
 
 pub(crate) fn test_auth(tenant: &str) -> AuthContext {
     AuthContext {
+        credential_kind: brutor_gateway_core::models::auth::CredentialKind::ApiKey,
+        credential_assurance: Some(brutor_gateway_core::models::auth::CredentialAssurance::Key),
+        credential_ref: None,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: AuthType::ApiKey,
         tenant_id: tenant.to_string(),
         gateway_user_id: None,

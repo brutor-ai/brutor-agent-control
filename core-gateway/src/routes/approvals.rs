@@ -274,7 +274,14 @@ async fn write_approval_decision_log(
     resolution_note: Option<&str>,
     duration_ms: f64,
 ) {
+    // The approver: a person's session.
+    let credential = crate::models::auth::Credential::human_session(None, Some(approver_user_id));
     let auth_ctx = AuthContext {
+        credential_kind: credential.kind,
+        credential_assurance: credential.assurance,
+        credential_ref: credential.reference,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: AuthType::GatewayJwt,
         tenant_id: tenant_id.to_string(),
         gateway_user_id: Some(approver_user_id.to_string()),
@@ -728,7 +735,7 @@ async fn poll_approval(
     let effective_headers = portal_headers(&headers);
     let client_ip = client_addr.ip();
 
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &effective_headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -742,6 +749,9 @@ async fn poll_approval(
         Ok(ctx) => ctx,
         Err(e) => return error(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error(e.status_code(), &e.to_string());
+    }
 
     type PollRow = (
         String,

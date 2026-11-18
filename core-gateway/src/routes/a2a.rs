@@ -231,7 +231,7 @@ pub(crate) async fn outbound(
     };
     let correlation_id = route_helpers::extract_correlation_id(&headers);
 
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -245,6 +245,9 @@ pub(crate) async fn outbound(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     // 1. Tenant feature gate: `features.a2a` must not be explicitly false.
     //    Missing entry or missing `features` column = enabled-by-default,
@@ -2840,7 +2843,7 @@ pub(crate) async fn inbound(
     };
     let correlation_id = route_helpers::extract_correlation_id(&headers);
 
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -2854,6 +2857,9 @@ pub(crate) async fn inbound(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     // Feature gate.
     match check_a2a_enabled(&state, &tenant_id).await {

@@ -41,7 +41,7 @@ import pytest
 
 from app import env_registry, env_vars
 from app.env_registry import BOTH, ENTERPRISE, REGISTRY, EnvError, EnvVar, Registry
-from tests import entry_points
+from tests import entry_points, siblings
 from tests.app_factory import create_app
 from tests.env_reads import offences, python_files
 
@@ -650,52 +650,49 @@ def test_a_service_link_is_told_from_a_setting():
 
 # --- the names other components read -----------------------------------------------------------------------------------
 
-# variable of this table -> the components that read the same variable,
-# under the same name: (repository beside this one, file at its HEAD). The
-# core is not looked for beside this one: it is where `BRUTOR_CORE_REPO`
-# says (`tests/core_repo.py`), and `CORE` stands for it.
+# variable of this table -> the components of this edition that read the
+# same variable, under the same name: (the component, file at its HEAD). The
+# core is where `BRUTOR_CORE_REPO` says (`tests/core_repo.py`), and `CORE`
+# stands for it; the Admin Console is beside this repository
+# (`tests/siblings.py`: its repository, or `admin-console/` in the public
+# one). The Enterprise Edition's workers read some of these too; those pairs
+# are held by `enterprise/tests/test_env_registry.py`.
 CORE = "the core (BRUTOR_CORE_REPO)"
 GATEWAY = (CORE, ".env.example")
-KB_UPLOADER = (
-    "brutor-gateway-kb-uploader",
-    ".env.example",
-)
-KB_CONNECTOR_SYNC = (
-    "brutor-kb-connector-sync",
-    ".env.example",
-)
-ADMIN_CONSOLE = ("brutor-gateway-admin", "src/envRegistry.json")
+ADMIN_CONSOLE = ("admin-console", "src/envRegistry.json")
 SHARED = {
-    "DATABASE_URL": [GATEWAY, KB_UPLOADER, KB_CONNECTOR_SYNC],
-    "REDIS_URL": [GATEWAY, KB_UPLOADER],
+    "DATABASE_URL": [GATEWAY],
+    "REDIS_URL": [GATEWAY],
     "JWT_SECRET": [GATEWAY],
     "JWT_ALGORITHM": [GATEWAY],
-    "ENCRYPTION_KEY": [GATEWAY, KB_CONNECTOR_SYNC],
+    "ENCRYPTION_KEY": [GATEWAY],
     "BRUTOR_CORS_ORIGINS": [GATEWAY],
     "BRUTOR_GATEWAY_DB_POOL_SIZE": [GATEWAY],
-    "BRUTOR_OUTBOUND_ALLOW_HOSTS": [GATEWAY, KB_CONNECTOR_SYNC],
-    "BRUTOR_GATEWAY_INTERNAL_URL": [KB_UPLOADER],
-    "BRUTOR_GATEWAY_SERVICE_API_KEY": [KB_UPLOADER],
+    "BRUTOR_OUTBOUND_ALLOW_HOSTS": [GATEWAY],
     "BRUTOR_CONTROL_PLANE_PUBLIC_URL": [ADMIN_CONSOLE],
-    "BRUTOR_EMBEDDING_MODEL": [GATEWAY, KB_UPLOADER],
+    "BRUTOR_EMBEDDING_MODEL": [GATEWAY],
 }
 
 
-def sibling_names(repository: str, path: str):
-    """The variable names `path` of the repository beside this one defines
-    at its committed HEAD; None where the repository, or the file at its
-    HEAD, is not there. `CORE` is the core, where `BRUTOR_CORE_REPO` says;
-    None when it is not set."""
-    if repository == CORE:
+def sibling_names(component: str, path: str):
+    """The variable names `path` of the component defines at its committed
+    HEAD; None where the component, or the file at its HEAD, is not there.
+    `CORE` is the core, where `BRUTOR_CORE_REPO` says (None when it is not
+    set); a name of `tests/siblings.py` is that sibling, in either layout;
+    any other name is a repository beside this one. HEAD is the commit of
+    the repository the component is in: its own, or the public one."""
+    if component == CORE:
         from tests.core_repo import core_checkout_or_none
 
         checkout = core_checkout_or_none()
+    elif component in siblings.SIBLINGS:
+        checkout = siblings.sibling(component)
     else:
-        checkout = REPO.parent / repository
-    if checkout is None or not (checkout / ".git").exists():
+        checkout = REPO.parent / component
+    if checkout is None or not checkout.is_dir() or siblings.git_root(checkout) is None:
         return None
     done = subprocess.run(
-        ["git", "-C", str(checkout), "show", f"HEAD:{path}"], capture_output=True, text=True, check=False
+        ["git", "-C", str(checkout), "show", f"HEAD:./{path}"], capture_output=True, text=True, check=False
     )
     if done.returncode != 0:
         return None

@@ -496,6 +496,11 @@ fn the_probe_header_counts_only_on_the_platform_key() {
     let mut headers = axum::http::HeaderMap::new();
     headers.insert("x-brutor-internal-health-check", "1".parse().unwrap());
     let mut auth = brutor_gateway_core::models::auth::AuthContext {
+        credential_kind: brutor_gateway_core::models::auth::CredentialKind::ApiKey,
+        credential_assurance: Some(brutor_gateway_core::models::auth::CredentialAssurance::Key),
+        credential_ref: None,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: brutor_gateway_core::models::auth::AuthType::ApiKey,
         tenant_id: T.to_string(),
         gateway_user_id: None,
@@ -525,6 +530,8 @@ fn the_probe_header_counts_only_on_the_platform_key() {
     );
     auth.api_key_group_id = None;
     auth.api_key_is_platform = true;
+    auth.credential_kind = brutor_gateway_core::models::auth::CredentialKind::PlatformService;
+    auth.credential_assurance = None;
     assert!(is_health_probe_request(&headers, &auth));
     assert!(!is_health_probe_request(
         &axum::http::HeaderMap::new(),

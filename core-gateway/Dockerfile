@@ -81,7 +81,7 @@ RUN rm -f .cargo/config.toml
 # --locked: build exactly the committed Cargo.lock, never a fresh resolution.
 RUN cargo build --release --locked --bin brutor-gateway-core
 
-# Third-party licences (owner decision, legal answer 5): generated here from
+# Third-party licences (shipped in each image): generated here from
 # Cargo.lock, offline, from the crates this build used; the build fails when
 # a crate's licence is outside about.toml's accepted list (deny.toml's
 # allow-list) or cannot be read, and when the committed copy is not current.
