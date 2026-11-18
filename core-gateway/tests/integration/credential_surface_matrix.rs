@@ -16,6 +16,11 @@
 //! [`API_KEY_ACCEPTED_SINCE_P3_36`], 33 cells.
 //! Both are in the recording itself: the fixture is what the recorder
 //! writes, byte for byte, and nothing is applied to it in code.
+//! Re-recorded on purpose once more when a workload agent in no group became
+//! a refusal at authentication (`AGENT_NOT_BOUND`, 403): the 89 cells of the
+//! `workload_no_group` credential that answered as a served or not-found
+//! call now refuse (two routes that answer every authentication error with
+//! 401 say 401). No other cell changed.
 //!
 //! ## How the surfaces are enumerated
 //!

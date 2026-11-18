@@ -686,7 +686,7 @@ fn the_recording_shows_the_layers_classes() {
                 "/.well-known/a2a-jwks/",
                 "/a2a/",
                 "/v1/public/",
-                // Added with the filesystem media store (decision 11): a
+                // Added with the filesystem media store: a
                 // signed download link is its own credential and names its
                 // tenant.
                 "/v1/media/",

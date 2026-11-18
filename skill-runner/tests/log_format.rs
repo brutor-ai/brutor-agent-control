@@ -90,6 +90,33 @@ fn by_default_a_log_line_is_text() {
     }
 }
 
+/// The time of a line, in both forms: RFC 3339 in UTC, six digits of
+/// fraction and `Z` (`2026-03-14T09:26:53.589793Z`). A log pipeline parses it.
+#[test]
+fn a_log_line_carries_its_time_in_utc_to_the_microsecond() {
+    let json = one_event(&[("BRUTOR_LOG_JSON_ENABLED", "true")]);
+    let line: serde_json::Value = serde_json::from_str(&json[0]).unwrap();
+    let time = line["timestamp"].as_str().unwrap();
+    assert!(is_utc_micros(time), "{time}");
+
+    let text = without_colour(&one_event(&[])[0]);
+    let time = text.split_whitespace().next().unwrap();
+    assert!(is_utc_micros(time), "{text}");
+}
+
+/// `YYYY-MM-DDTHH:MM:SS.ffffffZ`, digits where the pattern has `9`.
+fn is_utc_micros(time: &str) -> bool {
+    const PATTERN: &str = "9999-99-99T99:99:99.999999Z";
+    time.len() == PATTERN.len()
+        && time.bytes().zip(PATTERN.bytes()).all(|(c, p)| {
+            if p == b'9' {
+                c.is_ascii_digit()
+            } else {
+                c == p
+            }
+        })
+}
+
 /// `line` without its ANSI colour sequences (`ESC [ … m`).
 fn without_colour(line: &str) -> String {
     let mut out = String::new();

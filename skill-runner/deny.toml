@@ -14,13 +14,6 @@ all-features = true
 # directly; yanked crates are reported for triage.
 unmaintained = "workspace"
 yanked = "warn"
-ignore = [
-    # chrono — unmaintained (RUSTSEC-2026-0543); no known vulnerability.
-    # Every Rust workspace of the product uses it directly for timestamps.
-    # Ignored until the move to `jiff`. A chrono vulnerability is a different
-    # advisory and still fails this check.
-    { id = "RUSTSEC-2026-0543", reason = "chrono unmaintained, no known vulnerability; move to jiff tracked after the release" },
-]
 
 # ── Licenses ────────────────────────────────────────────────────────────────
 [licenses]

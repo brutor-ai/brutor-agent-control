@@ -45,6 +45,11 @@ const T: &str = "tenant-mcpres";
 
 fn api_key_auth(group_id: Option<&str>) -> AuthContext {
     AuthContext {
+        credential_kind: brutor_gateway_core::models::auth::CredentialKind::ApiKey,
+        credential_assurance: Some(brutor_gateway_core::models::auth::CredentialAssurance::Key),
+        credential_ref: None,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: AuthType::ApiKey,
         tenant_id: T.to_string(),
         gateway_user_id: None,
@@ -72,6 +77,11 @@ fn api_key_auth(group_id: Option<&str>) -> AuthContext {
 
 fn user_auth(user_id: i32) -> AuthContext {
     AuthContext {
+        credential_kind: brutor_gateway_core::models::auth::CredentialKind::HumanSession,
+        credential_assurance: None,
+        credential_ref: None,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: AuthType::GatewayJwt,
         gateway_user_id: Some(user_id.to_string()),
         ..api_key_auth(None)

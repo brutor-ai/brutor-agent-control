@@ -143,6 +143,15 @@ const PRIVATE_REPOSITORIES = [
 /** Wording that tells how a rule came about instead of what it is. */
 const HISTORY_PHRASES = ["owner's decision", "owner's instruction", "owner's ruling", 'owner decided', '(was:'];
 
+/**
+ * A decision cited instead of the rule it made: what the owner decided (`owner decision L1`,
+ * `owner ruling`), a numbered answer (`legal answer 5`), the day it was made (`decided on
+ * 2026-11-16`) and a numbered decision (`decision 11`, `Decision Q12`). The words the owner spoke
+ * in: each followed by an id (a number, or up to six capitals and a number) or not.
+ */
+const OWNER_WORDS = ['decision', 'ruling', 'instruction', 'answer'];
+const DATE_WORDS = ['on', 'in', 'of', 'from'];
+
 /** Prefixes of numbered records kept outside the repositories: [prefix, fewest digits, kind]. */
 const TRACKED_PREFIXES: Array<[string, number, string]> = [
     ['D-', 1, 'plan step or decision id'],
@@ -185,6 +194,13 @@ function wordStart(word: string): string {
 
 const ALONE_BEFORE = '(?<![\\w\\-#./])';
 const ALONE_AFTER = '(?!\\w)(?![.\\-]\\w)';
+const DECISION_ID = '[ \\-#]*(?:\\d+|[A-Z]{1,6}-?\\d+)(?!\\w)';
+const DECISION = [
+    `${wordStart('owner')}[ \\-]+(?:${OWNER_WORDS.map(anyCase).join('|')})[sS]?(?![A-Za-z])(?:${DECISION_ID})?`,
+    `${wordStart('legal')}[ \\-]+${anyCase('answer')}[sS]?[ \\-#]*\\d+(?!\\w)`,
+    `(?:${wordStart('decided')}|${wordStart('decision')}[sS]?)[ \\-]+(?:(?:${DATE_WORDS.map(anyCase).join('|')})[ \\-]+)?20\\d\\d-\\d\\d-\\d\\d(?!\\w)`,
+    `${wordStart('decision')}[sS]?${DECISION_ID}`,
+].join('|');
 
 /** Every reference to a private record in `text`. */
 export function privateReferences(text: string): PrivateReference[] {
@@ -286,11 +302,20 @@ export function privateReferences(text: string): PrivateReference[] {
     for (const name of PRIVATE_REPOSITORIES) each(`(?<![\\w-])${anyCase(name)}(?!\\w)`, (at, to) => add(at, to, 'private repository or record'));
     for (const phrase of HISTORY_PHRASES) each(anyCase(phrase), (at, to) => add(at, to, 'history note'));
 
+    // "owner decision L1", "legal answer 5", "decided on 2026-11-16", "(decision 11)": a decision
+    // cited instead of the rule it made. Its date is part of it.
+    const decided: Array<[number, number]> = [];
+    each(DECISION, (at, to) => {
+        decided.push([at, to]);
+        add(at, to, 'cited decision');
+    });
+
     // "(2026-10-26)", "policy 2026-10-05", "since 2026-09-06": the day something
     // was decided or happened. A quoted date, a timestamp and a `name: date`
     // or `--flag date` value are data.
     each('(?<!\\w)20\\d\\d-\\d\\d-\\d\\d(?!\\w)(?!-\\d)', (at, to) => {
         if (PUBLIC_DATES[s.slice(at, to)]) return;
+        if (decided.some(([from, end]) => at >= from && at < end)) return;
         const before = s[at - 1] ?? ' ';
         const word = s.slice(s.lastIndexOf(' ', at - 2) + 1, Math.max(at - 1, 0));
         if (before === '(' || (before === ' ' && /^[A-Za-z,(]+$/.test(word))) add(at, to, 'history note');
@@ -407,6 +432,31 @@ export const SCANNER_EXAMPLES: Array<[string, string[]]> = [
     ['<!-- env-registry:begin (generated from src/env_vars.rs) -->', []],
     ['issue #42 and PR #43 of the repository; `&#169;`; SHA-256, UTF-8, SEP-1024', []],
     ['a two-phase commit; Phase Inversion', []],
+    // A decision cited instead of the rule it made.
+    [
+        '# Owner decision (legal answer 5, 2026-11-16): ship them unmodified\n# (owner decision\n# L1); decided on 2026-11-16, decision of 2026-11-17',
+        [
+            '1: cited decision: Owner decision',
+            '1: cited decision: legal answer 5',
+            '2: cited decision: owner decision L1',
+            '3: cited decision: decided on 2026-11-16',
+            '3: cited decision: decision of 2026-11-17',
+        ],
+    ],
+    [
+        'the chunk size (decision 13), Decision Q12 and decisions 5; owner ruling, legal answers #4',
+        [
+            '1: cited decision: decision 13',
+            '1: cited decision: Decision Q12',
+            '1: cited decision: decisions 5',
+            '1: cited decision: owner ruling',
+            '1: cited decision: legal answers #4',
+        ],
+    ],
+    [
+        'a decision tree; the caller decides; decisions are logged; decided on the order\nwaits for a decision: 1 to 300 seconds; decision_1 = 0; the owner of a decision; the resource owner decides; a legal answer',
+        [],
+    ],
     ['<path d="M12 9v2m0 4h.01 M4 6h16 M4,12 S3 -1.5 2"/>', []],
 ];
 

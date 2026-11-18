@@ -521,6 +521,7 @@ struct SoftwareClaims {
     iss: String,
     sub: String,
     exp: usize,
+    iat: usize,
     aud: String,
     software_id: String,
     software_version: String,
@@ -543,6 +544,15 @@ async fn a_verified_tokens_claims_outrank_every_declared_carrier(pool: PgPool) {
     )
     .await;
     seed_agent_with_idp(&pool, "agent-impl-wl", t, "idp-impl", "spiffe://acme/impl").await;
+    common::seed_resource_group(&pool, "rg-impl-wl", t).await;
+    sqlx::query(
+        "INSERT INTO resource_group_agent_members (tenant_id, agent_id, group_id, joined_at) \
+         VALUES ($1, 'agent-impl-wl', 'rg-impl-wl', now())",
+    )
+    .bind(t)
+    .execute(&pool)
+    .await
+    .expect("membership");
 
     let mut header = jsonwebtoken::Header::new(jsonwebtoken::Algorithm::RS256);
     header.kid = Some("kid-impl".into());
@@ -552,6 +562,7 @@ async fn a_verified_tokens_claims_outrank_every_declared_carrier(pool: PgPool) {
             iss: issuer.into(),
             sub: "spiffe://acme/impl".into(),
             exp: (crate::common::db_now().timestamp() + 3600) as usize,
+            iat: crate::common::db_now().timestamp() as usize,
             aud: super::workload_identity::WL_AUDIENCE.into(),
             software_id: "Verified-Agent".into(),
             software_version: "1.4.2".into(),

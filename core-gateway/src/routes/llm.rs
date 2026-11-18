@@ -6010,7 +6010,7 @@ pub(crate) async fn list_models(
         Err(resp) => return resp,
     };
 
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -6024,6 +6024,9 @@ pub(crate) async fn list_models(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     // Resolve which resource groups the user belongs to
     // An unreadable membership list is a 503, not an empty catalogue.
@@ -6141,7 +6144,7 @@ pub(crate) async fn get_model(
         Err(resp) => return resp,
     };
 
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -6155,6 +6158,9 @@ pub(crate) async fn get_model(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     // Resolve the model by ID or name (slug stamped post-load).
     let model: Result<Option<crate::models::db::LlmModel>, sqlx::Error> = sqlx::query_as(concat!(
@@ -7315,7 +7321,7 @@ pub(crate) async fn record_probe_result(
     // here (this IS the probe-recording endpoint); we want the
     // standard auth → group resolution so the usage_log lands in
     // the right group.
-    let auth = match crate::services::auth::authenticate_request(
+    let mut auth = match crate::services::auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -7332,6 +7338,9 @@ pub(crate) async fn record_probe_result(
             return error_response(StatusCode::UNAUTHORIZED, "authentication failed");
         }
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
     // Probe results feed a model's health counters and the usage
     // ledger. Only the platform's own prober may write them: any other key
     // could fake a model's health or write usage rows for it.

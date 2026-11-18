@@ -108,6 +108,34 @@ impl Credential {
     }
 }
 
+/// Why the agent's credential was refused.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Why {
+    /// The agent identity is disabled, revoked, expired or not `active`
+    /// (401: the caller is told nothing more).
+    AgentDoesNotStand,
+    /// The agent stands but is a member of no active group of the tenant
+    /// (403 `AGENT_NOT_BOUND`).
+    AgentNotBound,
+}
+
+impl Why {
+    /// The status the caller was answered with.
+    pub fn status(self) -> u16 {
+        match self {
+            Why::AgentDoesNotStand => 401,
+            Why::AgentNotBound => 403,
+        }
+    }
+
+    fn slot(self) -> &'static str {
+        match self {
+            Why::AgentDoesNotStand => "",
+            Why::AgentNotBound => "unbound:",
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // The route
 // ---------------------------------------------------------------------------
@@ -346,6 +374,7 @@ pub async fn scope<F: std::future::Future>(scope: RequestScope, fut: F) -> F::Ou
 #[derive(Debug, Clone)]
 pub struct Refused {
     pub credential: Credential,
+    pub why: Why,
     /// The tenant that owns the credential (the key's, the agent's).
     pub tenant_id: String,
     pub agent_id: String,
@@ -357,9 +386,10 @@ pub struct Refused {
 
 impl Refused {
     fn slot_key(&self) -> String {
+        let why = self.why.slot();
         match &self.api_key_id {
-            Some(id) => format!("key:{id}"),
-            None => format!("agent:{}:{}", self.tenant_id, self.agent_id),
+            Some(id) => format!("{why}key:{id}"),
+            None => format!("{why}agent:{}:{}", self.tenant_id, self.agent_id),
         }
     }
 }
@@ -496,7 +526,24 @@ pub fn record(refused: Refused) {
 fn build_row(due: &Due) -> crate::models::db::ProxyLogInsert {
     let Due { first, count } = due;
     let refused = &first.refused;
+    // The credential that was presented and refused.
+    let presented = match refused.credential {
+        Credential::ApiKey => crate::models::auth::Credential::api_key(
+            refused.api_key_id.as_deref().unwrap_or_default(),
+            false,
+        ),
+        Credential::WorkloadToken => crate::models::auth::Credential {
+            kind: crate::models::auth::CredentialKind::WorkloadToken,
+            assurance: Some(crate::models::auth::CredentialAssurance::Workload),
+            reference: None,
+        },
+    };
     let auth = AuthContext {
+        credential_kind: presented.kind,
+        credential_assurance: presented.assurance,
+        credential_ref: presented.reference,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: match refused.credential {
             Credential::ApiKey => AuthType::ApiKey,
             Credential::WorkloadToken => AuthType::IdpOauth,
@@ -523,13 +570,23 @@ fn build_row(due: &Due) -> crate::models::db::ProxyLogInsert {
         agent_impl: first.carriers.clone(),
         admission_hold: None,
     };
-    let reason = format!(
-        "agent_credential_refused: the agent identity is disabled, revoked, expired or not \
-         active ({}; {} refusal{} since the previous record)",
-        refused.credential.as_str(),
-        count,
-        if *count == 1 { "" } else { "s" }
-    );
+    let plural = if *count == 1 { "" } else { "s" };
+    let reason = match refused.why {
+        Why::AgentDoesNotStand => format!(
+            "agent_credential_refused: the agent identity is disabled, revoked, expired or not \
+             active ({}; {} refusal{} since the previous record)",
+            refused.credential.as_str(),
+            count,
+            plural
+        ),
+        Why::AgentNotBound => format!(
+            "AGENT_NOT_BOUND: the agent is a member of no active resource group of this tenant \
+             ({}; {} refusal{} since the previous record)",
+            refused.credential.as_str(),
+            count,
+            plural
+        ),
+    };
     let correlation_id = ulid::Ulid::new().to_string();
     let (proxy_type, endpoint) = match &first.route {
         Some(route) => (route.proxy_type, route.label.as_str()),
@@ -542,7 +599,7 @@ fn build_row(due: &Due) -> crate::models::db::ProxyLogInsert {
         endpoint,
         None,
         None,
-        401,
+        refused.why.status(),
         0.0,
         false,
         Some(&reason),
@@ -678,6 +735,7 @@ mod tests {
     fn refused(key: &str) -> Refused {
         Refused {
             credential: Credential::ApiKey,
+            why: Why::AgentDoesNotStand,
             tenant_id: "t".into(),
             agent_id: "a".into(),
             api_key_id: Some(key.into()),

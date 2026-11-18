@@ -433,6 +433,19 @@ async fn visible_task(
 ///
 /// On failure, returns the spec-shaped error envelope (`A2aError`)
 /// directly so handlers can `?` their way through.
+/// An authentication or identity refusal as an A2A error. All failure modes
+/// (missing/invalid key, invalid JWT) surface as UNAUTHENTICATED — the HTTP
+/// binding uses 401 for these and the spec keeps the table of A2A-specific
+/// errors (section 5.4) free of auth entries. By the status authentication
+/// assigned (401 / 403), not UNSUPPORTED_OPERATION / 400 for every failure.
+fn a2a_auth_error(e: &auth::AuthError) -> A2aError {
+    A2aError::new(
+        A2aErrorKind::for_auth_status(e.status_code()),
+        e.to_string(),
+    )
+    .with_metadata("code", e.status_code().as_u16().to_string())
+}
+
 async fn resolve_request(
     state: &SharedState,
     headers: &HeaderMap,
@@ -482,8 +495,9 @@ async fn resolve_request(
         .with_metadata("tenantId", tenant_id));
     }
 
-    // Auth — same waterfall as the rest of the proxy.
-    let auth_ctx = auth::authenticate_request(
+    // Auth — same waterfall as the rest of the proxy — and the identity
+    // judge.
+    let mut auth_ctx = auth::authenticate_request(
         headers,
         tenant_id,
         &state.config.jwt_secret,
@@ -493,20 +507,10 @@ async fn resolve_request(
         true,
     )
     .await
-    .map_err(|e| {
-        // Map auth failures to spec error kinds. All failure modes
-        // (missing/invalid key, invalid JWT) surface as
-        // UNAUTHENTICATED — the HTTP binding uses 401 for these and
-        // the spec keeps the table of A2A-specific errors (section 5.4)
-        // free of auth entries.
-        // By the status authentication assigned (401 / 403), not
-        // UNSUPPORTED_OPERATION / 400 for every failure.
-        A2aError::new(
-            A2aErrorKind::for_auth_status(e.status_code()),
-            e.to_string(),
-        )
-        .with_metadata("code", e.status_code().as_u16().to_string())
-    })?;
+    .map_err(|e| a2a_auth_error(&e))?;
+    crate::services::identity_policy::judge_call(state, &mut auth_ctx)
+        .await
+        .map_err(|e| a2a_auth_error(&e))?;
 
     // Card lookup.
     let card = load_agent_card_by_name(&state, tenant_id, card_name)
@@ -4064,6 +4068,11 @@ mod tests {
 
     fn stub_auth_ctx(tenant_id: &str) -> AuthContext {
         AuthContext {
+            credential_kind: crate::models::auth::CredentialKind::Anonymous,
+            credential_assurance: None,
+            credential_ref: None,
+            credential_detail: Default::default(),
+            identity_verdict: None,
             auth_type: crate::models::auth::AuthType::Anonymous,
             tenant_id: tenant_id.to_string(),
             gateway_user_id: None,

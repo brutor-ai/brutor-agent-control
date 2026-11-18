@@ -54,8 +54,7 @@ prometheus = { version = "0.13", default-features = false }
 # written against this crate's regex syntax; keep the two in step.
 regex-lite = "0.1"
 
-# Time / IDs
-chrono = { version = "0.4", features = ["serde"] }
+# IDs
 ulid = "1"
 
 # Error handling

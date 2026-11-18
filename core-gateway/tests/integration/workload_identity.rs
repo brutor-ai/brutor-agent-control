@@ -57,6 +57,9 @@ struct Claims {
     iss: String,
     sub: String,
     exp: usize,
+    /// Required by the verifier; the helpers issue the token one ceiling
+    /// (3600 s) before it expires.
+    iat: usize,
     #[serde(skip_serializing_if = "Option::is_none")]
     aud: Option<serde_json::Value>,
 }
@@ -76,9 +79,17 @@ fn mint(
         iss: issuer.to_string(),
         sub: sub.to_string(),
         exp,
+        iat: exp.saturating_sub(3600),
         aud,
     };
     encode(&header, &claims, key).expect("mint token")
+}
+
+/// A token with exactly these claims (RS256, the test key).
+pub(crate) fn mint_claims(kid: &str, claims: serde_json::Value) -> String {
+    let mut header = Header::new(jsonwebtoken::Algorithm::RS256);
+    header.kid = Some(kid.to_string());
+    encode(&header, &claims, &rsa_key()).expect("mint token")
 }
 
 fn rsa_key() -> EncodingKey {
@@ -339,9 +350,11 @@ async fn tampered_workload_token_is_rejected(pool: PgPool) {
 /// the error, so every workload-token agent fell back to whatever group the
 /// caller named in `x-resource-group`. The agent must act in its OWN group.
 ///
-/// The header selects among the agent's own groups.
-/// With none named the agent acts in its oldest membership; naming a group
-/// it is a member of selects it; naming any other group is a refusal (403).
+/// The header selects among the agent's own groups. Naming a group it is a
+/// member of selects it; naming any other group is a refusal (403). With
+/// none named, an agent in one group acts there; an agent in several is
+/// refused (`resource_group_required`): which group governs a call is never
+/// guessed. An agent in no group is refused (`AGENT_NOT_BOUND`).
 #[sqlx::test(migrations = "./tests/migrations")]
 async fn a_workload_agent_acts_in_its_own_group_not_the_header_group(pool: PgPool) {
     let t = "tenant-wl-grp";
@@ -397,11 +410,7 @@ async fn a_workload_agent_acts_in_its_own_group_not_the_header_group(pool: PgPoo
         }
     };
 
-    for (named, acts_in) in [
-        (None, "rg-own"),
-        (Some("rg-own"), "rg-own"),
-        (Some("rg-second"), "rg-second"),
-    ] {
+    for (named, acts_in) in [(Some("rg-own"), "rg-own"), (Some("rg-second"), "rg-second")] {
         let auth = authenticate(named)
             .await
             .expect("the workload token authenticates");
@@ -430,15 +439,75 @@ async fn a_workload_agent_acts_in_its_own_group_not_the_header_group(pool: PgPoo
         assert_eq!(refused.status_code(), axum::http::StatusCode::FORBIDDEN);
     }
 
-    // In no group: authenticated, bound to none; a named group is refused.
+    // In two groups and naming none: refused, never the oldest membership.
+    let refused = authenticate(None)
+        .await
+        .expect_err("an agent in several groups must name one");
+    assert!(
+        matches!(
+            refused,
+            brutor_gateway_core::services::auth::AuthError::GroupRequired
+        ),
+        "{refused:?}"
+    );
+    assert_eq!(refused.status_code(), axum::http::StatusCode::FORBIDDEN);
+    assert!(refused.to_string().starts_with("resource_group_required: "));
+
+    // In one group: that group, named or not.
+    sqlx::query(
+        "DELETE FROM resource_group_agent_members \
+          WHERE agent_id = 'agent-wl-grp' AND group_id = 'rg-second'",
+    )
+    .execute(&pool)
+    .await
+    .expect("leave one");
+    for named in [None, Some("rg-own")] {
+        let auth = authenticate(named).await.expect("one group");
+        assert_eq!(
+            auth.resolved_group_id.as_deref(),
+            Some("rg-own"),
+            "{named:?}"
+        );
+    }
+    assert!(authenticate(Some("rg-second")).await.is_err());
+
+    // In no group: refused, named or not.
     sqlx::query("DELETE FROM resource_group_agent_members WHERE agent_id = 'agent-wl-grp'")
         .execute(&pool)
         .await
         .expect("leave");
-    let auth = authenticate(None).await.expect("authenticates");
-    assert_eq!(auth.resolved_group_id, None);
-    assert_eq!(auth.bound_group_id(), None);
-    assert!(authenticate(Some("rg-own")).await.is_err());
+    for named in [None, Some("rg-own")] {
+        let refused = authenticate(named)
+            .await
+            .expect_err("an agent in no group is not bound");
+        assert!(
+            matches!(
+                refused,
+                brutor_gateway_core::services::auth::AuthError::AgentNotBound
+            ),
+            "{named:?}: {refused:?}"
+        );
+        assert_eq!(refused.status_code(), axum::http::StatusCode::FORBIDDEN);
+        assert!(refused.to_string().starts_with("AGENT_NOT_BOUND: "));
+    }
+
+    // A membership of an inactive group is no membership.
+    sqlx::query(
+        "INSERT INTO resource_group_agent_members (tenant_id, agent_id, group_id, joined_at) \
+         VALUES ($1, 'agent-wl-grp', 'rg-other', clock_timestamp())",
+    )
+    .bind(t)
+    .execute(&pool)
+    .await
+    .expect("membership");
+    sqlx::query("UPDATE resource_groups SET is_active = false WHERE id = 'rg-other'")
+        .execute(&pool)
+        .await
+        .expect("deactivate");
+    assert!(matches!(
+        authenticate(None).await,
+        Err(brutor_gateway_core::services::auth::AuthError::AgentNotBound)
+    ));
 }
 
 /// One IdP + agent per test (unique ids keep the JWKS cache apart), and
@@ -661,4 +730,289 @@ async fn an_hs256_token_signed_with_the_public_rsa_key_is_rejected(pool: PgPool)
         )
         .await
     );
+}
+
+/// The claims of a well-formed token for `issuer`, issued `age` seconds ago
+/// and living `lifetime` seconds, on the database clock.
+fn claims_at(issuer: &str, sub: &str, age: i64, lifetime: i64) -> serde_json::Value {
+    let now = crate::common::db_now().timestamp();
+    let iat = now - age;
+    serde_json::json!({
+        "iss": issuer, "sub": sub, "aud": WL_AUDIENCE,
+        "iat": iat, "exp": iat + lifetime,
+    })
+}
+
+/// One IdP and agent for the lifetime tests; whether `claims` resolve.
+async fn resolves_claims(pool: &PgPool, n: &str, claims: serde_json::Value) -> bool {
+    let jwks = mock_jwks(&format!("kid-{n}")).await;
+    let kid = format!("kid-{n}");
+    resolves(
+        pool,
+        n,
+        &jwks,
+        Some(serde_json::json!([WL_AUDIENCE])),
+        |iss| {
+            let mut claims = claims;
+            claims["iss"] = serde_json::json!(iss);
+            mint_claims(&kid, claims)
+        },
+    )
+    .await
+}
+
+/// `iat` is required: a token that does not say when it was issued has no
+/// lifetime the gateway can hold to a ceiling.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn a_workload_token_without_iat_is_refused(pool: PgPool) {
+    let mut claims = claims_at("x", "spiffe://acme/agent", 0, 600);
+    claims.as_object_mut().unwrap().remove("iat");
+    assert!(!resolves_claims(&pool, "noiat", claims).await);
+    // Control: the same token with `iat`.
+    let claims = claims_at("x", "spiffe://acme/agent", 0, 600);
+    assert!(resolves_claims(&pool, "withiat", claims).await);
+}
+
+/// `exp - iat` at most 3600 s: a year-long token is a key with a signature.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn a_workload_token_living_longer_than_the_ceiling_is_refused(pool: PgPool) {
+    assert!(
+        resolves_claims(
+            &pool,
+            "life3600",
+            claims_at("x", "spiffe://acme/agent", 0, 3600)
+        )
+        .await
+    );
+    assert!(
+        !resolves_claims(
+            &pool,
+            "life3601",
+            claims_at("x", "spiffe://acme/agent", 0, 3601)
+        )
+        .await
+    );
+    assert!(
+        !resolves_claims(
+            &pool,
+            "lifeyear",
+            claims_at("x", "spiffe://acme/agent", 0, 365 * 86_400)
+        )
+        .await
+    );
+}
+
+/// 60 s of clock skew on `iat`: a token issued 30 s in the future (the
+/// IdP's clock is ahead) is accepted; one issued 120 s in the future is not.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn iat_in_the_future_has_sixty_seconds_of_leeway(pool: PgPool) {
+    assert!(
+        resolves_claims(
+            &pool,
+            "iat30",
+            claims_at("x", "spiffe://acme/agent", -30, 600)
+        )
+        .await
+    );
+    assert!(
+        !resolves_claims(
+            &pool,
+            "iat120",
+            claims_at("x", "spiffe://acme/agent", -120, 600)
+        )
+        .await
+    );
+}
+
+/// `nbf` is honoured, with the same 60 s leeway.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn nbf_is_honoured_with_sixty_seconds_of_leeway(pool: PgPool) {
+    let now = crate::common::db_now().timestamp();
+    let mut soon = claims_at("x", "spiffe://acme/agent", 0, 600);
+    soon["nbf"] = serde_json::json!(now + 30);
+    assert!(resolves_claims(&pool, "nbf30", soon).await);
+    let mut later = claims_at("x", "spiffe://acme/agent", 0, 600);
+    later["nbf"] = serde_json::json!(now + 120);
+    assert!(!resolves_claims(&pool, "nbf120", later).await);
+}
+
+/// `exp` with 60 s of leeway: expired 30 s ago still verifies, 120 s ago not.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn exp_has_sixty_seconds_of_leeway(pool: PgPool) {
+    assert!(
+        resolves_claims(
+            &pool,
+            "exp30",
+            claims_at("x", "spiffe://acme/agent", 630, 600)
+        )
+        .await
+    );
+    assert!(
+        !resolves_claims(
+            &pool,
+            "exp120",
+            claims_at("x", "spiffe://acme/agent", 720, 600)
+        )
+        .await
+    );
+}
+
+/// `sub` is required: a token with none names no agent.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn a_workload_token_without_sub_is_refused(pool: PgPool) {
+    let mut claims = claims_at("x", "spiffe://acme/agent", 0, 600);
+    claims.as_object_mut().unwrap().remove("sub");
+    assert!(!resolves_claims(&pool, "nosub", claims).await);
+}
+
+/// The verified lifetime travels with the principal: the identity judge
+/// holds it to the policy's ceiling.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn the_verified_token_lifetime_is_reported(pool: PgPool) {
+    common::seed_tenant(&pool, "tenant-wl-life").await;
+    let jwks = mock_jwks("kid-life").await;
+    let issuer = "https://idp.life.example/";
+    seed_idp(
+        &pool,
+        "idp-wl-life",
+        "tenant-wl-life",
+        issuer,
+        &format!("{}/jwks", jwks.uri()),
+    )
+    .await;
+    seed_agent_with_idp(
+        &pool,
+        "agent-wl-life",
+        "tenant-wl-life",
+        "idp-wl-life",
+        "spiffe://acme/life",
+    )
+    .await;
+    let token = mint_claims("kid-life", claims_at(issuer, "spiffe://acme/life", 0, 900));
+    let resolved = resolve_agent_from_token(&pool, "tenant-wl-life", &token)
+        .await
+        .expect("no db error")
+        .expect("resolves");
+    assert_eq!(resolved.token_lifetime_s, 900);
+}
+
+/// A burst of tokens naming key ids the IdP does not have makes the gateway
+/// fetch the IdP's key set at most once more (the refetch a key rotation
+/// needs), not once per token: a forced refetch waits its minimum interval.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn unknown_key_ids_do_not_make_the_gateway_fetch_on_every_request(pool: PgPool) {
+    common::seed_tenant(&pool, "tenant-wl-kid").await;
+    let jwks = mock_jwks("kid-real").await;
+    let issuer = "https://idp.kidburst.example/";
+    seed_idp(
+        &pool,
+        "idp-wl-kidburst",
+        "tenant-wl-kid",
+        issuer,
+        &format!("{}/jwks", jwks.uri()),
+    )
+    .await;
+    seed_agent_with_idp(
+        &pool,
+        "agent-wl-kid",
+        "tenant-wl-kid",
+        "idp-wl-kidburst",
+        "spiffe://acme/kid",
+    )
+    .await;
+
+    // The real key verifies (first fetch).
+    let good = mint_claims("kid-real", claims_at(issuer, "spiffe://acme/kid", 0, 600));
+    assert!(
+        resolve_agent_from_token(&pool, "tenant-wl-kid", &good)
+            .await
+            .unwrap()
+            .is_some()
+    );
+    let fetches = || async { jwks.received_requests().await.unwrap_or_default().len() };
+    assert_eq!(fetches().await, 1);
+
+    // Twenty tokens with random key ids: one forced refetch, then none.
+    for i in 0..20 {
+        let forged = mint_claims(
+            &format!("kid-random-{i}"),
+            claims_at(issuer, "spiffe://acme/kid", 0, 600),
+        );
+        assert!(
+            resolve_agent_from_token(&pool, "tenant-wl-kid", &forged)
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+    assert_eq!(
+        fetches().await,
+        2,
+        "a burst of unknown key ids fetched the IdP's key set more than once"
+    );
+    // The cached key set still verifies the real key meanwhile.
+    assert!(
+        resolve_agent_from_token(&pool, "tenant-wl-kid", &good)
+            .await
+            .unwrap()
+            .is_some()
+    );
+    assert_eq!(fetches().await, 2);
+}
+
+/// Two identity providers of one tenant with the same issuer: which one
+/// verifies a token must never be the database's arbitrary choice. Either
+/// the database refuses the second row, or the gateway refuses the token.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn an_issuer_two_idps_share_is_ambiguous_and_refused(pool: PgPool) {
+    let t = "tenant-wl-dup";
+    common::seed_tenant(&pool, t).await;
+    let jwks = mock_jwks("kid-dup").await;
+    let issuer = "https://idp.dup.example/";
+    let uri = format!("{}/jwks", jwks.uri());
+    seed_idp(&pool, "idp-wl-dup-a", t, issuer, &uri).await;
+    seed_agent_with_idp(
+        &pool,
+        "agent-wl-dup",
+        t,
+        "idp-wl-dup-a",
+        "spiffe://acme/dup",
+    )
+    .await;
+    let token = mint_claims("kid-dup", claims_at(issuer, "spiffe://acme/dup", 0, 600));
+    assert!(
+        resolve_agent_from_token(&pool, t, &token)
+            .await
+            .unwrap()
+            .is_some()
+    );
+
+    let second = sqlx::query(
+        "INSERT INTO idp_servers \
+         (id, tenant_id, name, issuer, type, jwks_uri, supports_pkce, supports_refresh_tokens, \
+          supports_client_credentials, token_endpoint_auth_methods, scopes_supported, \
+          response_types_supported, grant_types_supported, discovery_cache_ttl, enabled, verified, \
+          workload_audiences, created_at, updated_at, protocol) \
+         VALUES ('idp-wl-dup-b', $1, 'b', $2, 'oidc', $3, false, false, false, '[]'::json, \
+                 '[]'::json, '[]'::json, '[]'::json, 3600, true, true, $4, now(), now(), 'oidc')",
+    )
+    .bind(t)
+    .bind(issuer)
+    .bind(&uri)
+    .bind(sqlx::types::Json(serde_json::json!([WL_AUDIENCE])))
+    .execute(&pool)
+    .await;
+    if second.is_err() {
+        // The schema refuses the ambiguity itself.
+        return;
+    }
+    for _ in 0..5 {
+        assert!(
+            resolve_agent_from_token(&pool, t, &token)
+                .await
+                .unwrap()
+                .is_none(),
+            "a token whose issuer two IdPs share was verified against one of them"
+        );
+    }
 }

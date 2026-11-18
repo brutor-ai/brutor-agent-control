@@ -114,6 +114,16 @@ fn token() -> String {
 
 /// The context authentication makes of the agent's token.
 async fn agent_context(pool: &PgPool, group: Option<&str>) -> AuthContext {
+    try_agent_context(pool, group)
+        .await
+        .expect("the workload token authenticates")
+}
+
+/// [`agent_context`], or authentication's refusal.
+async fn try_agent_context(
+    pool: &PgPool,
+    group: Option<&str>,
+) -> Result<AuthContext, auth::AuthError> {
     let mut headers = HeaderMap::new();
     headers.insert(
         "authorization",
@@ -134,7 +144,6 @@ async fn agent_context(pool: &PgPool, group: Option<&str>) -> AuthContext {
         true,
     )
     .await
-    .expect("the workload token authenticates")
 }
 
 async fn mcp_groups(pool: &PgPool, ctx: &AuthContext, server: &str) -> Vec<String> {
@@ -153,7 +162,7 @@ async fn mcp_server_access_is_the_agents_acting_group(pool: PgPool) {
     join(&pool, RG).await;
     join(&pool, RG_B).await;
 
-    let ctx = agent_context(&pool, None).await;
+    let ctx = agent_context(&pool, Some(RG)).await;
     assert_eq!(mcp_groups(&pool, &ctx, SERVER).await, vec![RG.to_string()]);
     assert_eq!(
         usage::resolve_mcp_server_access(&pool, &ctx, T, SERVER)
@@ -182,20 +191,21 @@ async fn mcp_server_access_is_the_agents_acting_group(pool: PgPool) {
 async fn the_target_group_is_the_agents_acting_group_never_default(pool: PgPool) {
     let _world = seed(&pool).await;
 
-    // In no group: no group. Not the tenant's Default.
-    let ctx = agent_context(&pool, None).await;
-    assert_eq!(
-        usage::resolve_target_group(&pool, &ctx, T)
-            .await
-            .map(|g| g.id),
-        None,
-        "an agent in no group was given a group"
-    );
-    assert!(mcp_groups(&pool, &ctx, SERVER_DEFAULT).await.is_empty());
+    // In no group: refused at authentication, never given the tenant's
+    // Default.
+    assert!(matches!(
+        try_agent_context(&pool, None).await,
+        Err(auth::AuthError::AgentNotBound)
+    ));
 
     join(&pool, RG).await;
     join(&pool, RG_B).await;
-    let ctx = agent_context(&pool, None).await;
+    // In two and naming none: refused, never the oldest.
+    assert!(matches!(
+        try_agent_context(&pool, None).await,
+        Err(auth::AuthError::GroupRequired)
+    ));
+    let ctx = agent_context(&pool, Some(RG)).await;
     assert_eq!(
         usage::resolve_target_group(&pool, &ctx, T)
             .await
@@ -218,14 +228,11 @@ async fn the_target_group_is_the_agents_acting_group_never_default(pool: PgPool)
 async fn the_skill_scope_is_the_agents_acting_group_never_everything(pool: PgPool) {
     let _world = seed(&pool).await;
 
-    let ctx = agent_context(&pool, None).await;
-    assert_eq!(
-        system_server::resolve_scoping_group_ids(&pool, &ctx)
-            .await
-            .expect("scope"),
-        Some(Vec::new()),
-        "an agent in no group is offered no skill"
-    );
+    // An agent in no group is refused before any skill is offered.
+    assert!(matches!(
+        try_agent_context(&pool, None).await,
+        Err(auth::AuthError::AgentNotBound)
+    ));
 
     join(&pool, RG).await;
     let ctx = agent_context(&pool, None).await;

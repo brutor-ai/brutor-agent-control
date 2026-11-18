@@ -12,8 +12,12 @@
 //! 2. **Gateway JWT**: Decodes internal `X-Gateway-Authorization` tokens for inter-service or dashboard access.
 //!    Whether a token is a credential, and whether its session stands, is asked of the token-type
 //!    registry (`services::credential_verifier`): a `typ` nobody registered is refused.
-//! 3. **OAuth Passthrough**: Supports bearer tokens intended for upstream providers or MCP servers.
+//! 3. **Workload identity**: any other bearer is verified as an agent's own token against an
+//!    identity provider of the tenant (`services::workload_identity`); anything else is refused.
 //! 4. **Anonymous**: Optional fallback for public-facing health or version endpoints.
+//!
+//! Each strategy states the credential facts (`credential_kind`, `credential_assurance`,
+//! `credential_ref`) of the context it makes, once, with a `models::auth::Credential` constructor.
 //!
 //! ### Performance & Security:
 //! - **Background Updates**: API key usage counts and timestamps are updated via non-blocking `tokio::spawn`.
@@ -27,16 +31,15 @@ use jsonwebtoken::{DecodingKey, Validation, decode};
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 
-use crate::models::auth::{AuthContext, AuthType, GatewayJwtClaims};
+use crate::models::auth::{AuthContext, AuthType, Credential, GatewayJwtClaims};
 use crate::models::db::ApiKey;
 use crate::services::credential_verifier::{CredentialVerifiers, VerifiedCredential};
 
 /// Authenticate a proxy request using the multi-strategy priority:
 ///   1. API Key (X-API-Key or Authorization: Bearer sk_brutor_api_...)
 ///   2. Gateway JWT (X-Gateway-Authorization)
-///   3. IdP OAuth (Authorization header — verified via token manager)
-///   4. OAuth passthrough (unverified Authorization)
-///   5. Anonymous
+///   3. Workload identity (Authorization header, verified against the tenant's IdP)
+///   4. Anonymous
 ///      Extract the caller's active resource group from the
 ///      `x-resource-group` request header. The portal stamps this on every
 ///      request to identify the workspace the user is currently in.
@@ -62,24 +65,26 @@ pub(crate) fn active_group_from_headers(headers: &HeaderMap) -> Option<String> {
 ///   whose group is an active group of the request's tenant. A membership
 ///   of an inactive group, or of another tenant's group, is no membership
 ///   (a key of an inactive group is refused the same way).
+/// * An agent with no membership is refused ([`AuthError::AgentNotBound`]),
+///   whatever it names: no group's limits and policies would govern it.
 /// * `requested` is the `x-resource-group` header. When the agent names a
 ///   group it is a member of, that group is the acting group. When it names
 ///   any other group — one it is not in, one that does not exist, another
 ///   tenant's — the request is refused ([`AuthError::GroupNotMember`]): the
 ///   agent is never served in the group it named and never moved to another
 ///   one.
-/// * With no group named: the oldest membership, so an agent in several
-///   groups resolves the same way on every request.
+/// * With no group named: the agent's group when it has exactly one. An
+///   agent in several is refused ([`AuthError::GroupRequired`]): which group
+///   governs a call is never guessed (an implicit choice is the kind of
+///   scoping that later surprises an auditor).
 ///
-/// `Ok(None)` = the agent is a member of no group and named none: it
-/// authenticates and no group's models, servers or limits are its. A lookup
-/// that fails is an error, never "no group".
+/// A lookup that fails is an error, never "no group".
 pub async fn agent_acting_group(
     db: &PgPool,
     tenant_id: &str,
     agent_id: &str,
     requested: Option<&str>,
-) -> Result<Option<String>, AuthError> {
+) -> Result<String, AuthError> {
     let memberships: Vec<String> = sqlx::query_scalar(
         "SELECT m.group_id FROM resource_group_agent_members m \
            JOIN resource_groups rg ON rg.id = m.group_id \
@@ -92,18 +97,25 @@ pub async fn agent_acting_group(
     .fetch_all(db)
     .await
     .map_err(|e| AuthError::Internal(format!("agent group lookup failed: {e}")))?;
-    match requested {
-        None => Ok(memberships.into_iter().next()),
-        Some(named) => match memberships.into_iter().find(|g| g == named) {
-            Some(group) => Ok(Some(group)),
-            None => {
-                tracing::warn!(
-                    %tenant_id, %agent_id, requested_group = %named,
-                    "workload agent refused: X-Resource-Group names a group it is not a member of"
-                );
-                Err(AuthError::GroupNotMember)
-            }
-        },
+    acting_group_of(&memberships, requested).inspect_err(|refusal| {
+        tracing::warn!(
+            %tenant_id, %agent_id, requested_group = ?requested, %refusal,
+            "workload agent refused: no acting group"
+        );
+    })
+}
+
+/// [`agent_acting_group`]'s rule, given the memberships.
+fn acting_group_of(memberships: &[String], requested: Option<&str>) -> Result<String, AuthError> {
+    match (memberships, requested) {
+        ([], _) => Err(AuthError::AgentNotBound),
+        (_, Some(named)) => memberships
+            .iter()
+            .find(|g| *g == named)
+            .cloned()
+            .ok_or(AuthError::GroupNotMember),
+        ([only], None) => Ok(only.clone()),
+        (_, None) => Err(AuthError::GroupRequired),
     }
 }
 
@@ -283,6 +295,7 @@ pub async fn authenticate_request(
                             crate::services::refused_agent_credential::Refused {
                                 credential:
                                     crate::services::refused_agent_credential::Credential::ApiKey,
+                                why: crate::services::refused_agent_credential::Why::AgentDoesNotStand,
                                 tenant_id: key.tenant_id.clone(),
                                 agent_id,
                                 api_key_id: Some(key.id.clone()),
@@ -338,7 +351,13 @@ pub async fn authenticate_request(
                     .as_ref()
                     .and_then(|v| serde_json::from_value::<Vec<String>>(v.clone()).ok());
 
+                let credential = Credential::api_key(&key.id, key.is_platform_service);
                 return Ok(AuthContext {
+                    credential_kind: credential.kind,
+                    credential_assurance: credential.assurance,
+                    credential_ref: credential.reference,
+                    credential_detail: Default::default(),
+                    identity_verdict: None,
                     auth_type: AuthType::ApiKey,
                     tenant_id: resolved_tenant.clone(),
                     gateway_user_id,
@@ -397,16 +416,11 @@ pub async fn authenticate_request(
 
     // 3/4. Authorization header — non-API-key bearer.
     //
-    // SECURITY: this branch used to silently accept *any* non-API-key
-    // bearer as `AuthType::OauthPassthrough`, which made the header a
-    // no-op authentication: a garbage string like
-    // `Bearer eyJ...garbage.garbage` passed auth, the request reached
-    // model-access check, and returned a misleading 403 ("no access")
-    // instead of the correct 401 ("not authenticated"). `OauthPassthrough`
-    // is only used as an audit label — nothing gates on it — so the
-    // silent-accept gave the operator no protection at all.
+    // SECURITY: a non-API-key bearer is never accepted unverified (a
+    // garbage string like `Bearer eyJ...garbage.garbage` is a 401, not an
+    // anonymous caller that reaches the model-access check).
     //
-    // New behaviour: the bearer must verify as a Gateway JWT. Some
+    // The bearer must verify as a Gateway JWT or a workload token. Some
     // clients ship the gateway token via the plain `Authorization`
     // header instead of `X-Gateway-Authorization`; accept that here.
     // Anything else is rejected as InvalidJwt → 401 + WWW-Authenticate.
@@ -458,6 +472,7 @@ pub async fn authenticate_request(
                             crate::services::refused_agent_credential::Refused {
                                 credential:
                                     crate::services::refused_agent_credential::Credential::WorkloadToken,
+                                why: crate::services::refused_agent_credential::Why::AgentDoesNotStand,
                                 tenant_id: tenant_id.to_string(),
                                 agent_id: agent_id.clone(),
                                 api_key_id: None,
@@ -468,20 +483,61 @@ pub async fn authenticate_request(
                         );
                     }
                     if let Ok(WorkloadToken::Agent(resolved)) = workload {
-                        // The ONE resource group the agent acts in: the
-                        // member group it names, else its oldest
-                        // membership (`agent_acting_group`). A failed
-                        // lookup, and a named group the agent is not a
-                        // member of, refuse the request: neither may
-                        // re-scope the agent.
-                        let agent_group = agent_acting_group(
+                        // The ONE resource group the agent acts in
+                        // (`agent_acting_group`): the member group it
+                        // names, else its only one. A failed lookup, an
+                        // agent in no group or in several that named none,
+                        // and a named group it is not a member of refuse
+                        // the request: none may re-scope the agent.
+                        let agent_group = match agent_acting_group(
                             db,
                             tenant_id,
                             &resolved.agent_id,
                             resolved_group_id.as_deref(),
                         )
-                        .await?;
+                        .await
+                        {
+                            Ok(group) => group,
+                            Err(AuthError::AgentNotBound) => {
+                                // Refusals are evidence: recorded as a
+                                // fallen agent's token is, bounded per agent.
+                                crate::services::refused_agent_credential::record(
+                                    crate::services::refused_agent_credential::Refused {
+                                        credential:
+                                            crate::services::refused_agent_credential::Credential::WorkloadToken,
+                                        why: crate::services::refused_agent_credential::Why::AgentNotBound,
+                                        tenant_id: tenant_id.to_string(),
+                                        agent_id: resolved.agent_id.clone(),
+                                        api_key_id: None,
+                                        api_key_name: None,
+                                        group_id: None,
+                                        client_ip: client_ip.clone(),
+                                    },
+                                );
+                                return Err(AuthError::AgentNotBound);
+                            }
+                            Err(refusal) => return Err(refusal),
+                        };
+                        // A subject too long to be named in the evidence
+                        // is no credential.
+                        let Some(credential) = Credential::workload_token(
+                            &resolved.idp_server_id,
+                            &resolved.idp_subject,
+                        ) else {
+                            return Err(AuthError::InvalidJwt(
+                                "the workload token's subject is too long".into(),
+                            ));
+                        };
+                        let credential_detail = crate::models::auth::CredentialDetail {
+                            idp_server_id: Some(resolved.idp_server_id.clone()),
+                            token_lifetime_s: Some(resolved.token_lifetime_s),
+                        };
                         return Ok(AuthContext {
+                            credential_kind: credential.kind,
+                            credential_assurance: credential.assurance,
+                            credential_ref: credential.reference,
+                            credential_detail,
+                            identity_verdict: None,
                             auth_type: AuthType::IdpOauth,
                             tenant_id: tenant_id.to_string(),
                             gateway_user_id: None,
@@ -501,8 +557,8 @@ pub async fn authenticate_request(
                             session_key: None,
                             session_token_type: None,
                             // Never the header's value as sent: the acting
-                            // group, or none.
-                            resolved_group_id: agent_group,
+                            // group.
+                            resolved_group_id: Some(agent_group),
                             actor_agent_id: Some(resolved.agent_id),
                             // The ONLY place a
                             // `verified` release can enter: the token's
@@ -537,7 +593,13 @@ pub async fn authenticate_request(
         return Err(AuthError::Unauthenticated);
     }
 
+    let credential = Credential::anonymous();
     Ok(AuthContext {
+        credential_kind: credential.kind,
+        credential_assurance: credential.assurance,
+        credential_ref: credential.reference,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: AuthType::Anonymous,
         tenant_id: tenant_id.to_string(),
         gateway_user_id: None,
@@ -580,7 +642,17 @@ async fn gateway_session(
     // The registry. An error is the refusal: there is no
     // path from here to a context except through `Ok`.
     let VerifiedCredential { token_type } = verifiers.verify(db, &claims).await?;
+    // A session type with no credential kind is no credential.
+    let credential =
+        session_credential(token_type, claims.user_id.as_deref()).ok_or_else(|| {
+            AuthError::InvalidJwt(format!("token type '{token_type}' has no credential kind"))
+        })?;
     Ok(AuthContext {
+        credential_kind: credential.kind,
+        credential_assurance: credential.assurance,
+        credential_ref: credential.reference,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: AuthType::GatewayJwt,
         tenant_id: claims
             .tenant_id
@@ -607,6 +679,26 @@ async fn gateway_session(
         agent_impl: crate::services::agent_impl::request_carriers(),
         admission_hold: None,
     })
+}
+
+/// The credential a verified gateway session token of `token_type` is: a
+/// first-party service token (`gateway`, signed with the installation's
+/// secret, which no tenant holds) is the platform's own; an administrator's
+/// or a portal user's session is a person's. `None` for a type with no
+/// mapping: such a token is no credential. No catch-all: a newly registered
+/// type is refused until it is mapped here (the class-level test lists every
+/// registered type).
+pub fn session_credential(token_type: &str, user_id: Option<&str>) -> Option<Credential> {
+    use crate::services::credential_verifier::{
+        TOKEN_TYPE_ADMIN, TOKEN_TYPE_GATEWAY, TOKEN_TYPE_PORTAL,
+    };
+    match token_type {
+        TOKEN_TYPE_GATEWAY => Some(Credential::gateway_token()),
+        TOKEN_TYPE_ADMIN | TOKEN_TYPE_PORTAL => {
+            Some(Credential::human_session(Some(token_type), user_id))
+        }
+        _ => None,
+    }
 }
 
 /// The tenant an API key acts for in a request that names `header_tenant`,
@@ -1031,6 +1123,31 @@ pub enum AuthError {
         "resource_group_not_member: X-Resource-Group names a resource group the agent is not a member of"
     )]
     GroupNotMember,
+    /// A workload agent that is a member of no active group of the tenant:
+    /// no group's limits and policies would govern it.
+    #[error("AGENT_NOT_BOUND: the agent is a member of no active resource group of this tenant")]
+    AgentNotBound,
+    /// A workload agent in several groups that named none in
+    /// `X-Resource-Group`: which one governs the call is never guessed.
+    #[error(
+        "resource_group_required: the agent is a member of several resource groups; name one in X-Resource-Group"
+    )]
+    GroupRequired,
+    /// The identity judge refused the credential under the call's policy
+    /// (`services::identity_policy`).
+    #[error(
+        "CREDENTIAL_ASSURANCE_INSUFFICIENT: this call requires credential level {}; this request presented {} ({}): {}",
+        required.as_str(),
+        presented.map_or("no credential", |level| level.as_str()),
+        presented_kind.as_str(),
+        reason.as_str()
+    )]
+    CredentialAssuranceInsufficient {
+        required: crate::models::auth::CredentialAssurance,
+        presented: Option<crate::models::auth::CredentialAssurance>,
+        presented_kind: crate::models::auth::CredentialKind,
+        reason: crate::services::identity_policy::Reason,
+    },
     #[error("Internal auth error: {0}")]
     Internal(String),
 
@@ -1058,6 +1175,13 @@ impl AuthError {
             AuthError::UnboundKey(_) => axum::http::StatusCode::FORBIDDEN,
             // A valid agent, acting where it has no membership.
             AuthError::GroupNotMember => axum::http::StatusCode::FORBIDDEN,
+            // A valid agent that no group governs, or that did not say which
+            // of its groups governs the call.
+            AuthError::AgentNotBound | AuthError::GroupRequired => {
+                axum::http::StatusCode::FORBIDDEN
+            }
+            // A valid credential below what the call's policy requires.
+            AuthError::CredentialAssuranceInsufficient { .. } => axum::http::StatusCode::FORBIDDEN,
             AuthError::Internal(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             AuthError::Unavailable(_) => axum::http::StatusCode::SERVICE_UNAVAILABLE,
         }
@@ -1570,6 +1694,11 @@ mod tests {
 
     fn ctx_with(session_token_type: Option<&'static str>) -> AuthContext {
         AuthContext {
+            credential_kind: crate::models::auth::CredentialKind::HumanSession,
+            credential_assurance: None,
+            credential_ref: None,
+            credential_detail: Default::default(),
+            identity_verdict: None,
             auth_type: AuthType::GatewayJwt,
             tenant_id: "t1".into(),
             gateway_user_id: Some("7".into()),
@@ -1690,6 +1819,69 @@ mod tests {
         );
     }
 
+    /// Class-level: every session token type a registry can verify maps to
+    /// a credential kind (the Community registry's, and the portal's, which
+    /// the Enterprise portal registers). A newly registered type with no
+    /// mapping is refused at authentication, and fails here first.
+    #[test]
+    fn every_registered_session_token_type_has_a_credential_kind() {
+        use crate::models::auth::CredentialKind;
+        let mut types = every_type().token_types();
+        types.sort_unstable();
+        assert_eq!(types, vec!["admin", "gateway", "portal"]);
+        for typ in types {
+            let credential = session_credential(typ, Some("7"))
+                .unwrap_or_else(|| panic!("session token type {typ:?} has no credential kind"));
+            assert!(
+                AuthType::GatewayJwt
+                    .credential_kinds()
+                    .contains(&credential.kind),
+                "{typ}"
+            );
+        }
+        assert_eq!(
+            session_credential("gateway", Some("7")).unwrap().kind,
+            CredentialKind::PlatformService
+        );
+        assert_eq!(
+            session_credential("admin", Some("12"))
+                .unwrap()
+                .reference
+                .as_deref(),
+            Some("session:admin:12")
+        );
+        assert!(session_credential("refresh", Some("7")).is_none());
+    }
+
+    #[test]
+    fn the_acting_group_rule() {
+        let one = vec!["rg-a".to_string()];
+        let two = vec!["rg-a".to_string(), "rg-b".to_string()];
+        assert!(matches!(
+            acting_group_of(&[], None),
+            Err(AuthError::AgentNotBound)
+        ));
+        assert!(matches!(
+            acting_group_of(&[], Some("rg-a")),
+            Err(AuthError::AgentNotBound)
+        ));
+        assert_eq!(acting_group_of(&one, None).unwrap(), "rg-a");
+        assert_eq!(acting_group_of(&one, Some("rg-a")).unwrap(), "rg-a");
+        assert!(matches!(
+            acting_group_of(&one, Some("rg-b")),
+            Err(AuthError::GroupNotMember)
+        ));
+        assert!(matches!(
+            acting_group_of(&two, None),
+            Err(AuthError::GroupRequired)
+        ));
+        assert_eq!(acting_group_of(&two, Some("rg-b")).unwrap(), "rg-b");
+        assert!(matches!(
+            acting_group_of(&two, Some("rg-c")),
+            Err(AuthError::GroupNotMember)
+        ));
+    }
+
     #[test]
     fn test_active_group_from_headers_none_when_absent_or_blank() {
         // Absent header → None.
@@ -1707,6 +1899,11 @@ mod tests {
     #[test]
     fn test_auth_context_guardrail_user_id_from_api_key_user() {
         let ctx = AuthContext {
+            credential_kind: crate::models::auth::CredentialKind::ApiKey,
+            credential_assurance: Some(crate::models::auth::CredentialAssurance::Key),
+            credential_ref: None,
+            credential_detail: Default::default(),
+            identity_verdict: None,
             auth_type: AuthType::ApiKey,
             tenant_id: "t1".into(),
             gateway_user_id: Some("group-uuid".into()),
@@ -1737,6 +1934,11 @@ mod tests {
     #[test]
     fn test_auth_context_guardrail_user_id_from_gateway_jwt() {
         let ctx = AuthContext {
+            credential_kind: crate::models::auth::CredentialKind::HumanSession,
+            credential_assurance: None,
+            credential_ref: None,
+            credential_detail: Default::default(),
+            identity_verdict: None,
             auth_type: AuthType::GatewayJwt,
             tenant_id: "t1".into(),
             gateway_user_id: Some("user-789".into()),
@@ -1767,6 +1969,11 @@ mod tests {
     #[test]
     fn test_auth_context_guardrail_group_scoped_key_returns_none() {
         let ctx = AuthContext {
+            credential_kind: crate::models::auth::CredentialKind::ApiKey,
+            credential_assurance: Some(crate::models::auth::CredentialAssurance::Key),
+            credential_ref: None,
+            credential_detail: Default::default(),
+            identity_verdict: None,
             auth_type: AuthType::ApiKey,
             tenant_id: "t1".into(),
             gateway_user_id: Some("group-uuid-123".into()),
@@ -1805,7 +2012,6 @@ mod tests {
         assert_eq!(AuthType::ApiKey.to_string(), "api_key");
         assert_eq!(AuthType::GatewayJwt.to_string(), "gateway_jwt");
         assert_eq!(AuthType::IdpOauth.to_string(), "idp_oauth");
-        assert_eq!(AuthType::OauthPassthrough.to_string(), "oauth_passthrough");
         assert_eq!(AuthType::Anonymous.to_string(), "anonymous");
     }
 

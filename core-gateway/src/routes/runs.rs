@@ -188,7 +188,7 @@ async fn may_touch_run(
         // caller on a per-run action is refused.
         return Ok(!matches!(
             auth_ctx.auth_type,
-            AuthType::GatewayJwt | AuthType::IdpOauth | AuthType::OauthPassthrough
+            AuthType::GatewayJwt | AuthType::IdpOauth
         ));
     };
     for g in run_groups {
@@ -281,7 +281,7 @@ pub(crate) async fn end_run(
         Err(r) => return r,
     };
 
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -295,6 +295,9 @@ pub(crate) async fn end_run(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     if let Err(resp) = check_run_access(&state, &tenant_id, &auth_ctx, &root_task_id).await {
         return resp;
@@ -426,7 +429,7 @@ pub(crate) async fn get_run(
         Err(r) => return r,
     };
 
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -440,6 +443,9 @@ pub(crate) async fn get_run(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     if let Err(resp) = check_run_access(&state, &tenant_id, &auth_ctx, &root_task_id).await {
         return resp;

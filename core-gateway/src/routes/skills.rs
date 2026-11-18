@@ -315,7 +315,7 @@ pub(crate) async fn execute_skill(
     };
     let correlation_id = route_helpers::extract_correlation_id(&headers);
 
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -329,6 +329,9 @@ pub(crate) async fn execute_skill(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     // Resolve the skill's id up front for audit rows. Callers usually invoke by
     // NAME, so the by-name deny / guardrail-block log rows would otherwise carry
@@ -1109,7 +1112,7 @@ pub(crate) async fn get_execution(
     };
 
     // The execution is read by the caller that started it.
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -1123,6 +1126,9 @@ pub(crate) async fn get_execution(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     let result = match skill_orchestrator::get_execution_status(
         &state.db,
@@ -1177,7 +1183,7 @@ pub(crate) async fn cancel_execution(
         Err(r) => return r,
     };
 
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -1191,6 +1197,9 @@ pub(crate) async fn cancel_execution(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     let cancelled_by = auth_ctx.gateway_username.as_deref().unwrap_or("system");
 
@@ -1253,7 +1262,7 @@ pub(crate) async fn get_catalog(
         Err(r) => return r,
     };
 
-    let auth_ctx = match auth::authenticate_request(
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -1267,6 +1276,9 @@ pub(crate) async fn get_catalog(
         Ok(ctx) => ctx,
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
+        return error_response(e.status_code(), &e.to_string());
+    }
 
     let catalog = match skill_orchestrator::get_catalog(
         &state.db,

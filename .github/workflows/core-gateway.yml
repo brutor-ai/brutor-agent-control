@@ -310,6 +310,10 @@ jobs:
           docker exec ${{ job.services.postgres.id }} psql -U brutor -d brutor_test -tc "SHOW max_locks_per_transaction" | grep -q 512
           command -v psql >/dev/null || sudo apt-get install -y postgresql-client
 
+      # adapted: the licence step of the script runs cargo-about, which this job did not install
+      - name: Install cargo-about
+        run: cargo install --locked --features cli cargo-about@0.9.3
+
       - name: Every gate and the suite, Community alone
         run: scripts/ci-community-alone.sh --prepare-template
 

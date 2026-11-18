@@ -56,6 +56,7 @@ pub mod error_envelope;
 pub mod extension_state;
 pub mod guardrails;
 pub mod icon_cache;
+pub mod identity_policy;
 pub mod installation_limits;
 pub mod instance_lease;
 pub mod internal_call;

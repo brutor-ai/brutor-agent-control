@@ -1221,7 +1221,7 @@ pub(crate) async fn list_tokens(
             );
         }
         None => {
-            let auth_ctx = match auth::authenticate_request(
+            let mut auth_ctx = match auth::authenticate_request(
                 &headers,
                 &tenant_id,
                 &state.config.jwt_secret,
@@ -1237,6 +1237,11 @@ pub(crate) async fn list_tokens(
                     return error_response(StatusCode::UNAUTHORIZED, &e.to_string());
                 }
             };
+            if let Err(e) =
+                crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await
+            {
+                return error_response(e.status_code(), &e.to_string());
+            }
             (auth_ctx.idp_user_id.or(auth_ctx.gateway_user_id), None)
         }
     };
@@ -1596,6 +1601,11 @@ fn gateway_base(state: &crate::services::AppState) -> String {
 
 fn anonymous_auth(tenant_id: &str) -> crate::models::auth::AuthContext {
     crate::models::auth::AuthContext {
+        credential_kind: crate::models::auth::CredentialKind::Anonymous,
+        credential_assurance: None,
+        credential_ref: None,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: crate::models::auth::AuthType::Anonymous,
         tenant_id: tenant_id.to_string(),
         gateway_user_id: None,

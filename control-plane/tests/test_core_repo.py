@@ -20,7 +20,7 @@ import subprocess
 
 import pytest
 
-from tests import core_repo
+from tests import core_repo, siblings
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git is not installed")
 
@@ -83,6 +83,35 @@ def test_a_plain_directory_inside_another_repository_is_not_taken_for_a_checkout
     (checkout / "src" / "services" / "providers.rs").write_text("the unpacked tree\n")
     assert core_repo.core_repo_path() == checkout
     assert core_repo.core_source("services", "providers.rs").read_text() == "the unpacked tree\n"
+
+
+def test_a_directory_of_this_checkouts_own_repository_is_read_at_its_head(tmp_path, monkeypatch):
+    """The public repository: the core is `core-gateway/`, a directory of the
+    same checkout as this one (`control-plane/`), and `.git` is at their
+    common root. What is read is that repository's committed HEAD."""
+    root = tmp_path / "public"
+    core = root / "core-gateway"
+    (core / "src" / "services").mkdir(parents=True)
+    (core / "tests" / "fixtures").mkdir(parents=True)
+    (root / "control-plane").mkdir()
+    (core / "src" / "services" / "providers.rs").write_text("committed\n")
+    (core / "tests" / "fixtures" / "f.json").write_text("{}\n")
+    (root / "control-plane" / "x.py").write_text("\n")
+    head = _commit(root)
+    (core / "src" / "services" / "providers.rs").write_text("half an edit\n")
+    (core / "src" / "services" / "new.rs").write_text("uncommitted\n")
+    monkeypatch.setenv("BRUTOR_CORE_REPO", str(core))
+    monkeypatch.setattr(core_repo, "_resolved", {})
+    monkeypatch.setattr(core_repo, "THIS_CHECKOUT", root / "control-plane")
+
+    assert core_repo.core_source("services", "providers.rs").read_text() == "committed\n"
+    assert not core_repo.core_source("services", "new.rs").exists()
+    assert (core_repo.core_repo_path() / "tests" / "fixtures" / "f.json").read_text() == "{}\n"
+    # The export holds the core's paths at its top, not under core-gateway/.
+    assert not (core_repo.core_repo_path() / "core-gateway").exists()
+    assert core_repo.core_repo_path() != core
+    assert head in core_repo.core_revision()
+    assert str(core) in core_repo.core_revision()
 
 
 def test_the_override_says_where_the_core_is(checkout):
@@ -157,13 +186,18 @@ def test_the_real_core_is_read_at_head():
     import re
 
     checkout = core_repo.core_checkout_path()
-    if not (checkout / ".git").exists():
-        pytest.skip(f"{checkout} is not a git checkout")
+    # `.git` is the core's own, or, in the public repository, at the root
+    # above `core-gateway/` and this directory alike.
+    if siblings.git_root(checkout) is None:
+        pytest.skip(siblings.no_git_root(checkout))
+    if subprocess.run(["git", "-C", str(checkout), "rev-parse", "--verify", "-q", "HEAD"],
+                      stdout=subprocess.DEVNULL, check=False).returncode != 0:
+        pytest.skip(f"the git work tree {checkout} is in has no commit yet: there is no HEAD to read")
     named = re.search(r"commit ([0-9a-f]{40})", core_repo.core_revision())
     assert named, core_repo.core_revision()
     commit = named.group(1)
     subprocess.run(["git", "-C", str(checkout), "merge-base", "--is-ancestor", commit, "HEAD"], check=True)
     committed = subprocess.run(
-        ["git", "-C", str(checkout), "show", f"{commit}:src/services/providers.rs"], check=True, stdout=subprocess.PIPE
+        ["git", "-C", str(checkout), "show", f"{commit}:./src/services/providers.rs"], check=True, stdout=subprocess.PIPE
     ).stdout
     assert core_repo.core_source("services", "providers.rs").read_bytes() == committed

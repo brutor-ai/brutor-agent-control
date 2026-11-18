@@ -31,6 +31,11 @@ use crate::common;
 /// `resolve_target_group` land on a specific node of the hierarchy.
 fn auth_for_group(group_id: &str) -> AuthContext {
     AuthContext {
+        credential_kind: brutor_gateway_core::models::auth::CredentialKind::ApiKey,
+        credential_assurance: Some(brutor_gateway_core::models::auth::CredentialAssurance::Key),
+        credential_ref: None,
+        credential_detail: Default::default(),
+        identity_verdict: None,
         auth_type: AuthType::ApiKey,
         tenant_id: T.to_string(),
         gateway_user_id: None,

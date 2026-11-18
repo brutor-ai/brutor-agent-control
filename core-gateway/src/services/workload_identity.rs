@@ -17,6 +17,13 @@
 //!      the same IdP minted for any other application was accepted).
 //!   3. Resolve the agent by `(idp_server_id, sub)` against `agent_identities`.
 //!
+//! The token's times: `iat` and `sub` are required; `nbf` is honoured; `iat`,
+//! `nbf` and `exp` allow 60 s of clock skew; `exp - iat` is at most 3600 s
+//! (an identity policy may require less; the identity judge holds that). A
+//! key id the cached JWKS lacks forces at most one refetch per IdP per 30 s.
+//! An issuer two enabled identity providers of the tenant share verifies
+//! nothing (never one of them picked arbitrarily).
+//!
 //! Fail-closed: any verification, fetch, or lookup failure yields `None` (the
 //! caller treats the token as not a workload identity and falls through to the
 //! existing 401). The JWKS cache never caches a fetch error, so a transient IdP
@@ -35,6 +42,20 @@ use sqlx::PgPool;
 /// How long a fetched JWKS is trusted before re-fetch.
 const JWKS_TTL: Duration = Duration::from_secs(300);
 
+/// The shortest time between two forced refetches of one IdP's JWKS. A
+/// token naming a key id the cached set does not have forces one refetch (a
+/// key rotation); a burst of such tokens must not make the gateway fetch the
+/// IdP's key set on every request. In between, an unknown key id fails
+/// closed.
+const JWKS_FORCED_REFETCH_INTERVAL: Duration = Duration::from_secs(30);
+
+/// The longest a workload token may live (`exp - iat`), whatever any policy
+/// says: a longer-lived token is a key with a signature.
+pub const TOKEN_LIFETIME_CEILING_S: i64 = 3600;
+
+/// Clock skew allowed on `iat`, `nbf` and `exp`.
+pub const CLOCK_LEEWAY_S: u64 = 60;
+
 /// The verified workload principal: which agent the token authenticates as,
 /// plus the IdP coordinates for evidence.
 #[derive(Debug, Clone)]
@@ -47,6 +68,8 @@ pub struct ResolvedAgent {
     /// the software; the agent is resolved by `(idp_server_id, sub)` alone
     /// and nothing here takes part in that.
     pub software: Option<crate::services::agent_impl::Release>,
+    /// The verified token's lifetime, `exp - iat`, in seconds.
+    pub token_lifetime_s: i64,
 }
 
 /// Minimal claims we read. Verification is done by `jsonwebtoken`; `sub` (the
@@ -57,6 +80,10 @@ pub struct ResolvedAgent {
 #[derive(Debug, Deserialize)]
 struct Claims {
     sub: Option<String>,
+    #[serde(default)]
+    exp: Option<i64>,
+    #[serde(default)]
+    iat: Option<i64>,
     #[serde(default)]
     software_id: Option<serde_json::Value>,
     #[serde(default)]
@@ -87,6 +114,23 @@ impl Claims {
 static JWKS_CACHE: OnceLock<DashMap<String, (Instant, JwkSet)>> = OnceLock::new();
 fn jwks_cache() -> &'static DashMap<String, (Instant, JwkSet)> {
     JWKS_CACHE.get_or_init(DashMap::new)
+}
+
+/// When each IdP's JWKS was last refetched because of an unknown key id.
+static JWKS_FORCED: OnceLock<DashMap<String, Instant>> = OnceLock::new();
+
+/// Whether a forced refetch of `idp_server_id`'s JWKS may run now; taking
+/// the slot and checking it are one step, so concurrent misses fetch once.
+fn take_forced_refetch_slot(idp_server_id: &str) -> bool {
+    let forced = JWKS_FORCED.get_or_init(DashMap::new);
+    let mut slot = forced
+        .entry(idp_server_id.to_string())
+        .or_insert_with(|| Instant::now() - JWKS_FORCED_REFETCH_INTERVAL);
+    if slot.elapsed() < JWKS_FORCED_REFETCH_INTERVAL {
+        return false;
+    }
+    *slot = Instant::now();
+    true
 }
 
 /// Shared HTTP client for JWKS fetches (connect timeout bounded).
@@ -155,14 +199,28 @@ pub async fn resolve_workload_token(
         Option<String>,
         Option<sqlx::types::Json<serde_json::Value>>,
     );
-    let idp: Option<IdpRow> = sqlx::query_as(
+    // Two enabled OIDC providers of the tenant with this issuer: which one
+    // verifies the token, and so which agents its subject can name, would be
+    // the database's arbitrary choice. Refused, never picked: the token is
+    // not verifiable here until the operator removes the ambiguity.
+    let mut idps: Vec<IdpRow> = sqlx::query_as(
         "SELECT id, jwks_uri, workload_audiences FROM idp_servers \
-         WHERE tenant_id = $1 AND issuer = $2 AND enabled = true AND protocol = 'oidc' LIMIT 1",
+         WHERE tenant_id = $1 AND issuer = $2 AND enabled = true AND protocol = 'oidc' \
+         ORDER BY id LIMIT 2",
     )
     .bind(tenant_id)
     .bind(&issuer)
-    .fetch_optional(db)
+    .fetch_all(db)
     .await?;
+    if idps.len() > 1 {
+        tracing::warn!(
+            %tenant_id,
+            %issuer,
+            "workload token refused: two enabled identity providers of the tenant share its issuer"
+        );
+        return Ok(WorkloadToken::NoAgent);
+    }
+    let idp = idps.pop();
     let Some((idp_server_id, Some(jwks_uri), audiences)) = idp else {
         // No matching enabled IdP, or it has no JWKS endpoint → not verifiable.
         return Ok(WorkloadToken::NoAgent);
@@ -177,7 +235,7 @@ pub async fn resolve_workload_token(
     }
 
     // 2. Verify the signature + iss + aud + exp against the IdP's JWKS.
-    let (subject, software) =
+    let (subject, software, token_lifetime_s) =
         match verify_against_jwks(token, &idp_server_id, &jwks_uri, &issuer, &audiences).await {
             Some(verified) => verified,
             None => return Ok(WorkloadToken::NoAgent),
@@ -214,6 +272,7 @@ pub async fn resolve_workload_token(
             idp_server_id,
             idp_subject: subject,
             software,
+            token_lifetime_s,
         }),
         Some((agent_id, _)) => WorkloadToken::FallenAgent { agent_id },
         None => WorkloadToken::NoAgent,
@@ -276,13 +335,21 @@ async fn verify_against_jwks(
     jwks_uri: &str,
     issuer: &str,
     audiences: &[String],
-) -> Option<(String, Option<crate::services::agent_impl::Release>)> {
+) -> Option<(String, Option<crate::services::agent_impl::Release>, i64)> {
     let header = decode_header(token).ok()?;
     let kid = header.kid?;
 
-    // Try the cached JWKS first; on a kid miss (key rotation) force one refetch.
+    // Try the cached JWKS first; on a kid miss (key rotation) force one
+    // refetch, at most once per interval per IdP.
     let mut jwks = get_jwks(idp_server_id, jwks_uri, false).await?;
     if jwks.find(&kid).is_none() {
+        if !take_forced_refetch_slot(idp_server_id) {
+            tracing::debug!(
+                idp_server_id,
+                "workload token refused: unknown key id, and the key set was refetched moments ago"
+            );
+            return None;
+        }
         jwks = get_jwks(idp_server_id, jwks_uri, true).await?;
     }
     let jwk = jwks.find(&kid)?;
@@ -300,15 +367,40 @@ async fn verify_against_jwks(
     validation.algorithms = vec![header.alg];
     validation.set_issuer(&[issuer]);
     validation.validate_exp = true;
+    // `nbf` is honoured when present; `exp` and `nbf` with the clock leeway
+    // (pinned, not the library's default).
+    validation.validate_nbf = true;
+    validation.leeway = CLOCK_LEEWAY_S;
     // `aud` must be present and match one of the IdP's workload audiences.
     // set_audience alone does not require it: jsonwebtoken 9 lets a token
     // with no `aud` through unless the claim is listed as required.
     validation.set_audience(audiences);
-    validation.set_required_spec_claims(&["exp", "iss", "aud"]);
+    validation.set_required_spec_claims(&["exp", "iss", "aud", "sub"]);
 
     let data = decode::<Claims>(token, &key, &validation).ok()?;
+    let lifetime = token_lifetime(data.claims.iat, data.claims.exp, now_secs()?)?;
     let software = data.claims.software();
-    Some((data.claims.sub?, software))
+    Some((data.claims.sub?, software, lifetime))
+}
+
+fn now_secs() -> Option<i64> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .ok()?;
+    i64::try_from(now.as_secs()).ok()
+}
+
+/// The token's lifetime (`exp - iat`) when it may authenticate at `now`:
+/// `iat` present, not later than `now` plus the leeway, and the lifetime
+/// positive and at most [`TOKEN_LIFETIME_CEILING_S`]. `None` refuses.
+fn token_lifetime(iat: Option<i64>, exp: Option<i64>, now: i64) -> Option<i64> {
+    let (iat, exp) = (iat?, exp?);
+    let leeway = i64::try_from(CLOCK_LEEWAY_S).ok()?;
+    if iat > now.saturating_add(leeway) {
+        return None;
+    }
+    let lifetime = exp.checked_sub(iat)?;
+    (lifetime > 0 && lifetime <= TOKEN_LIFETIME_CEILING_S).then_some(lifetime)
 }
 
 /// Get the IdP's JWKS, honoring the TTL cache. `force` bypasses the cache (used
@@ -348,6 +440,21 @@ mod tests {
             .encode(br#"{"iss":"https://idp.example/","sub":"spiffe://acme/agent/1"}"#);
         let token = format!("aaaa.{}.bbbb", payload);
         assert_eq!(peek_issuer(&token).as_deref(), Some("https://idp.example/"));
+    }
+
+    #[test]
+    fn token_lifetime_rules() {
+        let now = 1_000_000;
+        assert_eq!(token_lifetime(Some(now), Some(now + 3600), now), Some(3600));
+        assert_eq!(token_lifetime(Some(now), Some(now + 3601), now), None);
+        assert_eq!(token_lifetime(None, Some(now + 600), now), None);
+        assert_eq!(
+            token_lifetime(Some(now + 60), Some(now + 600), now),
+            Some(540)
+        );
+        assert_eq!(token_lifetime(Some(now + 61), Some(now + 600), now), None);
+        assert_eq!(token_lifetime(Some(now), Some(now), now), None);
+        assert_eq!(token_lifetime(Some(now), Some(now - 10), now), None);
     }
 
     #[test]

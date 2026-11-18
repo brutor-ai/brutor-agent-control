@@ -1,0 +1,10 @@
+# Code owners of Brutor Agent Control (Community Edition).
+# A pull request that changes a path below asks its owners for review.
+
+*                    @gravitonian
+
+# What the repository is, what ships in each edition, and how it is checked.
+/.github/            @gravitonian
+/editions.yaml       @gravitonian
+/check_editions.py   @gravitonian
+/scripts/            @gravitonian

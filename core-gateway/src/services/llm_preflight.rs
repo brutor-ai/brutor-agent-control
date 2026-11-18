@@ -281,6 +281,10 @@ pub async fn run_preflight(
     )
     .await
     .map_err(|e| error_fn(e.status_code(), &e.to_string()))?;
+    // Is the credential enough for the call's identity policy?
+    crate::services::identity_policy::judge_call(state, &mut auth_ctx)
+        .await
+        .map_err(|e| error_fn(e.status_code(), &e.to_string()))?;
 
     // Where this call sits in its run: every refusal below lands on it.
     let run_attr: Option<&RunAttribution> = Some(&_options.run);

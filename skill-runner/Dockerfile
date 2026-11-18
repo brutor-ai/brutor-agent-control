@@ -41,7 +41,7 @@ COPY Cargo.toml Cargo.lock* ./
 COPY src/ src/
 RUN cargo build --release --bin brutor-skill-runner
 
-# Third-party licences (owner decision, legal answer 5): generated here from
+# Third-party licences (shipped in each image): generated here from
 # Cargo.lock, offline, from the crates this build used; the build fails when
 # a crate's licence is outside about.toml's accepted list or cannot be read,
 # and when the committed copy is not current.

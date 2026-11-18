@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime, timezone
-from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine
@@ -31,9 +30,10 @@ from sqlalchemy.pool import StaticPool
 import app.database.models  # noqa: F401 — registers every model on Base
 from app.database import Base
 from app.database.models.assurance_inbox import INBOX_CATEGORIES
+from tests import siblings
 
-ROOT = Path(__file__).resolve().parents[1]
-ADMIN_INBOX_TYPES = ROOT.parent / "brutor-gateway-admin" / "src" / "lib" / "assuranceInboxTypes.ts"
+# In the Admin Console beside this repository (`tests/siblings.py`).
+ADMIN_INBOX_TYPES = "src/lib/assuranceInboxTypes.ts"
 
 
 TABLES = [
@@ -137,9 +137,8 @@ class TestInboxKinds:
         width = AssuranceInboxItem.__table__.c["category"].type.length
         assert all(len(k) <= width for k in INBOX_CATEGORIES)
 
-    @pytest.mark.skipif(not ADMIN_INBOX_TYPES.exists(), reason="admin repo not checked out")
     def test_matches_admin_ui_vocabulary(self):
-        ts = ADMIN_INBOX_TYPES.read_text()
+        ts = siblings.sibling_file("admin-console", ADMIN_INBOX_TYPES).read_text()
         block = ts.split("export const INBOX_CATEGORIES")[1].split("];")[0]
         ui = [line.strip().strip("',") for line in block.splitlines() if line.strip().startswith("'")]
         assert ui == list(INBOX_CATEGORIES)

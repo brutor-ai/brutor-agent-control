@@ -2182,8 +2182,9 @@ pub(crate) async fn count_tokens(
         Err(resp) => return resp,
     };
 
-    // Authenticate
-    if let Err(e) = auth::authenticate_request(
+    // Authenticate, and judge the credential against the call's identity
+    // policy.
+    let mut auth_ctx = match auth::authenticate_request(
         &headers,
         &tenant_id,
         &state.config.jwt_secret,
@@ -2194,6 +2195,10 @@ pub(crate) async fn count_tokens(
     )
     .await
     {
+        Ok(ctx) => ctx,
+        Err(e) => return anthropic_error(e.status_code(), &e.to_string()),
+    };
+    if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
         return anthropic_error(e.status_code(), &e.to_string());
     }
 

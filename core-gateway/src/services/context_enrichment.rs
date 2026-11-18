@@ -311,6 +311,11 @@ mod tests {
 
     fn asker() -> AuthContext {
         AuthContext {
+            credential_kind: crate::models::auth::CredentialKind::Anonymous,
+            credential_assurance: None,
+            credential_ref: None,
+            credential_detail: Default::default(),
+            identity_verdict: None,
             auth_type: crate::models::auth::AuthType::Anonymous,
             tenant_id: "t1".into(),
             gateway_user_id: None,

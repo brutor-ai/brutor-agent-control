@@ -342,6 +342,66 @@ async fn a_refused_workload_token_leaves_the_same_record(pool: PgPool) {
     );
 }
 
+/// A verified token of an agent that is a member of no active group: 403
+/// `AGENT_NOT_BOUND`, and a record of the refusal, bounded like the others.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn an_unbound_agents_token_is_refused_and_recorded(pool: PgPool) {
+    use super::workload_identity::{mint_token, mock_jwks, seed_agent_with_idp, seed_idp};
+
+    common::seed_tenant(&pool, T).await;
+    common::seed_resource_group(&pool, RG, T).await;
+    let jwks = mock_jwks("kid-unbound").await;
+    let issuer = "https://idp.unbound.example/";
+    seed_idp(
+        &pool,
+        "idp-unbound",
+        T,
+        issuer,
+        &format!("{}/jwks", jwks.uri()),
+    )
+    .await;
+    let agent = "agent-unbound-611205001";
+    let sub = format!("spiffe://acme/{agent}");
+    seed_agent_with_idp(&pool, agent, T, "idp-unbound", &sub).await;
+    let exp = (common::db_now().timestamp() + 3600) as usize;
+    let token = mint_token(issuer, &sub, "kid-unbound", exp);
+    let state = common::build_test_state(pool.clone());
+    let t0 = Instant::now();
+    let interval = Duration::from_secs(refused::RECORD_INTERVAL_SECS);
+
+    for _ in 0..3 {
+        assert_eq!(ask(&state, &token).await.0, StatusCode::FORBIDDEN);
+    }
+    assert_eq!(refused::flush_due(&state, t0, interval).await, 1);
+    let rows = rows_of(&pool, agent, 1).await;
+    let refusals: Vec<&Row> = rows
+        .iter()
+        .filter(|r| r.1.as_deref() == Some("agent_authz_block"))
+        .collect();
+    assert_eq!(refusals.len(), 1, "three refusals, one row");
+    let r = refusals[0];
+    assert_eq!(r.4, Some(403));
+    let error = r.5.clone().unwrap_or_default();
+    assert!(
+        error.starts_with("AGENT_NOT_BOUND: ") && error.contains("3 refusals since"),
+        "{error}"
+    );
+    assert!(!error.contains(&token));
+
+    // Bound to a group, the same token is served.
+    sqlx::query(
+        "INSERT INTO resource_group_agent_members (tenant_id, agent_id, group_id, joined_at) \
+         VALUES ($1, $2, $3, clock_timestamp())",
+    )
+    .bind(T)
+    .bind(agent)
+    .bind(RG)
+    .execute(&pool)
+    .await
+    .expect("membership");
+    assert_eq!(ask(&state, &token).await.0, StatusCode::OK);
+}
+
 // ---------------------------------------------------------------------------
 // The record is sealed, with the route
 // ---------------------------------------------------------------------------
