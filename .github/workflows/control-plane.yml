@@ -40,7 +40,8 @@ defaults:
 
 jobs:
   test-community:
-    timeout-minutes: 45
+    # A cold run (no pip cache) of the whole suite takes about an hour on ubuntu-latest.
+    timeout-minutes: 90
     name: Tests (Community Edition)
     runs-on: ubuntu-latest
 
@@ -153,6 +154,8 @@ jobs:
           --health-retries 5
 
     env:
+      # This repository has no Enterprise package: the tests run as the Community Edition.
+      BRUTOR_TEST_EDITION: community
       BRUTOR_PG_TESTS: "1"
       BRUTOR_PG_TEST_URL: postgresql://brutor:throwaway@localhost:5432/brutor_fresh_test
       JWT_SECRET: ci-test-jwt-secret-must-be-at-least-32-characters
@@ -233,6 +236,10 @@ jobs:
           sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
           sudo apt-get update && sudo apt-get install -y postgresql-client-16
+
+      # adapted: the runner's `pg_dump` is a wrapper that picks the newest installed client, not the one installed above; a newer pg_dump writes statements the fixture does not have
+      - name: The server's pg_dump first on PATH
+        run: echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
 
       # adapted: the same three statements without the linter comment, which reads as a record number to the reference scan
       - name: Build the schema the way an install does

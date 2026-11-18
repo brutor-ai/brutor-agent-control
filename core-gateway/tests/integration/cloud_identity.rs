@@ -288,14 +288,24 @@ async fn child_vertex_rows_next_to_an_ambient_credential(pool: PgPool) {
             .is_some_and(|e| e.contains("provider_credential_missing")),
         "the audit row: {row:?}"
     );
-    let refused: i64 = sqlx::query_scalar(
-        "SELECT count(*) FROM proxy_logs WHERE tenant_id = $1 AND http_status_code = 501",
-    )
-    .bind(T)
-    .fetch_one(&pool)
-    .await
-    .expect("count the refusals");
-    assert_eq!(refused, answers.len() as i64, "one audit row per refusal");
+    // The rows are written by the background writer, one batch at a time:
+    // `log_row` saw the first; wait for every refusal's before counting.
+    let expected = answers.len() as i64;
+    let mut refused = 0_i64;
+    for _ in 0..200 {
+        refused = sqlx::query_scalar(
+            "SELECT count(*) FROM proxy_logs WHERE tenant_id = $1 AND http_status_code = 501",
+        )
+        .bind(T)
+        .fetch_one(&pool)
+        .await
+        .expect("count the refusals");
+        if refused >= expected {
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+    assert_eq!(refused, expected, "one audit row per refusal");
 }
 
 // ---------------------------------------------------------------------------

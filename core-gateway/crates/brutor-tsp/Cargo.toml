@@ -15,8 +15,11 @@ x509-tsp = "0.1"
 spki = "0.7"
 sha2 = { version = "0.10", features = ["oid"] }
 rsa = { version = "0.9", features = ["sha2"] }
-p256 = { version = "0.14", features = ["ecdsa"] }
-p384 = { version = "0.14", features = ["ecdsa"] }
+# Without the default `std`, which turns on `getrandom` 0.4: verification needs
+# no randomness, and that crate does not build for wasm32-unknown-unknown
+# (brutor-verify, the static verifier page) without a JavaScript backend.
+p256 = { version = "0.14", default-features = false, features = ["ecdsa", "alloc"] }
+p384 = { version = "0.14", default-features = false, features = ["ecdsa", "alloc"] }
 hex = "0.4"
 thiserror = "2"
 

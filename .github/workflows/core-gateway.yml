@@ -45,7 +45,9 @@ defaults:
 
 jobs:
   test:
-    timeout-minutes: 45
+    # A cold run (no Cargo cache) builds, runs the suite (about 35 minutes) and
+    # compiles the benchmarks in the release profile.
+    timeout-minutes: 90
     name: Tests
     runs-on: ubuntu-latest
 
@@ -235,7 +237,9 @@ jobs:
   # suite (scripts/ci-community-alone.sh), with no sibling directory, so a
   # test that needs the Control Plane's fixtures is skipped and listed.
   community-alone:
-    timeout-minutes: 60
+    # A cold run: every gate and the suite (about 47 minutes), then the
+    # benchmarks compiled in the release profile.
+    timeout-minutes: 120
     name: Community alone
     runs-on: ubuntu-latest
 
