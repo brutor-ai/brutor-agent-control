@@ -237,6 +237,7 @@ def diff_closures(
     _diff_agent_implementation(before, after, widened, narrowed)
     _diff_dependencies(before, after, widened, narrowed, changed, resolve_contract)
     _diff_caller_enforcement(before, after, widened, narrowed)
+    _diff_identity_policy(before, after, widened, narrowed, changed)
     _diff_attributes(before, after, changed)
 
     return {
@@ -886,6 +887,42 @@ def _diff_caller_enforcement(before, after, widened, narrowed) -> None:
         widened.append({
             **entry,
             "detail": "callers outside intended_client_systems are no longer refused (advisory only)",
+        })
+
+
+def _diff_identity_policy(before, after, widened, narrowed, changed) -> None:
+    """The system's stored identity policy, compared field by field the way
+    resolution compares contributions. A looser field admits credentials
+    the approved contract refused, so it is a widening; a stricter one a
+    narrowing. Setting or removing a policy that equals the default moves
+    no field and is reported as a change."""
+    from app.services.identity_policy import DEVELOPMENT_DEFAULT, field_changes
+
+    b = before.get("identity_policy")
+    a = after.get("identity_policy")
+    if a == b:
+        return
+    moves = field_changes(b, a)
+    for field, direction in moves:
+        # No explicit policy reads as the default, as in resolution.
+        b_val = (DEVELOPMENT_DEFAULT if b is None else b).get(field)
+        a_val = (DEVELOPMENT_DEFAULT if a is None else a).get(field)
+        entry = {
+            "kind": "identity_policy",
+            "field": field,
+            "from": b_val,
+            "to": a_val,
+            "detail": f"identity policy {field}: {b_val!r} → {a_val!r} ({direction})",
+        }
+        (widened if direction == "looser" else narrowed).append(entry)
+    if not moves:
+        changed.append({
+            "kind": "identity_policy",
+            "field": "policy",
+            "from": b,
+            "to": a,
+            "detail": "explicit identity policy " + ("removed" if a is None else "set")
+            + " (same as the default)",
         })
 
 

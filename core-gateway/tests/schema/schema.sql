@@ -1279,7 +1279,11 @@ CREATE TABLE public.ai_system_runs (
     is_replay boolean DEFAULT false NOT NULL,
     feedback_score smallint,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT ck_ai_system_runs_agent_impl_trust CHECK (((agent_impl_trust)::text = ANY ((ARRAY['verified'::character varying, 'declared'::character varying])::text[])))
+    credential_assurance_min character varying(16),
+    credential_mixed boolean,
+    credential_refs jsonb,
+    CONSTRAINT ck_ai_system_runs_agent_impl_trust CHECK (((agent_impl_trust)::text = ANY ((ARRAY['verified'::character varying, 'declared'::character varying])::text[]))),
+    CONSTRAINT ck_ai_system_runs_credential_assurance_min CHECK (((credential_assurance_min IS NULL) OR ((credential_assurance_min)::text = ANY ((ARRAY['key'::character varying, 'bound_key'::character varying, 'workload'::character varying, 'workload_pop'::character varying])::text[]))))
 );
 
 
@@ -3681,8 +3685,15 @@ CREATE TABLE public.proxy_logs (
     custom_metadata json,
     tags json,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    credential_kind character varying(16),
+    credential_assurance character varying(16),
+    credential_ref character varying(512),
+    credential_policy_outcome character varying(16),
     CONSTRAINT ck_proxy_logs_agent_impl_source CHECK (((agent_impl_source)::text = ANY ((ARRAY['token'::character varying, 'mcp_client_info'::character varying, 'baggage'::character varying, 'header'::character varying])::text[]))),
-    CONSTRAINT ck_proxy_logs_chain_version CHECK (((chain_version)::text = ANY ((ARRAY['v1'::character varying, 'v2'::character varying, 'v3'::character varying, 'v4'::character varying])::text[])))
+    CONSTRAINT ck_proxy_logs_chain_version CHECK (((chain_version)::text = 'v5'::text)),
+    CONSTRAINT ck_proxy_logs_credential_assurance CHECK (((credential_assurance IS NULL) OR ((credential_assurance)::text = ANY ((ARRAY['key'::character varying, 'bound_key'::character varying, 'workload'::character varying, 'workload_pop'::character varying])::text[])))),
+    CONSTRAINT ck_proxy_logs_credential_kind CHECK (((credential_kind IS NULL) OR ((credential_kind)::text = ANY ((ARRAY['api_key'::character varying, 'workload_token'::character varying, 'x509_svid'::character varying, 'brutor_token'::character varying, 'human_session'::character varying, 'platform_service'::character varying, 'anonymous'::character varying])::text[])))),
+    CONSTRAINT ck_proxy_logs_credential_outcome CHECK (((credential_policy_outcome IS NULL) OR ((credential_policy_outcome)::text = ANY ((ARRAY['met'::character varying, 'below_policy'::character varying, 'refused'::character varying, 'exempt'::character varying])::text[]))))
 );
 
 
@@ -4063,6 +4074,7 @@ CREATE TABLE public.resource_groups (
     created_by character varying(255),
     updated_by character varying(255),
     version character varying(50) DEFAULT '1.0'::character varying NOT NULL,
+    identity_policy jsonb,
     CONSTRAINT ck_resource_groups_approval_window CHECK (((approval_window_seconds IS NULL) OR ((approval_window_seconds >= 60) AND (approval_window_seconds <= 604800))))
 );
 
@@ -4678,6 +4690,7 @@ CREATE TABLE public.tenants (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     last_active_at timestamp with time zone,
+    identity_policy_default jsonb,
     CONSTRAINT ck_tenants_default_approval_window CHECK (((default_approval_window_seconds IS NULL) OR ((default_approval_window_seconds >= 60) AND (default_approval_window_seconds <= 604800))))
 );
 
@@ -9444,6 +9457,13 @@ CREATE INDEX ix_proxy_logs_correlation_id ON public.proxy_logs USING btree (corr
 
 
 --
+-- Name: ix_proxy_logs_credential; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_proxy_logs_credential ON public.proxy_logs USING btree (tenant_id, resource_group_id, credential_assurance, "timestamp");
+
+
+--
 -- Name: ix_proxy_logs_end_user_session_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -11163,6 +11183,13 @@ CREATE UNIQUE INDEX uq_evidence_signing_keys_active ON public.evidence_signing_k
 --
 
 CREATE UNIQUE INDEX uq_evidence_tree_heads_log_size ON public.evidence_tree_heads USING btree (log_id, tree_size);
+
+
+--
+-- Name: uq_idp_servers_tenant_oidc_issuer; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_idp_servers_tenant_oidc_issuer ON public.idp_servers USING btree (tenant_id, issuer) WHERE ((protocol)::text = 'oidc'::text);
 
 
 --

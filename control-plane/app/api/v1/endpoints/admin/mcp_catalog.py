@@ -788,18 +788,25 @@ def create_mcp_catalog_router(logger: BrutorLogger, encryption_service: Any = No
         # Create IdPServer (OAuth entries only)
         # ----------------------------------------------------------------
         if entry.auth_pattern == "oauth" and entry.runtime == "remote":
-            idp_server_id = f"idp-{ULID()}"
-
-            idp = IdPServer(
-                id=idp_server_id,
-                tenant_id=tenant_id,
-                name=f"{server_name} IdP",
-                type="oidc_discoverable",
-                issuer=base_url,
-                enabled=True,
-            )
-            db.add(idp)
-            db.flush()
+            # One OIDC IdP per issuer and tenant: a second import of the
+            # same server shares the IdP the first one created.
+            idp = db.query(IdPServer).filter(
+                IdPServer.tenant_id == tenant_id,
+                IdPServer.protocol == "oidc",
+                IdPServer.issuer == base_url,
+            ).first()
+            if idp is None:
+                idp = IdPServer(
+                    id=f"idp-{ULID()}",
+                    tenant_id=tenant_id,
+                    name=f"{server_name} IdP",
+                    type="oidc_discoverable",
+                    issuer=base_url,
+                    enabled=True,
+                )
+                db.add(idp)
+                db.flush()
+            idp_server_id = idp.id
 
             # Create OAuthAppClient
             oauth_client_id = f"oauth-{ULID()}"
@@ -812,20 +819,27 @@ def create_mcp_catalog_router(logger: BrutorLogger, encryption_service: Any = No
                 if creds.client_secret:
                     client_secret_value = creds.client_secret
 
-            oauth_client = OAuthAppClient(
-                id=oauth_client_id,
-                tenant_id=tenant_id,
-                name=f"{server_name} OAuth Client",
-                idp_id=idp_server_id,
-                client_id=client_id_value,
-                client_type="public",
-                supports_pkce=True,
-                app_type="webapp",
-                redirect_uri=_get_portal_callback_url(),
-                is_active=True,
-            )
-            db.add(oauth_client)
-            db.flush()
+            oauth_client = db.query(OAuthAppClient).filter(
+                OAuthAppClient.tenant_id == tenant_id,
+                OAuthAppClient.idp_id == idp_server_id,
+                OAuthAppClient.client_id == client_id_value,
+            ).first()
+            if oauth_client is None:
+                oauth_client = OAuthAppClient(
+                    id=oauth_client_id,
+                    tenant_id=tenant_id,
+                    name=f"{server_name} OAuth Client",
+                    idp_id=idp_server_id,
+                    client_id=client_id_value,
+                    client_type="public",
+                    supports_pkce=True,
+                    app_type="webapp",
+                    redirect_uri=_get_portal_callback_url(),
+                    is_active=True,
+                )
+                db.add(oauth_client)
+                db.flush()
+            oauth_client_id = oauth_client.id
 
         # ----------------------------------------------------------------
         # Create MCPServer

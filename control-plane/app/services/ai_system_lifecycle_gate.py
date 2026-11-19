@@ -28,6 +28,16 @@ it. A configurable control that can be configured away is decoration.
 
 ## What this does not do
 
+## The identity floor
+
+Moving to `active` (from `approved`, re-promoting, or back from
+`deprecated`) requires `workload_identity_enforced`: the identity policy at
+`active` requires workload identity, and no machine caller reached the
+system's subtree below that level in the last 7 days with a credential that
+can still authenticate. Like the high-risk human approval it is a floor,
+re-added after any tenant policy. A retired development key (revoked,
+expired or deleted) clears it at once; the calls it made stay on record.
+
 It does not decide *whether* config is allowed to change — that is
 enforcement, and it already happens. It decides whether a system may move
 to a stage that asserts something about its readiness. An `active` system
@@ -71,6 +81,20 @@ REQ_NO_RECENT_RUNS = "no_recent_runs"
 REQ_VALID_TRANSITION = "valid_transition"
 REQ_REPLAY_PASSED = "replay_passed"
 REQ_IMPACT_ASSESSMENT = "impact_assessment_on_file"
+REQ_WORKLOAD_IDENTITY = "workload_identity_enforced"
+
+#: How far back the identity floor looks for calls below the level.
+IDENTITY_LOOKBACK_DAYS = 7
+
+#: The transitions the identity floor holds: every way into `active`.
+IDENTITY_FLOOR_TRANSITIONS = (
+    f"{LIFECYCLE_APPROVED}->{LIFECYCLE_ACTIVE}",
+    f"{LIFECYCLE_ACTIVE}->{LIFECYCLE_ACTIVE}",
+    f"{LIFECYCLE_DEPRECATED}->{LIFECYCLE_ACTIVE}",
+)
+
+#: How many offending credentials a requirement names.
+OFFENDING_CREDENTIALS_LIMIT = 20
 
 #: Human-readable, in the second person, because these strings are what an
 #: operator reads when the gate refuses. "REQ_OWNER_SET failed" tells them
@@ -88,6 +112,10 @@ REQUIREMENT_LABELS: Dict[str, str] = {
     REQ_VALID_TRANSITION: "This is a recognised lifecycle transition",
     REQ_REPLAY_PASSED: "The bound replay suite passed against the current contract",
     REQ_IMPACT_ASSESSMENT: "An unexpired impact assessment is attached as evidence",
+    REQ_WORKLOAD_IDENTITY: (
+        "Machine callers authenticate with workload identity: the identity policy requires it, "
+        "and no call in the last 7 days arrived below that level"
+    ),
 }
 
 #: Days of silence required before a deprecated system may be retired.
@@ -105,9 +133,14 @@ DEFAULT_REQUIREMENTS: Dict[str, List[str]] = {
         REQ_APPROVER_RECORDED,
         REQ_LIVENESS_SET,
         REQ_REPLAY_PASSED,
+        REQ_WORKLOAD_IDENTITY,
     ],
     f"{LIFECYCLE_ACTIVE}->{LIFECYCLE_ACTIVE}": [
         REQ_NO_UNAPPROVED_WIDENING,
+        REQ_WORKLOAD_IDENTITY,
+    ],
+    f"{LIFECYCLE_DEPRECATED}->{LIFECYCLE_ACTIVE}": [
+        REQ_WORKLOAD_IDENTITY,
     ],
     f"{LIFECYCLE_ACTIVE}->{LIFECYCLE_DEPRECATED}": [
         REQ_SUCCESSOR_NAMED,
@@ -119,11 +152,12 @@ DEFAULT_REQUIREMENTS: Dict[str, List[str]] = {
 
 #: Transitions that are always allowed regardless of evidence — going
 #: *backwards* is how an operator corrects a mistake, and a gate that traps
-#: a system in `active` is a gate people route around.
+#: a system in `active` is a gate people route around. Back into `active`
+#: from `deprecated` is not among them: it puts the system in production
+#: again, under the identity floor.
 ALWAYS_ALLOWED = frozenset({
     f"{LIFECYCLE_APPROVED}->{LIFECYCLE_PROPOSED}",
     f"{LIFECYCLE_ACTIVE}->{LIFECYCLE_APPROVED}",
-    f"{LIFECYCLE_DEPRECATED}->{LIFECYCLE_ACTIVE}",
     f"{LIFECYCLE_RETIRED}->{LIFECYCLE_DEPRECATED}",
 })
 
@@ -136,6 +170,10 @@ class Requirement:
     label: str
     satisfied: bool
     detail: Optional[str] = None
+    #: `workload_identity_enforced` when unmet: the credentials below the
+    #: level, newest first (at most 20), and how many there are.
+    offending_credentials: Optional[List[Dict[str, Any]]] = None
+    offending_total: Optional[int] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -143,6 +181,8 @@ class Requirement:
             "label": self.label,
             "satisfied": self.satisfied,
             "detail": self.detail,
+            "offending_credentials": self.offending_credentials,
+            "offending_total": self.offending_total,
         }
 
 
@@ -284,6 +324,11 @@ def required_keys(
         ):
             keys.append(REQ_IMPACT_ASSESSMENT)
 
+    # A floor too: every way into `active` needs workload identity, whatever
+    # the tenant policy says.
+    if key in IDENTITY_FLOOR_TRANSITIONS and REQ_WORKLOAD_IDENTITY not in keys:
+        keys.append(REQ_WORKLOAD_IDENTITY)
+
     return keys
 
 
@@ -330,6 +375,7 @@ def evaluate(
         REQ_NO_RECENT_RUNS: lambda: _check_quiet(db, system),
         REQ_REPLAY_PASSED: lambda: _check_replay(db, system),
         REQ_IMPACT_ASSESSMENT: lambda: _check_impact_assessment(db, system),
+        REQ_WORKLOAD_IDENTITY: lambda: _check_workload_identity(db, system, to_stage),
         REQ_VALID_TRANSITION: lambda: (
             False,
             f"{from_stage or LIFECYCLE_PROPOSED} → {to_stage} skips a "
@@ -339,15 +385,16 @@ def evaluate(
 
     requirements = []
     for key in keys:
-        satisfied, detail = checks[key]()
-        requirements.append(
-            Requirement(
-                key=key,
-                label=REQUIREMENT_LABELS[key],
-                satisfied=satisfied,
-                detail=None if satisfied else detail,
-            )
+        satisfied, detail, *offending = checks[key]()
+        requirement = Requirement(
+            key=key,
+            label=REQUIREMENT_LABELS[key],
+            satisfied=satisfied,
+            detail=None if satisfied else detail,
         )
+        if offending and not satisfied:
+            requirement.offending_credentials, requirement.offending_total = offending
+        requirements.append(requirement)
 
     return GateDecision(
         from_stage=from_stage,
@@ -550,6 +597,118 @@ def _check_impact_assessment(db: Session, system: ResourceGroup):
     return True, None
 
 
+#: The query of the identity floor: machine calls of the subtree in the
+#: window below the level (or personal keys where the policy refuses them),
+#: not refused, made with a credential that can still authenticate (a key
+#: neither revoked nor expired nor deleted; a workload token whose agent is
+#: neither revoked nor expired; a kind with no such record counts).
+_IDENTITY_FLOOR_SQL = """
+SELECT pl.credential_ref, pl.credential_kind, pl.credential_assurance,
+       COUNT(*) AS calls, MAX(pl.timestamp) AS last_seen,
+       COUNT(*) OVER () AS offending_total
+  FROM proxy_logs pl
+  LEFT JOIN api_keys ak ON ak.id = pl.api_key_id AND ak.tenant_id = pl.tenant_id
+  LEFT JOIN agent_identities ag ON ag.id = pl.actor_agent_id AND ag.tenant_id = pl.tenant_id
+ WHERE pl.tenant_id = :tenant_id
+   AND pl.resource_group_id IN (SELECT id FROM subtree)
+   AND {window}
+   AND pl.credential_kind IN ('api_key', 'workload_token', 'x509_svid', 'brutor_token')
+   AND (pl.credential_policy_outcome IS NULL OR pl.credential_policy_outcome <> 'refused')
+   AND (pl.credential_assurance IN :below
+        OR (pl.credential_kind = 'api_key' AND ak.scope = 'user' AND NOT :allow_user_keys))
+   AND (
+        (pl.credential_kind = 'api_key' AND ak.id IS NOT NULL AND NOT ak.revoked
+         AND (ak.expires_at IS NULL OR ak.expires_at > {now}))
+     OR (pl.credential_kind = 'workload_token'
+         AND (pl.actor_agent_id IS NULL
+              OR (ag.id IS NOT NULL AND ag.revoked_at IS NULL
+                  AND (ag.expires_at IS NULL OR ag.expires_at > {now}))))
+     OR pl.credential_kind IN ('x509_svid', 'brutor_token')
+   )
+ GROUP BY pl.credential_ref, pl.credential_kind, pl.credential_assurance
+ ORDER BY last_seen DESC, pl.credential_ref
+ LIMIT :limit
+"""
+
+
+def _iso(value: Any) -> Optional[str]:
+    """A timestamp from either database as ISO-8601 (SQLite returns text)."""
+    from datetime import datetime, timezone
+
+    if value is None:
+        return None
+    if isinstance(value, str):
+        value = datetime.fromisoformat(value)
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.isoformat()
+
+
+def _check_workload_identity(db: Session, system: ResourceGroup, to_stage: str):
+    """The identity floor: the policy at `to_stage` requires workload
+    identity, and no live credential reached the subtree below its level in
+    the look-back window."""
+    from sqlalchemy import bindparam, text
+
+    from app.services import identity_policy as ip
+
+    try:
+        effective = ip.resolve_group(db, system, to_stage=to_stage)
+    except Exception as exc:  # noqa: BLE001 — a gate that cannot decide refuses
+        return False, f"The identity policy could not be resolved: {exc}"
+    policy = effective["effective"]
+    required = policy["min_assurance"]
+    lowered = bool(effective["sources"]["min_assurance"].get("lowered_by_exception"))
+    if not (
+        (policy["mode"] == "enforce" and ip.level_rank(required) >= ip.level_rank("workload"))
+        or (required == ip.EXCEPTION_LEVEL and lowered)
+    ):
+        return (
+            False,
+            f"The identity policy at {to_stage} requires {required} in {policy['mode']} mode; "
+            "production requires workload identity, enforced",
+        )
+
+    window, params = ip.since_clause(db, "pl.timestamp", IDENTITY_LOOKBACK_DAYS)
+    now, now_params = ip.now_clause(db)
+    statement = text(ip.SUBTREE_CTE + _IDENTITY_FLOOR_SQL.format(window=window, now=now)).bindparams(
+        bindparam("below", expanding=True)
+    )
+    rows = db.execute(
+        statement,
+        {
+            "tenant_id": system.tenant_id,
+            "ai_system_id": system.id,
+            "below": ip.levels_below(required),
+            "allow_user_keys": bool(policy["allow_user_keys"]),
+            "limit": OFFENDING_CREDENTIALS_LIMIT,
+            **params,
+            **now_params,
+        },
+    ).fetchall()
+    if not rows:
+        return True, None
+    offending = [
+        {
+            "credential_ref": r[0],
+            "credential_kind": r[1],
+            "credential_assurance": r[2],
+            "calls": int(r[3]),
+            "last_seen": _iso(r[4]),
+        }
+        for r in rows
+    ]
+    total = int(rows[0][5])
+    named = "; ".join(
+        f"{c['credential_ref']} ({c['calls']} calls, last {c['last_seen']})" for c in offending[:3]
+    )
+    detail = (
+        f"{total} credential(s) reached this system below {required} in the last "
+        f"{IDENTITY_LOOKBACK_DAYS} days: {named}"
+    )
+    return False, detail, offending, total
+
+
 def retirement_readiness(db: Session, system: ResourceGroup) -> Dict[str, Any]:
     """When this system becomes retirable, not merely whether it is yet.
 
@@ -634,6 +793,9 @@ __all__ = [
     "REQUIREMENT_LABELS",
     "REQ_IMPACT_ASSESSMENT",
     "REQ_REPLAY_PASSED",
+    "REQ_WORKLOAD_IDENTITY",
+    "IDENTITY_FLOOR_TRANSITIONS",
+    "IDENTITY_LOOKBACK_DAYS",
     "is_known_transition",
     "Requirement",
     "evaluate",

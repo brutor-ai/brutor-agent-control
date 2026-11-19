@@ -1487,7 +1487,9 @@ class APIKeyUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
 
-    # Expiration
+    # Expiration. Omit to leave unchanged; null clears it (refused where the
+    # group's identity policy sets a key lifetime ceiling, and for a
+    # personal key).
     expires_at: Optional[datetime] = None
 
     # Status

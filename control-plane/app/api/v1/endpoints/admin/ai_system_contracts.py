@@ -115,11 +115,23 @@ class MintResponse(BaseModel):
     )
 
 
+class OffendingCredential(BaseModel):
+    credential_ref: Optional[str] = None
+    credential_kind: str
+    credential_assurance: Optional[str] = None
+    calls: int
+    last_seen: Optional[str] = None
+
+
 class RequirementResponse(BaseModel):
     key: str
     label: str
     satisfied: bool
     detail: Optional[str] = None
+    #: `workload_identity_enforced` when unmet: the credentials below the
+    #: level, newest first (at most 20), and their total.
+    offending_credentials: Optional[List[OffendingCredential]] = None
+    offending_total: Optional[int] = None
 
 
 class TransitionOption(BaseModel):
@@ -425,7 +437,9 @@ def create_ai_system_contracts_router(logger: BrutorLogger) -> APIRouter:
     ) -> Dict[str, Any]:
         from app.services.ai_system_lifecycle_gate import (
             DEFAULT_REQUIREMENTS,
+            IDENTITY_FLOOR_TRANSITIONS,
             REQ_HUMAN_APPROVAL,
+            REQ_WORKLOAD_IDENTITY,
             REQUIREMENT_LABELS,
         )
 
@@ -447,16 +461,25 @@ def create_ai_system_contracts_router(logger: BrutorLogger) -> APIRouter:
             ],
             # Stated rather than implied: a tenant may relax a transition to
             # nothing, but the gate re-adds human approval for a high-risk
-            # system afterwards. An editor that let an operator "remove" it
+            # system, and workload identity on every way into `active`,
+            # afterwards. An editor that let an operator "remove" either
             # without saying so would misrepresent what was saved.
-            "immutable_floor": {
-                "condition": "eu_ai_act_risk_tier == 'high'",
-                "always_required": [REQ_HUMAN_APPROVAL],
-                "note": (
-                    "Re-added by the gate after any tenant override. A policy "
-                    "may omit it; the gate will still demand it."
-                ),
-            },
+            "immutable_floors": [
+                {
+                    "condition": "eu_ai_act_risk_tier == 'high'",
+                    "always_required": [REQ_HUMAN_APPROVAL],
+                    "note": (
+                        "Re-added by the gate after any tenant override. A policy "
+                        "may omit it; the gate will still demand it."
+                    ),
+                },
+                {
+                    "condition": "to_stage == 'active'",
+                    "transitions": list(IDENTITY_FLOOR_TRANSITIONS),
+                    "always_required": [REQ_WORKLOAD_IDENTITY],
+                    "note": "Re-added by the gate after any tenant override.",
+                },
+            ],
             "current_policy": _tenant_policy(db, resolved),
         }
 

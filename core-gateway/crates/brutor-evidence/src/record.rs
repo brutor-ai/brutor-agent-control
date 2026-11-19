@@ -192,6 +192,9 @@ pub const NEVER_ENTERS_MEMBERS: &[&str] = &[
     "request_body_preview",
     "response_body_preview",
     "actor_agent_id",
+    // It names a key or a subject; a record states only the identity
+    // judge's verdict (control `ai.brutor.identity_policy`).
+    "credential_ref",
 ];
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]

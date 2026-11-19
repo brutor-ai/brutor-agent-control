@@ -270,6 +270,13 @@ fn resource_group<'a>(
         // access reflects immediately, matching how every other
         // resource type already invalidates here.
         inv.group_cache.invalidate_tenant(&msg.tenant_id).await;
+        // The tenant's identity policy default is published as a change of
+        // the tenant's groups (it is a floor of every one of them) and is
+        // read from the tenant's cached status: drop it, so the next call
+        // reads the new default instead of the one cached before.
+        if let Some(ref state) = inv.state {
+            state.tenant_cache.invalidate_tenant(&msg.tenant_id);
+        }
         // The run-ceiling cache reads `operating_envelope`
         // off this same row. Its own doc said it was "called when the
         // control plane signals a config change", and nothing called

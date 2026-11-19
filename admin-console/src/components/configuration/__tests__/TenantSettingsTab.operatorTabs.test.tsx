@@ -62,6 +62,7 @@ describe('TenantSettingsTab — with nothing contributed', () => {
             'Data Residency',
             'Data Retention',
             'AI System Assurance',
+            'Workload Identity',
             'Evidence',
         ]);
         fireEvent.click(screen.getByRole('button', { name: 'Evidence' }));
@@ -116,6 +117,7 @@ describe('TenantSettingsTab — with stand-in sub-tabs contributed', () => {
             'Data Residency',
             'Data Retention',
             'AI System Assurance',
+            'Workload Identity',
             'Evidence',
             'Fake last',
         ]);

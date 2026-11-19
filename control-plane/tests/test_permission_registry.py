@@ -161,6 +161,7 @@ READ_ONLY_BEFORE_C4 = [
     "gateway:config:read",
     "gateway:status:read",
     "guardrail:read",
+    "identity_policy:read",
     "idp:server:read",
     "llm:router:read",
     "llm:runner:machine:read",

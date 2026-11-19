@@ -6025,7 +6025,11 @@ pub(crate) async fn list_models(
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     // Resolve which resource groups the user belongs to
@@ -6159,7 +6163,11 @@ pub(crate) async fn get_model(
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     // Resolve the model by ID or name (slug stamped post-load).
@@ -7339,7 +7347,11 @@ pub(crate) async fn record_probe_result(
         }
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
     // Probe results feed a model's health counters and the usage
     // ledger. Only the platform's own prober may write them: any other key

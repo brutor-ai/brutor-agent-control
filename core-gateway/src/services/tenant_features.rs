@@ -113,34 +113,51 @@ pub async fn load_status(
     db: &sqlx::PgPool,
     tenant_id: &str,
 ) -> Result<Option<TenantStatus>, sqlx::Error> {
-    let row: Option<(bool, Option<String>, Option<Value>)> =
-        sqlx::query_as("SELECT suspended, suspension_reason, features FROM tenants WHERE id = $1")
-            .bind(tenant_id)
-            .fetch_optional(db)
-            .await?;
-    Ok(
-        row.map(|(suspended, suspension_reason, features)| TenantStatus {
+    let row: Option<(bool, Option<String>, Option<Value>, Option<Value>)> = sqlx::query_as(
+        "SELECT suspended, suspension_reason, features, identity_policy_default \
+         FROM tenants WHERE id = $1",
+    )
+    .bind(tenant_id)
+    .fetch_optional(db)
+    .await?;
+    Ok(row.map(
+        |(suspended, suspension_reason, features, identity_default)| TenantStatus {
             suspended,
             suspension_reason,
             features: TenantFeatures::from_column(features.as_ref()),
-        }),
-    )
+            identity_policy_default: identity_default.filter(|v| !v.is_null()).map(|value| {
+                crate::services::identity_policy::IdentityPolicyDefault::from_stored(
+                    &value, tenant_id,
+                )
+            }),
+        },
+    ))
+}
+
+/// The tenant's status: the one the tenant layer cached, or read (and
+/// cached) when it has expired since. `None` for a tenant that does not
+/// exist.
+pub async fn status(
+    state: &AppState,
+    tenant_id: &str,
+) -> Result<Option<TenantStatus>, sqlx::Error> {
+    if let Some(status) = state.tenant_cache.get_tenant(tenant_id) {
+        return Ok(Some(status));
+    }
+    let loaded = load_status(&state.db, tenant_id).await?;
+    if let Some(status) = &loaded {
+        state
+            .tenant_cache
+            .insert_tenant(tenant_id.to_string(), status.clone());
+    }
+    Ok(loaded)
 }
 
 /// The tenant's switches: from the cached status the tenant layer loaded
 /// for this request, or read (and cached) when it has expired since.
 pub async fn of(state: &AppState, tenant_id: &str) -> Result<TenantFeatures, sqlx::Error> {
-    if let Some(status) = state.tenant_cache.get_tenant(tenant_id) {
-        return Ok(status.features);
-    }
-    Ok(match load_status(&state.db, tenant_id).await? {
-        Some(status) => {
-            let features = status.features.clone();
-            state
-                .tenant_cache
-                .insert_tenant(tenant_id.to_string(), status);
-            features
-        }
+    Ok(match status(state, tenant_id).await? {
+        Some(status) => status.features,
         None => TenantFeatures::none(),
     })
 }

@@ -381,12 +381,34 @@ pub async fn seed_mcp_server(pool: &PgPool, id: &str, tenant_id: &str, name: &st
     .expect("seed_mcp_server");
 }
 
-/// Insert an `idp_servers` row. `registration_endpoint` controls
-/// whether CIMD bridging is advertised (needs DCR upstream).
+/// Insert an `idp_servers` row with the issuer `https://idp.test.local`.
+/// `registration_endpoint` controls whether CIMD bridging is advertised
+/// (needs DCR upstream). A tenant's OIDC issuers are unique: a second IdP
+/// of the same tenant is seeded with [`seed_idp_with_issuer`].
 pub async fn seed_idp(
     pool: &PgPool,
     id: &str,
     tenant_id: &str,
+    authorization_endpoint: Option<&str>,
+    registration_endpoint: Option<&str>,
+) {
+    seed_idp_with_issuer(
+        pool,
+        id,
+        tenant_id,
+        "https://idp.test.local",
+        authorization_endpoint,
+        registration_endpoint,
+    )
+    .await;
+}
+
+/// [`seed_idp`] with its own issuer.
+pub async fn seed_idp_with_issuer(
+    pool: &PgPool,
+    id: &str,
+    tenant_id: &str,
+    issuer: &str,
     authorization_endpoint: Option<&str>,
     registration_endpoint: Option<&str>,
 ) {
@@ -397,7 +419,7 @@ pub async fn seed_idp(
           supports_client_credentials, token_endpoint_auth_methods, scopes_supported, \
           response_types_supported, grant_types_supported, discovery_cache_ttl, \
           enabled, verified, protocol) \
-         VALUES ($1, $2, $1, 'https://idp.test.local', 'oidc', $3, \
+         VALUES ($1, $2, $1, $5, 'oidc', $3, \
                  'https://idp.test.local/token', $4, true, true, false, \
                  '[]'::json, '[]'::json, '[]'::json, '[]'::json, 3600, true, false, 'oidc') \
          ON CONFLICT (id) DO NOTHING",
@@ -406,6 +428,7 @@ pub async fn seed_idp(
     .bind(tenant_id)
     .bind(authorization_endpoint)
     .bind(registration_endpoint)
+    .bind(issuer)
     .execute(pool)
     .await
     .expect("seed_idp");

@@ -42,6 +42,9 @@ pub struct TenantStatus {
     pub suspension_reason: Option<String>,
     /// The tenant's traffic-carrying feature switches.
     pub features: crate::services::tenant_features::TenantFeatures,
+    /// The tenant's identity policy default (`tenants.identity_policy_default`),
+    /// read fail closed; `None` when the tenant set none.
+    pub identity_policy_default: Option<crate::services::identity_policy::IdentityPolicyDefault>,
 }
 
 /// Cached api-key → tenant resolution. `None` means "we hit the DB,
@@ -110,15 +113,22 @@ impl TenantCache {
         self.tenants.insert(tenant_id, status);
     }
 
-    /// Manual invalidation hook — wired to the existing Redis
-    /// pub/sub `CacheInvalidator` so a tenant suspension
-    /// propagates within milliseconds rather than the 5 s TTL.
+    /// Drop one tenant's status. The invalidation listener calls it on the
+    /// message the control plane publishes when a tenant's settings change
+    /// (`cache::invalidation`), so a new identity policy default reaches
+    /// the next call rather than waiting out the 5 s TTL.
     pub fn invalidate_tenant(&self, tenant_id: &str) {
         self.tenants.invalidate(tenant_id);
     }
 
     pub fn invalidate_api_key(&self, key_hash: &str) {
         self.api_keys.invalidate(key_hash);
+    }
+
+    /// Drop every tenant's status: after the invalidation listener
+    /// (re)subscribes, a change published while it was away is not missed.
+    pub fn invalidate_all_tenants(&self) {
+        self.tenants.invalidate_all();
     }
 }
 
@@ -141,6 +151,7 @@ pub fn _make_test_status(suspended: bool) -> TenantStatus {
         suspended,
         suspension_reason: None,
         features: Default::default(),
+        identity_policy_default: None,
     }
 }
 

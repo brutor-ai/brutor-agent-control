@@ -2098,6 +2098,15 @@ def create_resource_groups_router(
                     detail="Cannot update a revoked API key"
                 )
 
+            # `expires_at` sent as null clears the expiry; not sent leaves it.
+            expiry_sent = "expires_at" in key_data.model_fields_set
+            if expiry_sent:
+                _refuse_key_by_identity_policy(
+                    db, admin_tenant_id, key.group_id,
+                    personal=key.scope == 'user', expires_at=key_data.expires_at,
+                    creating=False, expiry_changed=True,
+                )
+
             changes = {}
             if key_data.name is not None:
                 changes["name"] = key_data.name
@@ -2105,8 +2114,8 @@ def create_resource_groups_router(
             if key_data.description is not None:
                 changes["description"] = key_data.description
                 key.description = key_data.description
-            if key_data.expires_at is not None:
-                changes["expires_at"] = key_data.expires_at.isoformat()
+            if expiry_sent:
+                changes["expires_at"] = key_data.expires_at.isoformat() if key_data.expires_at else None
                 key.expires_at = key_data.expires_at
             if key_data.enabled is not None:
                 changes["enabled"] = key_data.enabled
@@ -8428,6 +8437,27 @@ def create_resource_groups_router(
                 detail="Failed to retrieve group API keys"
             )
 
+    def _refuse_key_by_identity_policy(db, tenant_id: str, group_id, **check):
+        """422 when the effective identity policy of the key's group refuses
+        the key (`identity_policy.check_key`)."""
+        from app.services import identity_policy
+
+        group = None
+        if group_id:
+            group = db.query(ResourceGroup).filter(
+                ResourceGroup.id == group_id, ResourceGroup.tenant_id == tenant_id
+            ).first()
+        resolution = (
+            identity_policy.resolve_group(db, group) if group is not None
+            else identity_policy.resolve_ungrouped(db, tenant_id)
+        )
+        try:
+            identity_policy.check_key(resolution, now=datetime.now(timezone.utc), **check)
+        except identity_policy.KeyRefused as refused:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=refused.detail()
+            )
+
     def _resolve_agent_binding(db, tenant_id: str, agent_id):
         """Validate an agent-identity id for key binding. Returns the
         normalized id (or None). 404s on an unknown/foreign agent so a typo
@@ -8510,6 +8540,15 @@ def create_resource_groups_router(
             # UI sends: 'shared' or 'user'
             # DB expects: 'global' or 'user'
             scope = 'user' if key_data.access_mode == 'user' else 'global'
+
+            # What the group's identity policy would refuse at use is refused
+            # here: a key where the policy needs more than a key, a personal
+            # key where it refuses them, an expiry beyond its ceiling.
+            _refuse_key_by_identity_policy(
+                db, admin_tenant_id, group_id,
+                personal=scope == 'user', expires_at=key_data.expires_at,
+                creating=True, expiry_changed=True,
+            )
 
             # Optional agent-identity binding (actor attribution for agent authz).
             bound_agent_id = _resolve_agent_binding(db, admin_tenant_id, key_data.agent_id)

@@ -16,6 +16,7 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.api.v1.models.admin.identity_policy import IdentityPolicyDefaultModel
 from app.api.v1.models.admin.residency import DataResidencyProfile
 from app.api.v1.models.admin.retention import DataRetentionPolicy
 from app.api.v1.models.admin.tenant_theme import TenantThemeConfig
@@ -141,6 +142,16 @@ class TenantSettingsUpdate(BaseModel):
         ),
     )
 
+    identity_policy_default: Optional[IdentityPolicyDefaultModel] = Field(
+        None,
+        description=(
+            "The tenant's identity default: an identity policy (all six members) plus "
+            "`max_user_key_ttl_days`, the longest a personal API key may live. It takes part "
+            "in every group's effective identity policy, stricter wins. Pass null for no "
+            "tenant default. Setting it also needs `identity_policy:manage`."
+        ),
+    )
+
     # Tenant-wide default judge model — used by Semantic Governance Policies
     # when a policy doesn't pin its own judge.
     default_judge_model_id: Optional[str] = Field(
@@ -239,6 +250,7 @@ class TenantResponse(BaseModel):
     assurance_capture_interval_hours: Optional[int] = None
     default_approval_window_seconds: Optional[int] = None
     ai_system_gate_policy: Optional[Dict[str, Any]] = None
+    identity_policy_default: Optional[Dict[str, Any]] = None
 
     data_residency: Optional[DataResidencyProfile] = Field(
         None, description="Per-tenant residency enforcement profile (null = disabled)"

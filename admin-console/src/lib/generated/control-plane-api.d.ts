@@ -1701,6 +1701,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/ai-systems/{ai_system_id}/identity/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Credentials that reached an AI System
+         * @description One item per credential that made calls in the system's subtree in the last `days` days, newest first: calls, calls below the policy and refused, first and last seen, and the key or agent behind it.
+         */
+        get: operations["identity_credentials_v1_admin_ai_systems__ai_system_id__identity_credentials_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/ai-systems/{ai_system_id}/identity/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Credential assurance of an AI System's calls
+         * @description Calls of the system's subtree in the last `days` days by credential level and by the identity policy's verdict, its runs by their lowest credential level, and the number of distinct credentials.
+         */
+        get: operations["identity_summary_v1_admin_ai_systems__ai_system_id__identity_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/ai-systems/{ai_system_id}/incident-windows": {
         parameters: {
             query?: never;
@@ -7742,6 +7782,30 @@ export interface paths {
         post: operations["bind_user_groups_v1_admin_resource_groups__group_id__end_user_groups_post"];
         /** Unbind one or more EndUserGroups from this Resource Group */
         delete: operations["unbind_user_groups_v1_admin_resource_groups__group_id__end_user_groups_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/resource-groups/{group_id}/identity-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a group's identity policy
+         * @description The group's explicit identity policy (or null), its effective policy, the floor it inherits (the policy without its own), and where each effective value comes from.
+         */
+        get: operations["get_identity_policy_v1_admin_resource_groups__group_id__identity_policy_get"];
+        /**
+         * Set a group's identity policy
+         * @description Stores the group's explicit identity policy (`{"policy": null}` clears it). A policy looser than what the group inherits in any field is refused with 422 `identity_policy_below_floor`, naming every such field, the floor and its source.
+         */
+        put: operations["put_identity_policy_v1_admin_resource_groups__group_id__identity_policy_put"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -17238,6 +17302,10 @@ export interface components {
             };
             /** Id */
             id: string;
+            /** Identity Policy Default */
+            identity_policy_default?: {
+                [key: string]: unknown;
+            } | null;
             /** Is Active */
             is_active: boolean;
             /** Is Default */
@@ -22218,6 +22286,257 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+        };
+        /** IdentityCallsByLevel */
+        IdentityCallsByLevel: {
+            /**
+             * Bound Key
+             * @default 0
+             */
+            bound_key?: number;
+            /**
+             * Key
+             * @default 0
+             */
+            key?: number;
+            /**
+             * Outside Ladder
+             * @default 0
+             */
+            outside_ladder?: number;
+            /**
+             * Workload
+             * @default 0
+             */
+            workload?: number;
+            /**
+             * Workload Pop
+             * @default 0
+             */
+            workload_pop?: number;
+        };
+        /** IdentityCredentialItem */
+        IdentityCredentialItem: {
+            /** Agent Id */
+            agent_id?: string | null;
+            /** Api Key Id */
+            api_key_id?: string | null;
+            /** Api Key Name */
+            api_key_name?: string | null;
+            /** Below Policy Calls */
+            below_policy_calls: number;
+            /** Calls */
+            calls: number;
+            /** Credential Assurance */
+            credential_assurance?: string | null;
+            /** Credential Kind */
+            credential_kind?: string | null;
+            /** Credential Ref */
+            credential_ref?: string | null;
+            /** First Seen */
+            first_seen?: string | null;
+            /** Last Seen */
+            last_seen?: string | null;
+            /** Refused Calls */
+            refused_calls: number;
+        };
+        /** IdentityCredentialsResponse */
+        IdentityCredentialsResponse: {
+            /** Items */
+            items: components["schemas"]["IdentityCredentialItem"][];
+            /** Total */
+            total: number;
+        };
+        /** IdentityOutcomes */
+        IdentityOutcomes: {
+            /**
+             * Below Policy
+             * @default 0
+             */
+            below_policy?: number;
+            /**
+             * Exempt
+             * @default 0
+             */
+            exempt?: number;
+            /**
+             * Met
+             * @default 0
+             */
+            met?: number;
+            /**
+             * Refused
+             * @default 0
+             */
+            refused?: number;
+        };
+        /**
+         * IdentityPolicyDefaultModel
+         * @description The tenant's identity default: a policy plus the personal-key ceiling.
+         */
+        IdentityPolicyDefaultModel: {
+            /**
+             * Allow User Keys
+             * @description Whether personal API keys are accepted
+             */
+            allow_user_keys: boolean;
+            /**
+             * Allowed Issuers
+             * @description OIDC IdP ids whose workload tokens are accepted; null = any issuer
+             */
+            allowed_issuers: string[] | null;
+            /**
+             * Max Key Ttl Days
+             * @description Longest API key lifetime in days; null = no ceiling
+             */
+            max_key_ttl_days: number | null;
+            /**
+             * Max Token Lifetime S
+             * @description Longest accepted workload token lifetime
+             */
+            max_token_lifetime_s: number;
+            /**
+             * Max User Key Ttl Days
+             * @description Longest personal API key lifetime in days
+             */
+            max_user_key_ttl_days: number;
+            /**
+             * Min Assurance
+             * @description The lowest credential level a call may present
+             * @enum {string}
+             */
+            min_assurance: "key" | "bound_key" | "workload" | "workload_pop";
+            /**
+             * Mode
+             * @description audit: record calls below the policy; enforce: refuse them
+             * @enum {string}
+             */
+            mode: "audit" | "enforce";
+        };
+        /**
+         * IdentityPolicyModel
+         * @description A group's identity policy: all six members, no other.
+         */
+        IdentityPolicyModel: {
+            /**
+             * Allow User Keys
+             * @description Whether personal API keys are accepted
+             */
+            allow_user_keys: boolean;
+            /**
+             * Allowed Issuers
+             * @description OIDC IdP ids whose workload tokens are accepted; null = any issuer
+             */
+            allowed_issuers: string[] | null;
+            /**
+             * Max Key Ttl Days
+             * @description Longest API key lifetime in days; null = no ceiling
+             */
+            max_key_ttl_days: number | null;
+            /**
+             * Max Token Lifetime S
+             * @description Longest accepted workload token lifetime
+             */
+            max_token_lifetime_s: number;
+            /**
+             * Min Assurance
+             * @description The lowest credential level a call may present
+             * @enum {string}
+             */
+            min_assurance: "key" | "bound_key" | "workload" | "workload_pop";
+            /**
+             * Mode
+             * @description audit: record calls below the policy; enforce: refuse them
+             * @enum {string}
+             */
+            mode: "audit" | "enforce";
+        };
+        /**
+         * IdentityPolicyPut
+         * @description `PUT …/identity-policy`: the wrapper lets null (clear) be said.
+         */
+        IdentityPolicyPut: {
+            /** @description The explicit policy, or null to clear it */
+            policy: components["schemas"]["IdentityPolicyModel"] | null;
+        };
+        /** IdentityPolicyResponse */
+        IdentityPolicyResponse: {
+            /** Attributed To Ai System */
+            attributed_to_ai_system: boolean;
+            /** Effective */
+            effective: {
+                [key: string]: unknown;
+            };
+            /** Eu Ai Act Risk Tier */
+            eu_ai_act_risk_tier?: string | null;
+            /** Group Id */
+            group_id: string;
+            /** Group Name */
+            group_name: string;
+            /** Inherited Floor */
+            inherited_floor: {
+                [key: string]: unknown;
+            };
+            /** Is Ai System */
+            is_ai_system: boolean;
+            /** Lifecycle Stage */
+            lifecycle_stage?: string | null;
+            /** Max User Key Ttl Days */
+            max_user_key_ttl_days: number;
+            /** Policy */
+            policy?: {
+                [key: string]: unknown;
+            } | null;
+            /** Sources */
+            sources: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        /** IdentityRunsByMinLevel */
+        IdentityRunsByMinLevel: {
+            /**
+             * Bound Key
+             * @default 0
+             */
+            bound_key?: number;
+            /**
+             * Key
+             * @default 0
+             */
+            key?: number;
+            /**
+             * None
+             * @default 0
+             */
+            none?: number;
+            /**
+             * Workload
+             * @default 0
+             */
+            workload?: number;
+            /**
+             * Workload Pop
+             * @default 0
+             */
+            workload_pop?: number;
+        };
+        /** IdentitySummaryResponse */
+        IdentitySummaryResponse: {
+            /** Ai System Id */
+            ai_system_id: string;
+            calls_by_level: components["schemas"]["IdentityCallsByLevel"];
+            /** Credentials */
+            credentials: number;
+            /** Effective */
+            effective: {
+                [key: string]: unknown;
+            };
+            outcomes: components["schemas"]["IdentityOutcomes"];
+            runs_by_min_level: components["schemas"]["IdentityRunsByMinLevel"];
+            /** Window Days */
+            window_days: number;
         };
         /** InUse */
         InUse: {
@@ -27600,6 +27919,19 @@ export interface components {
             /** System Name */
             system_name?: string | null;
         };
+        /** OffendingCredential */
+        OffendingCredential: {
+            /** Calls */
+            calls: number;
+            /** Credential Assurance */
+            credential_assurance?: string | null;
+            /** Credential Kind */
+            credential_kind: string;
+            /** Credential Ref */
+            credential_ref?: string | null;
+            /** Last Seen */
+            last_seen?: string | null;
+        };
         /**
          * OutcomeActionRow
          * @description Run length of ONE processed outcome, over its `success` runs.
@@ -28994,6 +29326,10 @@ export interface components {
             key: string;
             /** Label */
             label: string;
+            /** Offending Credentials */
+            offending_credentials?: components["schemas"]["OffendingCredential"][] | null;
+            /** Offending Total */
+            offending_total?: number | null;
             /** Satisfied */
             satisfied: boolean;
         };
@@ -31069,6 +31405,12 @@ export interface components {
             contract_id?: string | null;
             /** Created At */
             created_at?: string | null;
+            /** Credential Assurance Min */
+            credential_assurance_min?: string | null;
+            /** Credential Mixed */
+            credential_mixed?: boolean | null;
+            /** Credential Refs */
+            credential_refs?: string[] | null;
             /**
              * Distinct Tools
              * @default 0
@@ -34565,6 +34907,10 @@ export interface components {
             };
             /** Id */
             id: string;
+            /** Identity Policy Default */
+            identity_policy_default?: {
+                [key: string]: unknown;
+            } | null;
             /** Is Active */
             is_active: boolean;
             /** Is Default */
@@ -34662,6 +35008,8 @@ export interface components {
             display_name?: string | null;
             /** Domain */
             domain?: string | null;
+            /** @description The tenant's identity default: an identity policy (all six members) plus `max_user_key_ttl_days`, the longest a personal API key may live. It takes part in every group's effective identity policy, stricter wins. Pass null for no tenant default. Setting it also needs `identity_policy:manage`. */
+            identity_policy_default?: components["schemas"]["IdentityPolicyDefaultModel"] | null;
             /**
              * Mfa Policy
              * @description Two-factor policy of the tenant. `optional`: nobody is required to have 2FA. `required_admins`: every administrator of the tenant must have 2FA; one without it gets no session at sign-in until they enrol. `required_all`: the same, and Portal users too. A tenant administrator can set a value other than `optional` only when their own account has 2FA (409 otherwise). Making the policy stricter signs out the people it now covers who have no 2FA. Omit to leave unchanged.
@@ -40680,6 +41028,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    identity_credentials_v1_admin_ai_systems__ai_system_id__identity_credentials_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                ai_system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityCredentialsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    identity_summary_v1_admin_ai_systems__ai_system_id__identity_summary_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                ai_system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentitySummaryResponse"];
                 };
             };
             /** @description Validation Error */
@@ -53093,6 +53509,72 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_identity_policy_v1_admin_resource_groups__group_id__identity_policy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityPolicyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_identity_policy_v1_admin_resource_groups__group_id__identity_policy_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentityPolicyPut"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityPolicyResponse"];
                 };
             };
             /** @description Validation Error */

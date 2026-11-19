@@ -33,6 +33,7 @@ pub mod credential_surface_matrix;
 mod duplicate_model_names;
 pub mod edition_guard_start;
 mod extension_assembly;
+mod identity_policy_store;
 mod llm_ambiguous_retry;
 mod llm_hot_path_latency;
 mod llm_row_group_attribution;

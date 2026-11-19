@@ -15,6 +15,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import type { ResourceGroup } from '../../../../lib/groupTypes';
+import { GatewayAPIError } from '../../../../lib/gatewayApi/base';
 
 const gatewayClient = { listAgentIdentities: vi.fn() };
 const gateway = { createGroupAPIKey: vi.fn(), fetchEndUsers: vi.fn(), gatewayClient };
@@ -211,5 +212,52 @@ describe('CreateGroupKeyModal', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
         expect(onClose).toHaveBeenCalledTimes(1);
         expect(gateway.createGroupAPIKey).not.toHaveBeenCalled();
+    });
+
+    it('shows what an API key and workload identity prove, and what production needs, with the guide', () => {
+        renderModal();
+        const box = screen.getByTestId('trade-offs-keys');
+        expect(box).toHaveTextContent(/API key/);
+        expect(box).not.toHaveTextContent(/bound key/i);
+        expect(box).toHaveTextContent(/production requires workload identity/i);
+        expect(screen.getByRole('link', { name: /choosing how agents authenticate/i })).toHaveAttribute(
+            'href',
+            'https://docs.brutor.ai/build-an-agent/identity/choosing/',
+        );
+    });
+
+    it('a create the identity policy refuses says what the policy requires', async () => {
+        gateway.createGroupAPIKey.mockRejectedValue(
+            new GatewayAPIError('refused', 422, undefined, {
+                detail: {
+                    message: 'refused',
+                    code: 'key_refused_by_identity_policy',
+                    effective_policy: { mode: 'enforce', min_assurance: 'workload', allow_user_keys: false, allowed_issuers: null, max_token_lifetime_s: 3600, max_key_ttl_days: null },
+                    sources: { min_assurance: { kind: 'lifecycle', group_id: 'rg-1', group_name: 'eng', stage: 'active' } },
+                },
+            }),
+        );
+        renderModal();
+        typeName('k');
+        submit();
+        expect(await screen.findByText(/requires credential level workload \(this group \(lifecycle: active\)\)/)).toBeInTheDocument();
+        expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('a create refused for its expiry says the ceiling', async () => {
+        gateway.createGroupAPIKey.mockRejectedValue(
+            new GatewayAPIError('refused', 422, undefined, {
+                detail: {
+                    message: 'An expiry is required.',
+                    code: 'key_expiry_required',
+                    effective_policy: { mode: 'audit', min_assurance: 'key', allow_user_keys: true, allowed_issuers: null, max_token_lifetime_s: 3600, max_key_ttl_days: 30 },
+                    sources: {},
+                },
+            }),
+        );
+        renderModal();
+        typeName('k');
+        submit();
+        expect(await screen.findByText(/at most 30 days/)).toBeInTheDocument();
     });
 });

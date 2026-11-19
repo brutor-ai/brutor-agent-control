@@ -122,6 +122,8 @@
   "GET /v1/admin/ai-systems/{ai_system_id}/envelope",
   "GET /v1/admin/ai-systems/{ai_system_id}/evidence",
   "GET /v1/admin/ai-systems/{ai_system_id}/health",
+  "GET /v1/admin/ai-systems/{ai_system_id}/identity/credentials",
+  "GET /v1/admin/ai-systems/{ai_system_id}/identity/summary",
   "GET /v1/admin/ai-systems/{ai_system_id}/incident-windows",
   "GET /v1/admin/ai-systems/{ai_system_id}/lifecycle",
   "GET /v1/admin/ai-systems/{ai_system_id}/liveness",
@@ -305,6 +307,7 @@
   "GET /v1/admin/resource-groups/{group_id}/effective-llm-models",
   "GET /v1/admin/resource-groups/{group_id}/effective-server-configs",
   "GET /v1/admin/resource-groups/{group_id}/end-user-groups",
+  "GET /v1/admin/resource-groups/{group_id}/identity-policy",
   "GET /v1/admin/resource-groups/{group_id}/limits",
   "GET /v1/admin/resource-groups/{group_id}/llm-global-governance",
   "GET /v1/admin/resource-groups/{group_id}/llm-global-limits",
@@ -646,6 +649,7 @@
   "PUT /v1/admin/mcp-catalog/{entry_id}",
   "PUT /v1/admin/resource-groups/{group_id}/agent-cards",
   "PUT /v1/admin/resource-groups/{group_id}/approval-window",
+  "PUT /v1/admin/resource-groups/{group_id}/identity-policy",
   "PUT /v1/admin/resource-groups/{group_id}/server-configs/{config_id}/capabilities",
   "PUT /v1/admin/system-servers/search-config"
 ]

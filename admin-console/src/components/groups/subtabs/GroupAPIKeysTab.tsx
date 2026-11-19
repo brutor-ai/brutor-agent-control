@@ -33,18 +33,37 @@ import { errorKind, errorMessage } from '../../../lib/narrow';
 import { asyncHandler, runBackground, runUserAction } from '../../../lib/asyncSafe';
 import { useReadFailures } from '../../../hooks/useRead';
 import ReadFailureNotice from '../../common/ReadFailureNotice';
+import { useAuth } from '../../../hooks/useAuth';
+import { IDENTITY_POLICY_READ, keyStanding, LEVEL_LABELS, type IdentityPolicyResponse, type KeyStanding } from '../../../lib/identityPolicy';
+
+/** What the gateway does with a usable key under the group's identity policy, when it is not simply accepted. */
+function standingText(standing: KeyStanding, governed: boolean): string | null {
+    switch (standing.standing) {
+        case 'met':
+            return null;
+        case 'refused':
+            return `Refused now: the identity policy requires ${LEVEL_LABELS[standing.required]}.`;
+        case 'below_policy':
+            return `Served but recorded below policy (requires ${LEVEL_LABELS[standing.required]})` + (governed ? '; promotion will refuse this key.' : '.');
+        case 'refused_after_promotion':
+            return 'Promotion will refuse this key: an AI System in production requires workload identity.';
+    }
+}
 
 interface Props {
     group: ResourceGroup;
 }
 
 const GroupAPIKeysTab: React.FC<Props> = ({ group }) => {
-    const { fetchGroupAPIKeys, fetchGroupAPIKeyUsage, revokeAPIKey, enableAPIKey, disableAPIKey } = useGateway();
+    const { gatewayClient, fetchGroupAPIKeys, fetchGroupAPIKeyUsage, revokeAPIKey, enableAPIKey, disableAPIKey } = useGateway();
+    const { hasPermission } = useAuth();
+    const canReadIdentity = hasPermission(IDENTITY_POLICY_READ);
+    const [identity, setIdentity] = useState<IdentityPolicyResponse | null>(null);
     const confirm = useConfirm();
 
     const [keys, setKeys] = useState<GroupAPIKey[]>([]);
     const [usage, setUsage] = useState<GroupAPIKeyUsageResponse | null>(null);
-    const [readFailure, reads] = useReadFailures<'usage'>();
+    const [readFailure, reads] = useReadFailures<'usage' | 'identity'>();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
@@ -59,6 +78,22 @@ const GroupAPIKeysTab: React.FC<Props> = ({ group }) => {
         runBackground(loadKeys(), 'keys');
         runBackground(loadUsage(), 'usage');
     }, [group.id]);
+
+    // The group's identity policy, for each key's standing under it. Without
+    // the permission the keys show their level only; a failed read says so.
+    useEffect(() => {
+        if (!canReadIdentity) return;
+        gatewayClient.fetchIdentityPolicy(group.id).then(
+            (answer) => {
+                setIdentity(answer);
+                reads.loaded('identity');
+            },
+            (err: unknown) => {
+                setIdentity(null);
+                reads.failed('identity', 'Failed to load the identity policy of this group', err);
+            },
+        );
+    }, [canReadIdentity, gatewayClient, group.id, reads]);
 
     const loadKeys = async () => {
         try {
@@ -202,6 +237,8 @@ const GroupAPIKeysTab: React.FC<Props> = ({ group }) => {
                 </div>
             )}
 
+            <ReadFailureNotice compact failure={readFailure('identity')} data-testid="keys-identity-failure" />
+
             {/* Search */}
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
@@ -262,6 +299,9 @@ const GroupAPIKeysTab: React.FC<Props> = ({ group }) => {
                                 </th>
                                 <th className={`${TABLE_TH_TYPE} px-6 py-3 text-left`}>
                                     Type
+                                </th>
+                                <th className={`${TABLE_TH_TYPE} px-6 py-3 text-left`}>
+                                    Level
                                 </th>
                                 <th className={`${TABLE_TH_TYPE} px-6 py-3 text-left`}>
                                     Last Used
@@ -366,6 +406,27 @@ const GroupAPIKeysTab: React.FC<Props> = ({ group }) => {
                                                         Shared
                                                     </span>
                                             )}
+                                        </td>
+
+                                        {/* Credential level, and the key's standing under the identity policy */}
+                                        <td className="px-6 py-4">
+                                            <span
+                                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-surface-alt text-secondary"
+                                                title="Every API key is credential level key"
+                                                data-testid={`key-level-${key.id}`}
+                                            >
+                                                key
+                                            </span>
+                                            {(() => {
+                                                if (!identity || key.revoked || key.is_expired) return null;
+                                                const text = standingText(keyStanding(identity, key.scope), identity.attributed_to_ai_system);
+                                                return text ? (
+                                                    <div className="mt-1 flex items-start gap-1 text-xs text-amber-700 max-w-xs whitespace-normal" data-testid={`key-warning-${key.id}`}>
+                                                        <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+                                                        <span>{text}</span>
+                                                    </div>
+                                                ) : null;
+                                            })()}
                                         </td>
 
                                         {/* Last Used */}

@@ -521,6 +521,12 @@ export interface RunDetail extends RunSummary {
     peak_context_utilization?: number | null;
     /** The peak over the same agent's first measured context. */
     context_growth?: number | null;
+    /** The lowest credential level over the run's steps; null = none on the ladder, or an anonymous step. */
+    credential_assurance_min?: string | null;
+    /** True when several credentials made the run's steps. */
+    credential_mixed?: boolean | null;
+    /** The references of those credentials, first seen first, at most 8. */
+    credential_refs?: string[] | null;
     rag_used: boolean;
     rag_chunks: number;
     feedback_score?: number | null;

@@ -380,6 +380,9 @@ impl CacheInvalidator {
         if let Some(ref state) = self.state {
             state.semantic_policy_cache.invalidate_all().await;
             state.maintenance_cache.invalidate(None);
+            // Tenant status (suspension, switches, the identity policy
+            // default).
+            state.tenant_cache.invalidate_all_tenants();
         }
         // The caches a handler owns: whatever an extension registered (the
         // prompt-cache policies, when that extension is composed).

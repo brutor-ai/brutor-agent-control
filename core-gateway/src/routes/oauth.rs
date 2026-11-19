@@ -1240,7 +1240,11 @@ pub(crate) async fn list_tokens(
             if let Err(e) =
                 crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await
             {
-                return error_response(e.status_code(), &e.to_string());
+                return crate::services::identity_policy::refusal_response(
+                    &e,
+                    error_response(e.status_code(), &e.to_string()),
+                )
+                .await;
             }
             (auth_ctx.idp_user_id.or(auth_ctx.gateway_user_id), None)
         }

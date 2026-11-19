@@ -2,25 +2,27 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-# a190_audit_chain_v4 — audit chain canonical format v4
+# The audit chain's canonical row format v5
 
-v4 brings the JSON decision records (`compliance_tags`, `guardrails_skipped`,
-`guardrails_degraded`, `pre_action_state`, `custom_metadata`, `tags`) inside
-the row hash, each as its RFC 8785 (JSON Canonicalization Scheme) text. The
-core (`services/jcs.rs`) and this repo's reference verifier
-(`app/services/audit_chain_canonical.py`) implement JCS independently; this
-suite pins:
+The row hash covers the scalar fields, the JSON decision records
+(`compliance_tags`, `guardrails_skipped`, `guardrails_degraded`,
+`pre_action_state`, `custom_metadata`, `tags`), each as its RFC 8785 (JSON
+Canonicalization Scheme) text, and the credential that made the call
+(`credential_kind`, `credential_assurance`, `credential_ref`,
+`credential_policy_outcome`), each a plain string. The core
+(`services/jcs.rs`, `services/audit_chain.rs`) and this repo's reference
+verifier (`app/services/audit_chain_canonical.py`) implement the format
+independently; this suite pins:
 
 * **RFC 8785's own vectors** — number serialisation (Appendix B), the main
   example, UTF-16 key ordering, string escaping — identical to the core's
   `jcs::tests`, and checks the core still pins every one of them.
 * **Brutor row vectors** — the same rows, the same hashes, as the core's
-  `audit_chain::tests::fixed_vectors_pin_the_format`. v4 is the one format
+  `audit_chain::tests::fixed_vectors_pin_the_format`. v5 is the one format
   this release writes and the one the verifier computes.
-* **Tamper behaviour** — a value change in any JSON column breaks a row;
-  re-ordering keys, re-spacing or re-spelling numbers does not; the version
-  label cannot make a row verify; exported rows verify offline.
-* **The migration** — a190_audit_chain_v4 extends the CHECK to v4, and nothing else.
+* **Tamper behaviour** — a value change in any JSON or credential column
+  breaks a row; re-ordering keys, re-spacing or re-spelling numbers does not;
+  the version label cannot make a row verify; exported rows verify offline.
 """
 
 from __future__ import annotations
@@ -39,9 +41,10 @@ from app.services.audit_chain_canonical import (
     GENESIS_HASH,
     V3_FIELDS,
     V4_ADDED_FIELDS,
-    V4_FIELDS,
+    V5_ADDED_FIELDS,
+    V5_FIELDS,
     CANONICAL_VERSION,
-    canonical_row_bytes_v4,
+    canonical_row_bytes,
     hash_row,
     jcs_canonicalize,
     jcs_number,
@@ -228,13 +231,36 @@ JSON_DOCS = dict(
 )
 
 
+#: The credential of the core's `vector_full()`.
+CREDENTIAL_FULL = dict(
+    credential_kind="api_key",
+    credential_assurance="key",
+    credential_ref="api_key:key-1",
+    credential_policy_outcome="below_policy",
+)
+
+
 def vector_full() -> dict:
-    return dict(vector_full_v3(), **json.loads(json.dumps(JSON_DOCS)))
+    return dict(vector_full_v3(), **json.loads(json.dumps(JSON_DOCS)), **CREDENTIAL_FULL)
 
 
 def vector_sparse_json() -> dict:
-    """The documented v4 vector (docs reference/audit-row.mdx)."""
+    """The documented JSON vector (docs reference/audit-row.mdx)."""
     return dict(vector_sparse(0), pre_action_state=json.loads('{"window":"day","used":1.50,"kind":"llm_quota"}'))
+
+
+def vector_credential() -> dict:
+    """The documented credential vector: the sparse row, made by a workload
+    token that met its identity policy. Mirror of the core's
+    `vector_credential()`."""
+    return dict(
+        vector_sparse(0),
+        idp_server_id="idp-1",
+        credential_kind="workload_token",
+        credential_assurance="workload",
+        credential_ref="token:idp-1:spiffe://example.org/agent",
+        credential_policy_outcome="met",
+    )
 
 
 #: The gateway's exact-digits vector: an integer outside the range
@@ -252,14 +278,15 @@ def vector_sparse_exact_digits(n: str = "9007199254740993") -> dict:
     return dict(vector_sparse(0), custom_metadata=document)
 
 
-V4_VECTORS = [
-    ("full", GENESIS_HASH, "648db704aad64e13a93ec3862a488b2fa561ffa0bc1ec92832f677b9576f6b78"),
-    ("sparse", VECTOR_PREV, "9e96cc27d103dee60a7b4d8df573f76eedffb7f5f6f496f14e4f3abf8fab2557"),
-    ("sparse_ms", VECTOR_PREV, "07bc370a29b5638cc61a66cd1a0449409df65fc4f978445391ce09b534933f46"),
-    ("sparse_json", VECTOR_PREV, "c18201c95d62f47743a543738a18ddd4dbc97e5eaa99a85daae869ea562c45ff"),
-    ("sparse_exact_digits", VECTOR_PREV, "120dbfc18038f31ef6b9841ebae02ff1669b9fa3fe0b5a69f7c830dace0909f9"),
+V5_VECTORS = [
+    ("full", GENESIS_HASH, "abc22a7be36095712b93245f4bde8d4e401f016e1dcaf2161984410c3d3e555f"),
+    ("sparse", VECTOR_PREV, "ce73f839770d7046c2d308c7f607d5ec0bb8357dad02cff4b9bc245a9945b7d7"),
+    ("sparse_ms", VECTOR_PREV, "ccdfd6ac60549914896b09f63a7426cc85a3589d48ac2aa3b73c8799b6d763b9"),
+    ("sparse_json", VECTOR_PREV, "701ddf149d26266c8c4bd09d7055be5c20ec15c3e527c3cca0e514ae3dbbfb27"),
+    ("credential", VECTOR_PREV, "3e2c71293eb42dcecf880f6cb660b948f661ceb556451dc670cff14c985b9044"),
+    ("sparse_exact_digits", VECTOR_PREV, "00477ad359799f7356e51b1595329de7ee306e170e73fb30bc004d11c3f1f176"),
     # One less, the same double: another hash.
-    ("sparse_exact_digits_less", VECTOR_PREV, "0d8a3731c74545bd5ba42de20ae19f707bcac7acb472ed1704b5a7bb23d326f0"),
+    ("sparse_exact_digits_less", VECTOR_PREV, "1c8a1144252a0b4858e60b19fd3d996ae8f88cd3319960637de612c42d60a5db"),
 ]
 
 
@@ -269,19 +296,20 @@ def _vector(name: str) -> dict:
         "sparse": lambda: vector_sparse(0),
         "sparse_ms": lambda: vector_sparse(250000),
         "sparse_json": vector_sparse_json,
+        "credential": vector_credential,
         "sparse_exact_digits": vector_sparse_exact_digits,
         "sparse_exact_digits_less": lambda: vector_sparse_exact_digits("9007199254740992"),
     }[name]()
 
 
 class TestFixedVectors:
-    @pytest.mark.parametrize(("name", "prev", "expected"), V4_VECTORS)
+    @pytest.mark.parametrize(("name", "prev", "expected"), V5_VECTORS)
     def test_reference_verifier_matches_the_core(self, name, prev, expected):
         assert hash_row(_vector(name), prev) == expected
 
-    @pytest.mark.parametrize(("name", "prev", "expected"), V4_VECTORS)
+    @pytest.mark.parametrize(("name", "prev", "expected"), V5_VECTORS)
     def test_the_core_pins_the_same_vectors(self, name, prev, expected):
-        assert expected in _core(CORE_CHAIN), f"the core no longer pins v4 {name} = {expected}"
+        assert expected in _core(CORE_CHAIN), f"the core no longer pins {name} = {expected}"
 
     def test_the_exact_digits_vector_is_the_gateways_stored_document(self):
         # The row the gateway's test hashes: `vector_sparse(0)` with this
@@ -309,7 +337,7 @@ class TestFixedVectors:
         )
         assert jcs_canonicalize(JSON_DOCS["tags"]) == '{"limits":[1,2.5,0],"refusal":"quota","scope":"tenant"}'
 
-    def test_the_v4_layout_is_exactly_as_documented(self):
+    def test_the_layout_is_exactly_as_documented(self):
         present = {
             "id": "01K6V3VECTOR0000000000SPARSE",
             "tenant_id": "tenant-vec",
@@ -324,16 +352,19 @@ class TestFixedVectors:
             "pii_detected": "0",
             "success": "0",
             "pre_action_state": '{"kind":"llm_quota","used":1.5,"window":"day"}',
+            "credential_kind": "api_key",
+            "credential_ref": "api_key:k",
         }
 
         def field(s: str) -> bytes:
             raw = s.encode()
             return b"\x01" + len(raw).to_bytes(4, "big") + raw
 
-        want = b"v4\x00" + b"".join(
-            field(present[n]) if n in present else b"\x00" for n in V3_FIELDS + V4_ADDED_FIELDS
+        want = b"v5\x00" + b"".join(
+            field(present[n]) if n in present else b"\x00" for n in V3_FIELDS + V4_ADDED_FIELDS + V5_ADDED_FIELDS
         ) + field(VECTOR_PREV)
-        assert canonical_row_bytes_v4(vector_sparse_json(), VECTOR_PREV) == want
+        row = dict(vector_sparse_json(), credential_kind="api_key", credential_ref="api_key:k")
+        assert canonical_row_bytes(row, VECTOR_PREV) == want
 
 
 # ---------------------------------------------------------------------------
@@ -353,32 +384,42 @@ def _reordered(value):
 
 class TestTamper:
     @pytest.mark.parametrize("column", V4_ADDED_FIELDS)
-    def test_a_value_change_breaks_a_v4_row(self, column):
+    def test_a_value_change_breaks_a_row(self, column):
         row = vector_full()
-        v4 = hash_row(row, GENESIS_HASH)
-        assert not row_matches(dict(row, **{column: {"forged": column}}), "v4", GENESIS_HASH, v4)
-        assert not row_matches(dict(row, **{column: None}), "v4", GENESIS_HASH, v4), "NULLing is an edit"
+        sealed = hash_row(row, GENESIS_HASH)
+        assert not row_matches(dict(row, **{column: {"forged": column}}), CANONICAL_VERSION, GENESIS_HASH, sealed)
+        assert not row_matches(dict(row, **{column: None}), CANONICAL_VERSION, GENESIS_HASH, sealed), "NULLing is an edit"
+
+    @pytest.mark.parametrize("column", V5_ADDED_FIELDS)
+    def test_a_credential_edit_breaks_a_row(self, column):
+        # A refused call rewritten as one that met its policy, a key as a
+        # workload token, another reference: each breaks the row.
+        row = vector_full()
+        sealed = hash_row(row, GENESIS_HASH)
+        assert row_matches(row, CANONICAL_VERSION, GENESIS_HASH, sealed)
+        assert not row_matches(dict(row, **{column: "forged"}), CANONICAL_VERSION, GENESIS_HASH, sealed)
+        assert not row_matches(dict(row, **{column: None}), CANONICAL_VERSION, GENESIS_HASH, sealed), "NULLing is an edit"
 
     @pytest.mark.parametrize("column", V4_ADDED_FIELDS)
-    def test_key_reordering_and_relayout_do_not_break_a_v4_row(self, column):
+    def test_key_reordering_and_relayout_do_not_break_a_row(self, column):
         row = vector_full()
-        v4 = hash_row(row, GENESIS_HASH)
+        sealed = hash_row(row, GENESIS_HASH)
         reordered = _reordered(row[column])
-        assert row_matches(dict(row, **{column: reordered}), "v4", GENESIS_HASH, v4)
+        assert row_matches(dict(row, **{column: reordered}), CANONICAL_VERSION, GENESIS_HASH, sealed)
         # Through text with different whitespace and number spelling, as a
         # recipient re-parsing an export would see it.
         relaid = json.loads(json.dumps(reordered, indent=3, ensure_ascii=True))
-        assert row_matches(dict(row, **{column: relaid}), "v4", GENESIS_HASH, v4)
+        assert row_matches(dict(row, **{column: relaid}), CANONICAL_VERSION, GENESIS_HASH, sealed)
 
     def test_small_edits_inside_a_document_are_detected(self):
         row = vector_full()
-        v4 = hash_row(row, GENESIS_HASH)
+        sealed = hash_row(row, GENESIS_HASH)
         for edit in (
             {"pre_action_state": dict(row["pre_action_state"], spend_usd=41.500001)},
             {"pre_action_state": dict(row["pre_action_state"], flags={"z": False, "a": None})},
             {"compliance_tags": list(reversed(row["compliance_tags"]))},
         ):
-            assert not row_matches(dict(row, **edit), "v4", GENESIS_HASH, v4), edit
+            assert not row_matches(dict(row, **edit), CANONICAL_VERSION, GENESIS_HASH, sealed), edit
 
     def test_sql_null_and_a_json_null_document_are_the_same_absence(self):
         # The ORM reads a JSON `null` document back as None; the core treats
@@ -388,10 +429,10 @@ class TestTamper:
 
     def test_the_version_label_cannot_make_a_row_verify(self):
         row = vector_full()
-        v4 = hash_row(row, GENESIS_HASH)
-        assert row_matches(row, CANONICAL_VERSION, GENESIS_HASH, v4)
-        for label in ("v3", "v2", "v1", None):
-            assert not row_matches(row, label, GENESIS_HASH, v4), label
+        sealed = hash_row(row, GENESIS_HASH)
+        assert row_matches(row, CANONICAL_VERSION, GENESIS_HASH, sealed)
+        for label in ("v4", "v3", "v2", "v1", None):
+            assert not row_matches(row, label, GENESIS_HASH, sealed), label
 
     def test_a_json_edit_in_a_chain_breaks_that_row(self):
         sealed = _seal([dict(vector_full(), id=f"r{i}") for i in range(3)])
@@ -406,15 +447,16 @@ class TestTamper:
 
 
 class TestCoreParity:
-    def test_v4_added_fields_match(self):
+    @pytest.mark.parametrize(("name", "fields"), [("V4_ADDED_FIELDS", V4_ADDED_FIELDS), ("V5_ADDED_FIELDS", V5_ADDED_FIELDS)])
+    def test_added_fields_match(self, name, fields):
         src = _core(CORE_CHAIN)
-        start = src.index("pub const V4_ADDED_FIELDS")
+        start = src.index(f"pub const {name}")
         block = src[start : src.index("];", start)]
-        assert tuple(re.findall(r'"([a-z0-9_]+)"', block)) == V4_ADDED_FIELDS
+        assert tuple(re.findall(r'"([a-z0-9_]+)"', block)) == fields
 
     def test_no_json_column_is_left_outside_and_the_category_is_gone(self):
-        assert V4_FIELDS == V3_FIELDS + V4_ADDED_FIELDS
-        assert not set(V4_ADDED_FIELDS) & set(CHAIN_EXCLUDED_COLUMNS)
+        assert V5_FIELDS == V3_FIELDS + V4_ADDED_FIELDS + V5_ADDED_FIELDS
+        assert not set(V4_ADDED_FIELDS + V5_ADDED_FIELDS) & set(CHAIN_EXCLUDED_COLUMNS)
         assert "JsonDocument" not in set(CHAIN_EXCLUDED_COLUMNS.values())
         assert "JsonDocument" not in _core(CORE_CHAIN), "the retired exclusion reason is still named in the core"
 
@@ -428,11 +470,11 @@ class TestCoreParity:
 
         json_columns = {c.name for c in ProxyLog.__table__.c if isinstance(c.type, JSON)}
         assert json_columns, "the scan found no JSON column"
-        assert json_columns <= set(V4_FIELDS), sorted(json_columns - set(V4_FIELDS))
+        assert json_columns <= set(V5_FIELDS), sorted(json_columns - set(V5_FIELDS))
 
 
 # ---------------------------------------------------------------------------
-# Exported v4 rows verify on their own
+# Exported rows verify on their own
 # ---------------------------------------------------------------------------
 
 
@@ -449,9 +491,9 @@ class TestExportedRowsVerify:
         rows = []
         for i in range(3):
             r = vector_full()
-            r.update(id=f"01K6EXPORTV4{i:014d}", tenant_id="test-tenant", timestamp=now)
+            r.update(id=f"01K6EXPORTV5{i:014d}", tenant_id="test-tenant", timestamp=now)
             rows.append(r)
-        sealed = _seal(rows, chain_id="chain-export-v4")
+        sealed = _seal(rows, chain_id="chain-export-v5")
         for r in sealed:
             # Stored with keys in a different order than they were hashed in.
             r["pre_action_state"] = _reordered(r["pre_action_state"])
@@ -467,6 +509,7 @@ class TestExportedRowsVerify:
 
         for block in blocks:
             assert set(V4_ADDED_FIELDS) <= set(block), "a chain block must carry the JSON records"
+            assert set(V5_ADDED_FIELDS) <= set(block), "a chain block must carry the credential"
 
         report = verify_rows(blocks)
         assert report.ok, report
@@ -474,4 +517,9 @@ class TestExportedRowsVerify:
 
         # Editing an exported decision record is caught offline.
         blocks[1]["guardrails_skipped"] = []
+        assert not verify_rows(blocks).ok
+        # ...and so is an exported credential verdict.
+        blocks[1] = dict(blocks[1], guardrails_skipped=sealed[1]["guardrails_skipped"])
+        assert verify_rows(blocks).ok
+        blocks[2]["credential_policy_outcome"] = "met"
         assert not verify_rows(blocks).ok

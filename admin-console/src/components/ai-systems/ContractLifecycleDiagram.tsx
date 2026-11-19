@@ -40,6 +40,7 @@ import {
     forwardTransition,
     type Stage,
 } from '../../lib/lifecycleGates';
+import { OffendingCredentials } from './OffendingCredentials';
 
 /** Alpha tints survive both grounds; flat pastels do not. */
 const AMBER_FILL = 'rgba(245,158,11,0.16)';
@@ -64,7 +65,7 @@ const GATES: Array<{ cx: number; to: Stage; keys: string[] }> = [
     {
         cx: 420,
         to: 'active',
-        keys: ['contract_minted', 'approver_recorded', 'liveness_expectation_set', 'replay_passed'],
+        keys: ['contract_minted', 'approver_recorded', 'liveness_expectation_set', 'replay_passed', 'workload_identity_enforced'],
     },
     { cx: 648, to: 'deprecated', keys: ['successor_named'] },
     { cx: 876, to: 'retired', keys: ['no_recent_runs'] },
@@ -294,6 +295,7 @@ export function StageDiagram({
                                         {GATE_ACTIONS[r.key]}
                                     </button>
                                 )}
+                                <OffendingCredentials requirement={r} testId={`offending-gate-${forward.to_stage}`} className="basis-full" />
                             </li>
                         ))}
                     </ul>

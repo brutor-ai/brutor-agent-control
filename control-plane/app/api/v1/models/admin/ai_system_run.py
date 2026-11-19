@@ -260,6 +260,12 @@ class RunDetail(RunSummary):
     models_used: List[Dict[str, Any]] = Field(default_factory=list)
     cache_hit_count: int = 0
     tokens_saved: int = 0
+    # The lowest credential level over the run's steps (null: none on the
+    # ladder, or an anonymous step), whether several credentials made them,
+    # and their references (first seen first, at most 8).
+    credential_assurance_min: Optional[str] = None
+    credential_mixed: Optional[bool] = None
+    credential_refs: Optional[List[str]] = None
 
     retry_count: int = 0
     fallback_count: int = 0

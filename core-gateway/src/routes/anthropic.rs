@@ -2199,7 +2199,11 @@ pub(crate) async fn count_tokens(
         Err(e) => return anthropic_error(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return anthropic_error(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            anthropic_error(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     // Resolve model to check if we can proxy count_tokens natively

@@ -98,7 +98,8 @@ where
             req.uri().path(),
             &self.state.route_surfaces,
             self.state.refused_credentials.clone(),
-        );
+        )
+        .with_method(req.method().as_str());
 
         Box::pin(crate::services::refused_agent_credential::scope(
             refusal_scope,

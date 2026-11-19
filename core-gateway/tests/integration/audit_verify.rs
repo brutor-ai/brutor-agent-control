@@ -442,9 +442,11 @@ struct ScanRow {
 }
 
 /// The verifier computes one row format. A chain whose rows were hashed any
-/// other way (here: a hash of other bytes, under no label or an older
-/// label), re-linked so that every link holds, is broken at its first row:
-/// a row is never verified under a format the verifier has to guess.
+/// other way (here: a hash of other bytes, under no label), re-linked so
+/// that every link holds, is broken at its first row: a row is never
+/// verified under a format the verifier has to guess. An older label cannot
+/// even be stored: the database admits only the format the verifier
+/// computes (`ck_proxy_logs_chain_version`).
 #[sqlx::test(migrations = "./tests/migrations")]
 async fn a_chain_sealed_under_another_format_does_not_verify(pool: PgPool) {
     let t = "t-av-other-format";
@@ -458,7 +460,27 @@ async fn a_chain_sealed_under_another_format_does_not_verify(pool: PgPool) {
         .fetch_all(&pool)
         .await
         .expect("rows");
-    for label in [None, Some("v1"), Some("v2"), Some("v3")] {
+    for label in ["v1", "v2", "v3", "v4"] {
+        let refused = sqlx::query(
+            "UPDATE proxy_logs SET chain_version = $2 WHERE chain_id = $1 AND chain_seq = $3",
+        )
+        .bind(&chain)
+        .bind(label)
+        .bind(rows[0].chain_seq)
+        .execute(&pool)
+        .await
+        .expect_err("an older format label is refused by the database");
+        assert_eq!(
+            refused
+                .as_database_error()
+                .and_then(|e| e.code())
+                .as_deref(),
+            Some("23514"),
+            "label {label}: {refused}"
+        );
+    }
+    {
+        let label: Option<&str> = None;
         let mut prev = GENESIS_HASH.to_string();
         for r in &rows {
             // The row format's own hash, under a label that is not its
@@ -840,12 +862,31 @@ async fn every_release_field_and_the_deciding_model_is_tamper_evident(pool: PgPo
 
 #[sqlx::test(migrations = "./tests/migrations")]
 async fn changing_a_rows_format_label_is_detected(pool: PgPool) {
-    // chain_version is a label, not a lever: a row that names another
-    // format, or none, does not verify.
+    // chain_version is a label, not a lever: a row that names no format
+    // does not verify, and one that names another cannot be stored.
     let t = "t-av-v3-label";
     common::seed_tenant(&pool, t).await;
     let chain = seed_release_chain(&pool, t, 3).await;
-    for edit in ["NULL", "'v3'", "'v2'", "'v1'"] {
+    for edit in ["'v4'", "'v3'", "'v2'", "'v1'"] {
+        let refused = sqlx::query(&format!(
+            "UPDATE proxy_logs SET chain_version = {edit} WHERE chain_id = $1 AND chain_seq = \
+             (SELECT MAX(chain_seq) FROM proxy_logs WHERE chain_id = $1)"
+        ))
+        .bind(&chain)
+        .execute(&pool)
+        .await
+        .expect_err("an older format label is refused by the database");
+        assert_eq!(
+            refused
+                .as_database_error()
+                .and_then(|e| e.code())
+                .as_deref(),
+            Some("23514"),
+            "chain_version = {edit}: {refused}"
+        );
+    }
+    {
+        let edit = "NULL";
         sqlx::query(&format!(
             "UPDATE proxy_logs SET chain_version = {edit} WHERE chain_id = $1 AND chain_seq = \
              (SELECT MAX(chain_seq) FROM proxy_logs WHERE chain_id = $1)"

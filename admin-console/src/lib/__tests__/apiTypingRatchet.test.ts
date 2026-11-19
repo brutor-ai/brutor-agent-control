@@ -93,8 +93,8 @@ describe('API typing ratchet', () => {
         // module directory that are not modules (base, modules).
         const names = CLIENT_FILES.map((f) => f.split('/').pop())
         expect(new Set(names).size).toBe(names.length)
-        // 29 Community modules; 40 with the Enterprise ones.
-        expect(names.length - 3).toBe(HAS_ENTERPRISE ? 40 : 29)
+        // 30 Community modules; 41 with the Enterprise ones.
+        expect(names.length - 3).toBe(HAS_ENTERPRISE ? 41 : 30)
     })
 
     it('the ratchet is not stale', () => {

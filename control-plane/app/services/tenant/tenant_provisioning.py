@@ -360,6 +360,7 @@ class TenantProvisioner:
                     Permission.EVIDENCE_READ.value,
                     Permission.COMPLIANCE_READ.value,
                     Permission.AGENT_IDENTITY_READ.value,
+                    Permission.IDENTITY_POLICY_READ.value,
                     Permission.SEMANTIC_POLICY_READ.value,
                     Permission.AI_MODEL_READ.value,
                     Permission.LLM_ROUTER_READ.value,

@@ -352,7 +352,7 @@ describe('the API client of the Community modules alone', () => {
         const naming = readdirSync(dir)
             .filter((file) => file === 'base.ts' || community.has(file))
             .filter((file) => /admin\/users\/system|system\/login/.test(readFileSync(path.join(dir, file), 'utf8')));
-        expect(community.size).toBe(29);
+        expect(community.size).toBe(30);
         expect(naming).toEqual([]);
     });
 });

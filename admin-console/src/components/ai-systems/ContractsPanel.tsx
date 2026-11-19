@@ -1004,6 +1004,17 @@ function ContractRow({
                             {diff.changed.length} documentation change(s)
                         </p>
                     )}
+                    {/* An explicit identity policy set or removed that moves no
+                        field is still named: what the contract records changed. */}
+                    {diff.changed.some((e) => e.kind === 'identity_policy') && (
+                        <ul className="space-y-0.5" data-testid="changed-identity-policy">
+                            {diff.changed
+                                .filter((e) => e.kind === 'identity_policy')
+                                .map((e, i) => (
+                                    <DiffEntryLine key={`${e.kind}-${i}`} entry={e} tone="changed" />
+                                ))}
+                        </ul>
+                    )}
                     {/* A dependency's contract that moved without widening or
                         narrowing (a re-attestation, a documentation change)
                         is still named: the approver relies on that service. */}

@@ -32,17 +32,20 @@ import { HelpTip } from '../ui/HelpTip';
 import { AgentReleaseChip } from '../agent/AgentReleaseBadges';
 import { agentImplementationLink, newReleaseOf } from '../../lib/agentRelease';
 import { StageDiagram } from './ContractLifecycleDiagram';
+import { OffendingCredentials } from './OffendingCredentials';
 import { useGateway } from '../../hooks/useGateway';
 import { useAdminUsername } from '../../hooks/useAdminUsername';
 import {
     AISystemContract,
     ContractListResponse,
     LifecycleEvent,
+    GateRequirement,
     LifecycleResponse,
     TransitionOption,
     SuccessorCandidate,
 } from '../../lib/aiSystemTypes';
 import { errorKind } from '../../lib/narrow';
+import { refusedRequirementsOf } from '../../lib/lifecycleGates';
 import { useReadFailures } from '../../hooks/useRead';
 import ReadFailureNotice from '../common/ReadFailureNotice';
 
@@ -94,6 +97,8 @@ export function LifecyclePanel({ aiSystemId, onOpen, setActiveTab }: LifecyclePa
     const [loading, setLoading] = useState(true);
     const [busy, setBusy] = useState('');
     const [error, setError] = useState('');
+    // The unmet requirements of the last refused move, as the 409 states them.
+    const [refused, setRefused] = useState<GateRequirement[]>([]);
     const [notice, setNotice] = useState('');
     // Inline editor for the two declarations the gate can ask for.
     const [editing, setEditing] = useState<'owner' | 'intended_use' | null>(null);
@@ -138,12 +143,14 @@ export function LifecyclePanel({ aiSystemId, onOpen, setActiveTab }: LifecyclePa
         try {
             setBusy(key);
             setError('');
+            setRefused([]);
             setNotice('');
             await fn();
             if (after) setNotice(after);
             await load();
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Operation failed');
+            setRefused(refusedRequirementsOf(err));
         } finally {
             setBusy('');
         }
@@ -254,7 +261,12 @@ export function LifecyclePanel({ aiSystemId, onOpen, setActiveTab }: LifecyclePa
             {error && (
                 <div className="flex items-start gap-2 p-3 border border-red-200 bg-red-50 rounded">
                     <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                    <span className="text-sm text-red-800">{error}</span>
+                    <div className="min-w-0">
+                        <span className="text-sm text-red-800">{error}</span>
+                        {refused.map((r) => (
+                            <OffendingCredentials key={r.key} requirement={r} testId={`refused-offending-${r.key}`} />
+                        ))}
+                    </div>
                 </div>
             )}
             <ReadFailureNotice failure={readFailure('contracts')} onRetry={() => void load()} />
@@ -771,6 +783,7 @@ function TransitionRow({
                                     </button>
                                 </>
                             )}
+                            <OffendingCredentials requirement={r} testId={`offending-${option.to_stage}`} />
                         </span>
                     </li>
                 ))}

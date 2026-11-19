@@ -408,8 +408,9 @@ def test_ci_regenerates_both_files_on_linux_and_fails_on_a_difference():
 
 
 # ---------------------------------------------------------------------------
-# The PostgreSQL driver is built from source against Debian's libpq (owner
-# decision L1, 2026-11-16): the psycopg2-binary wheel bundles libpq, OpenSSL,
+# The PostgreSQL driver is built from source against Debian's libpq, because
+# third-party packages ship unmodified with their licence texts, in each image
+# and in the repository: the psycopg2-binary wheel bundles libpq, OpenSSL,
 # Kerberos and others without their licence texts. Built from source, the
 # native libraries are the Debian packages' (`libpq5` and what it depends
 # on), whose copyright files the image ships under /usr/share/doc.

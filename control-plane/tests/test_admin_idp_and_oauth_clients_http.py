@@ -249,7 +249,9 @@ class TestIdpCrud:
         body = _idp_body()
         assert h.client.post(IDPS, json=body, headers=h.headers("t1")).status_code == 201
         r = h.client.post(IDPS, json=body, headers=h.headers("t1"))
-        assert r.status_code == 400
+        # One OIDC IdP per issuer and tenant: a conflict naming the one there is.
+        assert r.status_code == 409, r.text
+        assert r.json()["detail"]["code"] == "idp_issuer_exists"
         s = h.Factory()
         try:
             assert s.query(IdPServer).filter(IdPServer.tenant_id == "t1", IdPServer.issuer == body["issuer"]).count() == 1

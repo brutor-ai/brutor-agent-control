@@ -973,7 +973,11 @@ CREATE TABLE IF NOT EXISTS ai_system_runs (
     is_replay boolean DEFAULT false,
     feedback_score smallint,
     created_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT ck_ai_system_runs_agent_impl_trust CHECK (((agent_impl_trust)::text = ANY ((ARRAY['verified'::character varying, 'declared'::character varying])::text[])))
+    credential_assurance_min character varying(16),
+    credential_mixed boolean,
+    credential_refs jsonb,
+    CONSTRAINT ck_ai_system_runs_agent_impl_trust CHECK (((agent_impl_trust)::text = ANY ((ARRAY['verified'::character varying, 'declared'::character varying])::text[]))),
+    CONSTRAINT ck_ai_system_runs_credential_assurance_min CHECK (((credential_assurance_min IS NULL) OR ((credential_assurance_min)::text = ANY ((ARRAY['key'::character varying, 'bound_key'::character varying, 'workload'::character varying, 'workload_pop'::character varying])::text[]))))
 );
 
 CREATE TABLE IF NOT EXISTS api_keys (
@@ -2865,8 +2869,15 @@ CREATE TABLE IF NOT EXISTS proxy_logs (
     custom_metadata json,
     tags json,
     created_at timestamp with time zone DEFAULT now(),
+    credential_kind character varying(16),
+    credential_assurance character varying(16),
+    credential_ref character varying(512),
+    credential_policy_outcome character varying(16),
     CONSTRAINT ck_proxy_logs_agent_impl_source CHECK (((agent_impl_source)::text = ANY ((ARRAY['token'::character varying, 'mcp_client_info'::character varying, 'baggage'::character varying, 'header'::character varying])::text[]))),
-    CONSTRAINT ck_proxy_logs_chain_version CHECK (((chain_version)::text = ANY ((ARRAY['v1'::character varying, 'v2'::character varying, 'v3'::character varying, 'v4'::character varying])::text[])))
+    CONSTRAINT ck_proxy_logs_chain_version CHECK (((chain_version)::text = 'v5'::text)),
+    CONSTRAINT ck_proxy_logs_credential_assurance CHECK (((credential_assurance IS NULL) OR ((credential_assurance)::text = ANY ((ARRAY['key'::character varying, 'bound_key'::character varying, 'workload'::character varying, 'workload_pop'::character varying])::text[])))),
+    CONSTRAINT ck_proxy_logs_credential_kind CHECK (((credential_kind IS NULL) OR ((credential_kind)::text = ANY ((ARRAY['api_key'::character varying, 'workload_token'::character varying, 'x509_svid'::character varying, 'brutor_token'::character varying, 'human_session'::character varying, 'platform_service'::character varying, 'anonymous'::character varying])::text[])))),
+    CONSTRAINT ck_proxy_logs_credential_outcome CHECK (((credential_policy_outcome IS NULL) OR ((credential_policy_outcome)::text = ANY ((ARRAY['met'::character varying, 'below_policy'::character varying, 'refused'::character varying, 'exempt'::character varying])::text[]))))
 );
 
 CREATE TABLE IF NOT EXISTS proxy_metrics (
@@ -3112,6 +3123,7 @@ CREATE TABLE IF NOT EXISTS resource_groups (
     created_by character varying(255),
     updated_by character varying(255),
     version character varying(50) DEFAULT '1.0'::character varying,
+    identity_policy jsonb,
     CONSTRAINT ck_resource_groups_approval_window CHECK (((approval_window_seconds IS NULL) OR ((approval_window_seconds >= 60) AND (approval_window_seconds <= 604800))))
 );
 
@@ -3562,6 +3574,7 @@ CREATE TABLE IF NOT EXISTS tenants (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     last_active_at timestamp with time zone,
+    identity_policy_default jsonb,
     CONSTRAINT ck_tenants_default_approval_window CHECK (((default_approval_window_seconds IS NULL) OR ((default_approval_window_seconds >= 60) AND (default_approval_window_seconds <= 604800))))
 );
 
@@ -4298,6 +4311,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_dig_tenant_week ON assurance_digests (tenan
 CREATE UNIQUE INDEX IF NOT EXISTS uq_evidence_signing_keys_active ON evidence_signing_keys (tenant_id) WHERE ((status)::text = 'active'::text);
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_evidence_tree_heads_log_size ON evidence_tree_heads (log_id, tree_size);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_idp_servers_tenant_oidc_issuer ON idp_servers (tenant_id, issuer) WHERE ((protocol)::text = 'oidc'::text);
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_inbox_open_fingerprint ON assurance_inbox_items (tenant_id, fingerprint) WHERE ((state)::text <> 'resolved'::text);
 

@@ -274,6 +274,15 @@ class Tenant(Base):
         )
     )
 
+    identity_policy_default = Column(
+        JSONB,
+        nullable=True,
+        comment=(
+            "The tenant's identity default: an identity policy plus "
+            "max_user_key_ttl_days. NULL = no tenant default"
+        ),
+    )
+
     assurance_capture_interval_hours = Column(
         Integer,
         nullable=True,
@@ -707,6 +716,7 @@ class Tenant(Base):
             # not read back is only half-reachable.
             'assurance_capture_interval_hours': self.assurance_capture_interval_hours,
             'default_approval_window_seconds': self.default_approval_window_seconds,
+            'identity_policy_default': self.identity_policy_default,
             'ai_system_gate_policy': self.ai_system_gate_policy,
 
             # Data residency

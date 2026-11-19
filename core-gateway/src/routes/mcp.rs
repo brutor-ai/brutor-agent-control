@@ -425,7 +425,11 @@ async fn proxy_request(
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     let trace_root_kind = root_kind_for_auth(&auth_ctx.auth_type, call_chain.depth == 0);

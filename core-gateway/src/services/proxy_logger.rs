@@ -290,7 +290,12 @@ pub fn build_proxy_log(
         agent_impl_build: None,
         agent_impl_source: None,
         client_label: None,
+        credential_kind: None,
+        credential_assurance: None,
+        credential_ref: None,
+        credential_policy_outcome: None,
     };
+    stamp_credential(&mut log, auth);
     // The caller's implementation release and client
     // label, on EVERY row of every surface. The carriers ride on the
     // AuthContext (snapshotted from the request scope when it was built), so
@@ -298,6 +303,32 @@ pub fn build_proxy_log(
     // is the only writer of those columns (`tests/agent_impl_guards.rs`).
     crate::services::agent_impl::stamp(&mut log, &auth.agent_impl);
     log
+}
+
+/// The credential that made the call, on every row of every surface: its
+/// kind, level and reference as authentication stated them, the identity
+/// judge's verdict when a surface judged the call, and the identity provider
+/// of a workload credential. A 401 row records no credential: the context
+/// it is built from is not one authentication accepted.
+pub fn stamp_credential(log: &mut ProxyLogInsert, auth: &AuthContext) {
+    if log.http_status_code == Some(401) {
+        log.credential_kind = None;
+        log.credential_assurance = None;
+        log.credential_ref = None;
+        log.credential_policy_outcome = None;
+        return;
+    }
+    log.credential_kind = Some(auth.credential_kind.as_str().to_string());
+    log.credential_assurance = auth.credential_assurance.map(|l| l.as_str().to_string());
+    log.credential_ref = auth.credential_ref.clone();
+    log.credential_policy_outcome = auth
+        .identity_verdict
+        .map(|verdict| verdict.outcome.as_str().to_string());
+    if auth.credential_kind.is_workload()
+        && let Some(idp) = &auth.credential_detail.idp_server_id
+    {
+        log.idp_server_id = Some(idp.clone());
+    }
 }
 
 /// Stamp the per-agent runtime-authz decision + matched grant onto a proxy log

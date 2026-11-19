@@ -26,6 +26,7 @@ import type {
     AgentReleaseRef,
     AgentReleaseTrust,
 } from './agentIdentityTypes';
+import { identityDiffText } from './identityPolicy';
 import { getArray, getBoolean, getRecord, getString, isRecord } from './narrow';
 
 // ─── Trust ────────────────────────────────────────────────────────────────
@@ -383,9 +384,12 @@ export function newReleaseOf(event: { event_type?: string | null; details?: unkn
 
 // ─── Contract diff ────────────────────────────────────────────────────────
 
-/** Diff entries of kind `agent_implementation` name the agent; the rest
- *  read as the server wrote them. */
-export function diffEntryText(entry: { kind: string; detail: string; agent?: unknown }): string {
+/** Diff entries of kind `agent_implementation` name the agent, those of
+ *  kind `identity_policy` the field and its values (`identityDiffText`);
+ *  the rest read as the server wrote them. */
+export function diffEntryText(entry: { kind: string; detail: string; agent?: unknown; field?: string; from?: unknown; to?: unknown }): string {
+    const identity = identityDiffText(entry);
+    if (identity !== null) return identity;
     if (entry.kind === 'agent_implementation' && typeof entry.agent === 'string' && entry.agent) {
         return `Agent ${entry.agent}: ${entry.detail}`;
     }

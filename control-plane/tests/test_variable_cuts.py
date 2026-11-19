@@ -2,18 +2,19 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The Control Plane's operator interface after the variable audit (round C2,
-`.scratch/envaudit/env-audit.md`, owner decisions 5, 6 and 14).
+The Control Plane's operator interface: the variables it reads and nothing
+else.
 
 - Gunicorn: one listen address (`BRUTOR_CONTROL_PLANE_LISTEN_ADDR`, which
   replaces HOST, PORT and GUNICORN_BIND) and `GUNICORN_WORKERS`; every other
   Gunicorn setting is fixed in `gunicorn.conf.py`, its log level follows
-  `BRUTOR_LOG_LEVEL`, and there is no built-in TLS (decision 14).
+  `BRUTOR_LOG_LEVEL`, and there is no built-in TLS (a proxy in front
+  terminates it).
 - The database engine: `DATABASE_URL` carries TLS (libpq's own
   parameters), the pool is fixed in code except its size, and SQL echo is a
   development option of `python main.py`, not a variable.
-- One embedding-model name, `BRUTOR_EMBEDDING_MODEL` (decision 6).
-- No retired-name machinery (decision 5): a name the service no longer
+- One embedding-model name, `BRUTOR_EMBEDDING_MODEL`.
+- No retired-name machinery: a name the service no longer
   reads is not refused, because no such name was ever public.
 """
 

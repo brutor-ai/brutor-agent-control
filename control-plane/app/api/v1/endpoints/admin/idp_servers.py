@@ -117,6 +117,18 @@ def _what_uses(db: Session, tenant_id: str, idp_id: str) -> Dict[str, list]:
     return used_by
 
 
+def _refuse_oidc_issuer_taken(existing: IdPServer) -> None:
+    """409: the tenant already has an OIDC IdP with this issuer."""
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail={
+            "message": f"An OIDC identity provider with issuer '{existing.issuer}' already exists ({existing.name})",
+            "code": "idp_issuer_exists",
+            "idp_server_id": existing.id,
+        },
+    )
+
+
 def create_idp_admin_router(logger: Optional[BrutorLogger] = None) -> APIRouter:
     """
     Create router for IdP admin endpoints with comprehensive audit logging
@@ -348,6 +360,8 @@ def create_idp_admin_router(logger: Optional[BrutorLogger] = None) -> APIRouter:
                     db=db
                 )
 
+                if existing.protocol == "oidc" and idp_config.protocol == "oidc":
+                    _refuse_oidc_issuer_taken(existing)
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Identity Provider with issuer '{idp_config.issuer}' already exists"
@@ -565,6 +579,20 @@ def create_idp_admin_router(logger: Optional[BrutorLogger] = None) -> APIRouter:
                     db=db
                 )
                 raise HTTPException(status_code=422, detail=str(refusal))
+
+            # One OIDC IdP per issuer and tenant: a workload token's issuer
+            # names exactly one IdP.
+            new_issuer = update_data.get("issuer", idp.issuer)
+            new_protocol = update_data.get("protocol", idp.protocol)
+            if new_protocol == "oidc" and (new_issuer, new_protocol) != (idp.issuer, idp.protocol):
+                taken = db.query(IdPServer).filter(
+                    IdPServer.tenant_id == tenant_id,
+                    IdPServer.protocol == "oidc",
+                    IdPServer.issuer == new_issuer,
+                    IdPServer.id != idp.id,
+                ).first()
+                if taken is not None:
+                    _refuse_oidc_issuer_taken(taken)
 
             for field, value in update_data.items():
                 if field in owned and hasattr(idp, field):

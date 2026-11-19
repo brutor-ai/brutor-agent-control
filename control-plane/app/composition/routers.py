@@ -312,6 +312,12 @@ def _ai_system_contracts(s: Services) -> APIRouter:
     return create_ai_system_contracts_router(s.logger)
 
 
+def _identity_policy(s: Services) -> APIRouter:
+    from app.api.v1.endpoints.admin.identity_policy import create_identity_policy_router
+
+    return create_identity_policy_router(s.logger)
+
+
 def _ai_system_evidence(s: Services) -> APIRouter:
     from app.api.v1.endpoints.admin.ai_system_evidence import (
         create_ai_system_evidence_router,
@@ -520,6 +526,7 @@ ROUTERS: Tuple[RouterSpec, ...] = (
     # Hash-pinned contracts + the gated lifecycle. The
     # contract is generated from the resolved RG closure, never authored.
     RouterSpec("ai_system_contracts", _ai_system_contracts),
+    RouterSpec("identity_policy", _identity_policy),
     # External assurance evidence: impact assessments, eval / red-team /
     # pen-test reports. Pointers with fingerprints, not a document store;
     # read by the lifecycle gate (high-risk FRIA floor) and the report.

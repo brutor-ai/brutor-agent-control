@@ -21,19 +21,46 @@
 //!   platform's own credential: outside the ladder).
 //! * [`judge_call`]: what every governed surface calls after authentication
 //!   (`tests/identity_policy_surface_guard.rs` holds that). It stores the
-//!   verdict on the context and turns a refusal into
-//!   [`AuthError::CredentialAssuranceInsufficient`].
+//!   verdict on the context, writes the one `proxy_logs` row of a refused
+//!   call, and turns a refusal into
+//!   [`AuthError::CredentialAssuranceInsufficient`], which carries the
+//!   [`CredentialRequirement`] every surface's envelope states
+//!   ([`refusal_response`], [`attach_requirement`]).
 //!
-//! The policy store (the group's `identity_policy`, the tenant default, the
-//! lifecycle stage and risk tier on the group cache) is not read yet:
-//! [`policy_for_call`] resolves an empty chain with no tenant default, which
-//! is the development default (`audit`, `key`). Every surface already asks,
-//! so loading the store changes one function.
+//! The policy store: [`policy_for_call`] reads the caller's bound group's
+//! chain from the group cache ([`GroupIdentity`], loaded with the group) and
+//! the tenant's `identity_policy_default` from the tenant cache. A caller no
+//! group governs is judged by the tenant default, else the development
+//! default (`audit`, `key`). A store that cannot be read refuses the call
+//! (503): no floor is ever read as open.
 
+use axum::http::{HeaderValue, StatusCode};
+use axum::response::Response;
 use serde_json::{Map, Value};
 
 use crate::models::auth::{AuthContext, CredentialAssurance, CredentialKind};
 use crate::services::auth::AuthError;
+
+/// The public documentation site. The refusal body's `docs_url` is built
+/// from it and [`CREDENTIAL_ERRORS_PATH`].
+pub const DOCS_BASE_URL: &str = "https://docs.brutor.ai";
+
+/// Where the documentation explains a credential refusal.
+pub const CREDENTIAL_ERRORS_PATH: &str =
+    "/build-an-agent/identity/errors/#credential_assurance_insufficient";
+
+/// The code of a credential refusal: the first word of its sentence, and the
+/// `code` of every envelope that has one.
+pub const REFUSAL_CODE: &str = "CREDENTIAL_ASSURANCE_INSUFFICIENT";
+
+/// The response header that names the level a refused call needed.
+pub const CREDENTIAL_REQUIRED_HEADER: &str = "brutor-credential-required";
+
+/// The `@type` of the requirement in a `google.rpc` error's `details`.
+pub const REQUIREMENT_DETAIL_TYPE: &str = "type.brutor.ai/CredentialRequirement";
+
+/// `proxy_logs.error_type` of a refused call's row.
+pub const ERROR_TYPE: &str = "credential_policy";
 
 /// The six members of a policy, in their stored order.
 pub const POLICY_FIELDS: [&str; 6] = [
@@ -839,46 +866,454 @@ pub fn judge(auth: &AuthContext, policy: &IdentityPolicy) -> IdentityVerdict {
     judge_credential(&JudgedCredential::of(auth), policy)
 }
 
-/// The effective policy of an authenticated call. The policy store is not
-/// read yet: every call resolves an empty chain with no tenant default,
-/// which is the development default (`audit`, `key`).
-pub fn policy_for_call(_auth: &AuthContext) -> EffectivePolicy {
-    resolve(&ResolverInput::default())
+// ---------------------------------------------------------------------------
+// The policy store
+// ---------------------------------------------------------------------------
+
+/// The identity facts of a group's chain, as the group cache keeps them:
+/// every group from the root to the group itself, each with its name.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct GroupIdentity {
+    /// Root first, the group itself last.
+    pub chain: Vec<ChainNode>,
+    /// Each node's display name, in [`Self::chain`] order.
+    pub names: Vec<String>,
+}
+
+impl GroupIdentity {
+    /// The position of the AI System a call of this group is attributed to:
+    /// the group itself or its nearest ancestor that is one.
+    pub fn ai_system(&self) -> Option<usize> {
+        self.chain.iter().rposition(|node| node.is_ai_system)
+    }
+}
+
+/// Read the identity facts of a chain. `self_first` is the group and its
+/// ancestors, the group first (the order the group cache walks them in).
+/// A group of the chain that is not found fails the read: a chain cut short
+/// would lose a floor.
+pub async fn load_group_identity(
+    db: &sqlx::PgPool,
+    tenant_id: &str,
+    self_first: &[String],
+) -> Result<GroupIdentity, sqlx::Error> {
+    type Row = (
+        String,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<Value>,
+        String,
+    );
+    let rows: Vec<Row> = sqlx::query_as(
+        "SELECT id, group_type::text, lifecycle_stage, eu_ai_act_risk_tier, identity_policy, \
+                COALESCE(NULLIF(display_name, ''), name) \
+           FROM resource_groups WHERE tenant_id = $1 AND id = ANY($2)",
+    )
+    .bind(tenant_id)
+    .bind(self_first)
+    .fetch_all(db)
+    .await?;
+    let mut identity = GroupIdentity::default();
+    for id in self_first.iter().rev() {
+        let (_, group_type, stage, tier, policy, name) = rows
+            .iter()
+            .find(|row| &row.0 == id)
+            .ok_or(sqlx::Error::RowNotFound)?;
+        identity.chain.push(ChainNode {
+            id: id.clone(),
+            // The enum stores member names (`AI_SYSTEM`); the API speaks
+            // values (`ai_system`).
+            is_ai_system: group_type
+                .as_deref()
+                .is_some_and(|t| t.eq_ignore_ascii_case("ai_system")),
+            lifecycle_stage: stage.as_deref().map(str::to_ascii_lowercase),
+            risk_tier: tier.as_deref().map(str::to_ascii_lowercase),
+            identity_policy: policy
+                .as_ref()
+                .filter(|v| !v.is_null())
+                .map(|v| IdentityPolicy::from_stored(v, id)),
+            // Gate exceptions are not stored yet: none lowers a floor.
+            gate_exception: false,
+        });
+        identity.names.push(name.clone());
+    }
+    Ok(identity)
+}
+
+/// The policy a call is judged by, and the groups the refusal names.
+#[derive(Debug, Clone)]
+pub struct CallPolicy {
+    pub resolved: EffectivePolicy,
+    /// The acting group (the caller's bound group) and its name.
+    pub group: Option<(String, String)>,
+    /// The AI System the call is attributed to, and its name.
+    pub ai_system: Option<(String, String)>,
+}
+
+impl CallPolicy {
+    /// The policy of `identity` (the acting group's chain, possibly empty)
+    /// under the tenant's default.
+    pub fn of(tenant_default: Option<IdentityPolicyDefault>, identity: &GroupIdentity) -> Self {
+        let named = |i: usize| (identity.chain[i].id.clone(), identity.names[i].clone());
+        let ai_system = identity.ai_system().map(named);
+        let group = identity.chain.len().checked_sub(1).map(named);
+        let resolved = resolve(&ResolverInput {
+            tenant_default,
+            chain: identity.chain.clone(),
+            attributed_ai_system_id: ai_system.as_ref().map(|(id, _)| id.clone()),
+        });
+        Self {
+            resolved,
+            group,
+            ai_system,
+        }
+    }
+}
+
+/// The effective policy of an authenticated call: the caller's bound group's
+/// chain (a group-scoped key's group, a workload agent's group) under the
+/// tenant default. A caller no group governs (a person's session, the
+/// platform service key, an anonymous caller) is judged by the tenant
+/// default, else the development default. A store that cannot be read is an
+/// error: the call is refused, never judged by a floor read as open.
+pub async fn policy_for_call(
+    state: &crate::services::AppState,
+    auth: &AuthContext,
+) -> Result<CallPolicy, AuthError> {
+    let unavailable = |what: &str| {
+        AuthError::Unavailable(format!(
+            "the identity policy of this call could not be read ({what})"
+        ))
+    };
+    let group_unreadable = |e: &sqlx::Error, tenant_id: &str, group_id: &str| {
+        tracing::error!(error = %e, tenant_id, group_id, "group identity policy unreadable; refusing");
+        unavailable("the caller's resource group")
+    };
+    // The group governs the credential, and its tenant's default with it:
+    // a key that a listed tenant accepts is still judged by its own group.
+    let (policy_tenant, identity) = match auth.bound_group_id() {
+        None => (auth.tenant_id.clone(), GroupIdentity::default()),
+        Some(group_id) => {
+            let in_request = state
+                .group_cache
+                .try_get_effective_group(&auth.tenant_id, group_id)
+                .await
+                .map_err(|e| group_unreadable(&e, &auth.tenant_id, group_id))?;
+            match in_request {
+                Some(group) => (auth.tenant_id.clone(), group.identity.clone()),
+                None => {
+                    let owner: Option<String> = sqlx::query_scalar(
+                        "SELECT tenant_id FROM resource_groups WHERE id = $1 AND is_active = true",
+                    )
+                    .bind(group_id)
+                    .fetch_optional(&state.db)
+                    .await
+                    .map_err(|e| group_unreadable(&e, &auth.tenant_id, group_id))?;
+                    let Some(owner) = owner.filter(|owner| owner != &auth.tenant_id) else {
+                        return Err(unavailable("the caller's resource group"));
+                    };
+                    let group = state
+                        .group_cache
+                        .try_get_effective_group(&owner, group_id)
+                        .await
+                        .map_err(|e| group_unreadable(&e, &owner, group_id))?
+                        .ok_or_else(|| unavailable("the caller's resource group"))?;
+                    (owner, group.identity.clone())
+                }
+            }
+        }
+    };
+    let tenant_default = match crate::services::tenant_features::status(state, &policy_tenant).await
+    {
+        Ok(Some(status)) => status.identity_policy_default,
+        Ok(None) => return Err(unavailable("no such tenant")),
+        Err(e) => {
+            tracing::error!(error = %e, tenant_id = %policy_tenant, "tenant identity default unreadable; refusing");
+            return Err(unavailable("the tenant"));
+        }
+    };
+    Ok(CallPolicy::of(tenant_default, &identity))
+}
+
+// ---------------------------------------------------------------------------
+// The refusal
+// ---------------------------------------------------------------------------
+
+/// What a refused caller is told: which policy refused it, what it needed,
+/// what it presented and why that was not enough.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CredentialRequirement {
+    /// The AI System the call is attributed to (`None` when no AI System
+    /// governs the acting group).
+    pub ai_system_id: Option<String>,
+    pub ai_system_name: Option<String>,
+    /// The acting group (`None` for a caller no group governs).
+    pub group_id: Option<String>,
+    pub group_name: Option<String>,
+    /// The effective `min_assurance`.
+    pub required: CredentialAssurance,
+    pub presented: Option<CredentialAssurance>,
+    pub presented_kind: CredentialKind,
+    pub reason: Reason,
+    /// The effective `max_token_lifetime_s`, and the token's lifetime.
+    pub max_token_lifetime_s: u32,
+    pub token_lifetime_s: Option<i64>,
+}
+
+impl CredentialRequirement {
+    /// A refused verdict on `auth` under `call`.
+    pub fn of(auth: &AuthContext, call: &CallPolicy, verdict: &IdentityVerdict) -> Self {
+        Self {
+            ai_system_id: call.ai_system.as_ref().map(|(id, _)| id.clone()),
+            ai_system_name: call.ai_system.as_ref().map(|(_, name)| name.clone()),
+            group_id: call.group.as_ref().map(|(id, _)| id.clone()),
+            group_name: call.group.as_ref().map(|(_, name)| name.clone()),
+            required: verdict.required,
+            presented: auth.credential_assurance,
+            presented_kind: auth.credential_kind,
+            // A refusal always names its reason; one that does not is
+            // still a refusal.
+            reason: verdict.reason.unwrap_or(Reason::BelowMinimum),
+            max_token_lifetime_s: call.resolved.effective.max_token_lifetime_s,
+            token_lifetime_s: auth.credential_detail.token_lifetime_s,
+        }
+    }
+
+    /// Who refused: the AI System, else the acting group, else the tenant.
+    fn subject(&self) -> String {
+        match (&self.ai_system_name, &self.group_name) {
+            (Some(name), _) => format!("AI System '{name}'"),
+            (None, Some(name)) => format!("Resource group '{name}'"),
+            (None, None) => "This tenant's identity policy".to_string(),
+        }
+    }
+
+    /// The human sentence, without the code.
+    pub fn sentence(&self) -> String {
+        let subject = self.subject();
+        match self.reason {
+            Reason::BelowMinimum => format!(
+                "{subject} requires credential level {}; this request presented {} ({})",
+                self.required.as_str(),
+                self.presented
+                    .map_or("no credential", CredentialAssurance::as_str),
+                self.presented_kind.as_str()
+            ),
+            Reason::TokenLifetimeExceedsPolicy => format!(
+                "{subject} accepts workload tokens that live at most {} s; this token lives {} s",
+                self.max_token_lifetime_s,
+                self.token_lifetime_s.unwrap_or_default()
+            ),
+            Reason::IssuerNotAllowed => {
+                format!("{subject} does not accept tokens from this identity provider")
+            }
+            Reason::UserKeyNotAllowed => format!("{subject} does not accept personal API keys"),
+        }
+    }
+
+    /// The message every envelope carries: the code, then the sentence.
+    pub fn message(&self) -> String {
+        format!("{REFUSAL_CODE}: {}", self.sentence())
+    }
+
+    /// The `credential_requirement` member.
+    pub fn to_json(&self) -> Value {
+        serde_json::json!({
+            "ai_system_id": self.ai_system_id,
+            "ai_system_name": self.ai_system_name,
+            "group_id": self.group_id,
+            "required": self.required.as_str(),
+            "presented": self.presented.map(CredentialAssurance::as_str),
+            "presented_kind": self.presented_kind.as_str(),
+            "reason": self.reason.as_str(),
+            "docs_url": format!("{DOCS_BASE_URL}{CREDENTIAL_ERRORS_PATH}"),
+        })
+    }
+}
+
+impl std::fmt::Display for CredentialRequirement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.message())
+    }
+}
+
+/// Put the requirement into a refusal body, where the surface's envelope
+/// has room for it:
+///
+/// * an OpenAI-shaped `{"error": {...}}`: `type`, `code` and
+///   `credential_requirement` inside `error`;
+/// * Anthropic's `{"type": "error", "error": {...}}`: `credential_requirement`
+///   inside `error`;
+/// * a `google.rpc` status (`error.status`, Gemini and A2A v1): `code` 403,
+///   `PERMISSION_DENIED`, and the requirement appended to `details` with
+///   its `@type`;
+/// * a coded refusal `{"error": "<sentence>"}`: `code` and
+///   `credential_requirement` beside it.
+pub fn attach_requirement(body: &mut Value, requirement: &CredentialRequirement) {
+    let members = requirement.to_json();
+    let Some(object) = body.as_object_mut() else {
+        return;
+    };
+    let anthropic = object.get("type").and_then(Value::as_str) == Some("error");
+    match object.get_mut("error") {
+        Some(Value::Object(error)) if anthropic => {
+            error.insert("type".into(), Value::from("permission_error"));
+            error.insert("credential_requirement".into(), members);
+        }
+        Some(Value::Object(error)) if error.get("status").is_some_and(Value::is_string) => {
+            error.insert("code".into(), Value::from(403));
+            error.insert("status".into(), Value::from("PERMISSION_DENIED"));
+            let mut detail = Map::new();
+            detail.insert("@type".into(), Value::from(REQUIREMENT_DETAIL_TYPE));
+            if let Value::Object(members) = members {
+                detail.extend(members);
+            }
+            match error.get_mut("details") {
+                Some(Value::Array(details)) => details.push(Value::Object(detail)),
+                _ => {
+                    error.insert("details".into(), Value::Array(vec![Value::Object(detail)]));
+                }
+            }
+        }
+        Some(Value::Object(error)) => {
+            error.insert("type".into(), Value::from("permission_error"));
+            error.insert("code".into(), Value::from(REFUSAL_CODE));
+            error.insert("credential_requirement".into(), members);
+        }
+        Some(Value::String(_)) => {
+            object.insert("code".into(), Value::from(REFUSAL_CODE));
+            object.insert("credential_requirement".into(), members);
+        }
+        _ => {}
+    }
+}
+
+/// Name the required level in the response's header.
+pub fn attach_required_header(response: &mut Response, requirement: &CredentialRequirement) {
+    response.headers_mut().insert(
+        CREDENTIAL_REQUIRED_HEADER,
+        HeaderValue::from_static(requirement.required.as_str()),
+    );
+}
+
+/// The surface's own refusal `envelope` for `error`; a credential refusal
+/// also gets its requirement in the body and the header. Every surface
+/// answers a failed [`judge_call`] through here.
+pub async fn refusal_response(error: &AuthError, envelope: Response) -> Response {
+    let AuthError::CredentialAssuranceInsufficient(requirement) = error else {
+        return envelope;
+    };
+    let (mut parts, body) = envelope.into_parts();
+    // A refusal body is a few hundred bytes the surface just built. One
+    // that cannot be read is replaced by the canonical envelope: the caller
+    // is still refused, and still told why.
+    let bytes = match axum::body::to_bytes(body, 1 << 20).await {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            tracing::error!(error = %e, "refusal body unreadable; answering with the canonical envelope");
+            axum::body::Bytes::from(
+                serde_json::json!({"error": {"message": requirement.message()}}).to_string(),
+            )
+        }
+    };
+    let body = match serde_json::from_slice::<Value>(&bytes) {
+        Ok(mut value) => {
+            attach_requirement(&mut value, requirement);
+            parts.headers.remove(axum::http::header::CONTENT_LENGTH);
+            axum::body::Body::from(serde_json::to_vec(&value).unwrap_or_else(|_| bytes.to_vec()))
+        }
+        Err(_) => axum::body::Body::from(bytes),
+    };
+    let mut response = Response::from_parts(parts, body);
+    attach_required_header(&mut response, requirement);
+    response
+}
+
+/// Write the one `proxy_logs` row of a refused call: on the surface of the
+/// request's route (outside the evidence surfaces, an authentication row),
+/// status 403, `access_denied`, `error_type` [`ERROR_TYPE`], the sentence,
+/// the acting group, and the credential facts with the `refused` verdict.
+fn record_refusal(
+    state: &crate::services::AppState,
+    auth: &AuthContext,
+    requirement: &CredentialRequirement,
+) {
+    let (route, label, method) = crate::services::refused_agent_credential::current_request()
+        .unwrap_or_else(|| {
+            (
+                None,
+                crate::services::refused_agent_credential::ENDPOINT.to_string(),
+                None,
+            )
+        });
+    let (proxy_type, endpoint) = match route {
+        Some(route) => (route.proxy_type, route.label),
+        None => (crate::constants::proxy::OAUTH, label),
+    };
+    let correlation_id = ulid::Ulid::new().to_string();
+    let sentence = requirement.sentence();
+    let mut log = crate::services::proxy_logger::build_proxy_log(
+        proxy_type,
+        auth,
+        method.as_deref().unwrap_or("AUTH"),
+        &endpoint,
+        None,
+        None,
+        StatusCode::FORBIDDEN.as_u16(),
+        0.0,
+        false,
+        Some(&sentence),
+        &correlation_id,
+    );
+    log.proxy_subtype = Some(crate::constants::proxy_subtype::ACCESS_DENIED.to_string());
+    log.error_type = Some(ERROR_TYPE.to_string());
+    log.resource_group_id = requirement.group_id.clone();
+    state
+        .background_writer
+        .write_proxy_log(state.db.clone(), log);
 }
 
 /// What every governed surface calls once authentication made `auth`:
-/// resolve the call's policy, [`judge`] the credential, store the verdict
-/// on the context (a context judged before keeps its first verdict), and
-/// refuse when the verdict is `refused`.
+/// resolve the call's policy ([`policy_for_call`]), [`judge`] the
+/// credential, store the verdict on the context, and refuse when the
+/// verdict is `refused`. The first refusal of a context writes its row
+/// ([`record_refusal`]); a context judged before keeps its first verdict, so
+/// a surface that judges in two places writes one row.
 pub async fn judge_call(
-    _state: &crate::services::AppState,
+    state: &crate::services::AppState,
     auth: &mut AuthContext,
 ) -> Result<IdentityVerdict, AuthError> {
-    let policy = policy_for_call(auth);
-    settle(auth, &policy.effective)
-}
-
-/// [`judge_call`] once the policy is known.
-fn settle(auth: &mut AuthContext, policy: &IdentityPolicy) -> Result<IdentityVerdict, AuthError> {
-    let verdict = match auth.identity_verdict {
-        Some(verdict) => verdict,
-        None => {
-            let verdict = judge(auth, policy);
-            auth.identity_verdict = Some(verdict);
-            verdict
-        }
-    };
+    if let Some(verdict) = auth.identity_verdict
+        && verdict.outcome != Outcome::Refused
+    {
+        return Ok(verdict);
+    }
+    let call = policy_for_call(state, auth).await?;
+    let (verdict, first) = settle(auth, &call.resolved.effective);
     if verdict.outcome != Outcome::Refused {
         return Ok(verdict);
     }
-    Err(AuthError::CredentialAssuranceInsufficient {
-        required: verdict.required,
-        presented: auth.credential_assurance,
-        presented_kind: auth.credential_kind,
-        // A refusal always names its reason; one that does not is still a
-        // refusal.
-        reason: verdict.reason.unwrap_or(Reason::BelowMinimum),
-    })
+    let requirement = CredentialRequirement::of(auth, &call, &verdict);
+    if first {
+        record_refusal(state, auth, &requirement);
+    }
+    Err(AuthError::CredentialAssuranceInsufficient(Box::new(
+        requirement,
+    )))
+}
+
+/// The verdict of `auth` under `policy`: the one stored on the context, or
+/// a new one, stored. `true` when it is new.
+fn settle(auth: &mut AuthContext, policy: &IdentityPolicy) -> (IdentityVerdict, bool) {
+    match auth.identity_verdict {
+        Some(verdict) => (verdict, false),
+        None => {
+            let verdict = judge(auth, policy);
+            auth.identity_verdict = Some(verdict);
+            (verdict, true)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -983,20 +1418,229 @@ mod tests {
         };
         auth.identity_verdict = Some(stored);
         let default = IdentityPolicy::development_default();
-        let refused = settle(&mut auth, &default).expect_err("kept");
-        assert_eq!(refused.status_code(), axum::http::StatusCode::FORBIDDEN);
-        assert!(
-            refused
-                .to_string()
-                .starts_with("CREDENTIAL_ASSURANCE_INSUFFICIENT: ")
-        );
+        assert_eq!(settle(&mut auth, &default), (stored, false));
         assert_eq!(auth.identity_verdict, Some(stored));
 
         let mut fresh = make_auth_context(AuthType::ApiKey, "t");
-        let verdict = settle(&mut fresh, &default).expect("development default");
+        let (verdict, first) = settle(&mut fresh, &default);
+        assert!(first);
         assert_eq!(verdict.outcome, Outcome::Met);
         assert_eq!(fresh.identity_verdict, Some(verdict));
-        // The policy every call is judged by until the store is read.
-        assert_eq!(policy_for_call(&fresh).effective, default);
+    }
+
+    fn requirement(reason: Reason) -> CredentialRequirement {
+        CredentialRequirement {
+            ai_system_id: Some("sys-1".into()),
+            ai_system_name: Some("Loan Pre-screening".into()),
+            group_id: Some("rg-1".into()),
+            group_name: Some("Screening".into()),
+            required: CredentialAssurance::Workload,
+            presented: Some(CredentialAssurance::Key),
+            presented_kind: CredentialKind::ApiKey,
+            reason,
+            max_token_lifetime_s: 300,
+            token_lifetime_s: Some(900),
+        }
+    }
+
+    #[test]
+    fn every_sentence_starts_with_the_code_and_names_who_refused() {
+        let cases = [
+            (
+                Reason::BelowMinimum,
+                "AI System 'Loan Pre-screening' requires credential level workload; this request presented key (api_key)",
+            ),
+            (
+                Reason::TokenLifetimeExceedsPolicy,
+                "AI System 'Loan Pre-screening' accepts workload tokens that live at most 300 s; this token lives 900 s",
+            ),
+            (
+                Reason::IssuerNotAllowed,
+                "AI System 'Loan Pre-screening' does not accept tokens from this identity provider",
+            ),
+            (
+                Reason::UserKeyNotAllowed,
+                "AI System 'Loan Pre-screening' does not accept personal API keys",
+            ),
+        ];
+        for (reason, sentence) in cases {
+            let r = requirement(reason);
+            assert_eq!(r.sentence(), sentence);
+            assert_eq!(
+                r.message(),
+                format!("CREDENTIAL_ASSURANCE_INSUFFICIENT: {sentence}")
+            );
+            let e = AuthError::CredentialAssuranceInsufficient(Box::new(r));
+            assert!(
+                e.to_string()
+                    .starts_with("CREDENTIAL_ASSURANCE_INSUFFICIENT: ")
+            );
+            assert_eq!(e.status_code(), StatusCode::FORBIDDEN);
+        }
+        // Not an AI System: the group; no group: the tenant.
+        let mut r = requirement(Reason::BelowMinimum);
+        r.ai_system_id = None;
+        r.ai_system_name = None;
+        assert!(
+            r.sentence()
+                .starts_with("Resource group 'Screening' requires")
+        );
+        r.group_name = None;
+        r.presented = None;
+        r.presented_kind = CredentialKind::Anonymous;
+        assert_eq!(
+            r.sentence(),
+            "This tenant's identity policy requires credential level workload; this request presented no credential (anonymous)"
+        );
+    }
+
+    #[test]
+    fn the_requirement_names_the_docs_page_from_the_one_constant() {
+        let json = requirement(Reason::BelowMinimum).to_json();
+        assert_eq!(
+            json,
+            serde_json::json!({
+                "ai_system_id": "sys-1",
+                "ai_system_name": "Loan Pre-screening",
+                "group_id": "rg-1",
+                "required": "workload",
+                "presented": "key",
+                "presented_kind": "api_key",
+                "reason": "below_minimum",
+                "docs_url": "https://docs.brutor.ai/build-an-agent/identity/errors/#credential_assurance_insufficient",
+            })
+        );
+    }
+
+    #[test]
+    fn each_envelope_carries_the_requirement_where_it_has_room() {
+        let r = requirement(Reason::BelowMinimum);
+        let members = r.to_json();
+        let msg = r.message();
+
+        // OpenAI-compatible (`canonical_error_response`).
+        let mut body = serde_json::json!({"error": {"message": msg}});
+        attach_requirement(&mut body, &r);
+        assert_eq!(
+            body,
+            serde_json::json!({"error": {
+                "message": msg, "type": "permission_error",
+                "code": "CREDENTIAL_ASSURANCE_INSUFFICIENT", "credential_requirement": members,
+            }})
+        );
+
+        // A coded refusal.
+        let mut body = serde_json::json!({"error": msg});
+        attach_requirement(&mut body, &r);
+        assert_eq!(
+            body,
+            serde_json::json!({"error": msg, "code": "CREDENTIAL_ASSURANCE_INSUFFICIENT", "credential_requirement": members})
+        );
+
+        // Anthropic.
+        let mut body = serde_json::json!({"type": "error", "error": {"type": "permission_error", "message": msg}});
+        attach_requirement(&mut body, &r);
+        assert_eq!(
+            body,
+            serde_json::json!({"type": "error", "error": {
+                "type": "permission_error", "message": msg, "credential_requirement": members,
+            }})
+        );
+
+        // google.rpc (Gemini; A2A v1 with its ErrorInfo already present).
+        let mut body =
+            serde_json::json!({"error": {"code": 403, "message": msg, "status": "Forbidden"}});
+        attach_requirement(&mut body, &r);
+        let mut detail = members.as_object().unwrap().clone();
+        detail.insert(
+            "@type".into(),
+            "type.brutor.ai/CredentialRequirement".into(),
+        );
+        assert_eq!(
+            body,
+            serde_json::json!({"error": {
+                "code": 403, "message": msg, "status": "PERMISSION_DENIED", "details": [detail],
+            }})
+        );
+        let info = serde_json::json!({"@type": "type.googleapis.com/google.rpc.ErrorInfo"});
+        let mut body = serde_json::json!({"error": {"code": 403, "message": msg, "status": "PERMISSION_DENIED", "details": [info]}});
+        attach_requirement(&mut body, &r);
+        assert_eq!(body["error"]["details"].as_array().unwrap().len(), 2);
+        assert_eq!(body["error"]["details"][0], info);
+    }
+
+    #[tokio::test]
+    async fn a_refusal_response_carries_the_header_and_the_member() {
+        let r = requirement(Reason::BelowMinimum);
+        let e = AuthError::CredentialAssuranceInsufficient(Box::new(r));
+        let envelope = crate::services::error_envelope::canonical_error_response(
+            e.status_code(),
+            &e.to_string(),
+        );
+        let response = refusal_response(&e, envelope).await;
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+        assert_eq!(
+            response
+                .headers()
+                .get("Brutor-Credential-Required")
+                .unwrap(),
+            "workload"
+        );
+        let bytes = axum::body::to_bytes(response.into_body(), 1 << 20)
+            .await
+            .unwrap();
+        let body: Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(body["error"]["code"], "CREDENTIAL_ASSURANCE_INSUFFICIENT");
+        assert_eq!(
+            body["error"]["credential_requirement"]["reason"],
+            "below_minimum"
+        );
+
+        // Any other refusal is the envelope as it was.
+        let other = AuthError::GroupNotMember;
+        let envelope = crate::services::error_envelope::canonical_error_response(
+            other.status_code(),
+            &other.to_string(),
+        );
+        let response = refusal_response(&other, envelope).await;
+        assert!(
+            response
+                .headers()
+                .get("Brutor-Credential-Required")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn a_chain_attributes_the_call_to_its_nearest_ai_system() {
+        let node = |id: &str, ai: bool, stage: Option<&str>| ChainNode {
+            id: id.into(),
+            is_ai_system: ai,
+            lifecycle_stage: stage.map(Into::into),
+            ..Default::default()
+        };
+        let identity = GroupIdentity {
+            chain: vec![
+                node("root", false, None),
+                node("sys", true, Some("active")),
+                node("team", false, None),
+            ],
+            names: vec!["Root".into(), "Screening".into(), "Team".into()],
+        };
+        let call = CallPolicy::of(None, &identity);
+        assert_eq!(call.ai_system, Some(("sys".into(), "Screening".into())));
+        assert_eq!(call.group, Some(("team".into(), "Team".into())));
+        assert_eq!(call.resolved.effective.mode, Mode::Enforce);
+        assert_eq!(
+            call.resolved.effective.min_assurance,
+            CredentialAssurance::Workload
+        );
+        // No group: the tenant default, else the development default.
+        let none = CallPolicy::of(None, &GroupIdentity::default());
+        assert_eq!(none.group, None);
+        assert_eq!(
+            none.resolved.effective,
+            IdentityPolicy::development_default()
+        );
     }
 }

@@ -54,8 +54,12 @@ pub const MEASUREMENT_REGISTRY_HEAD: &str = "m0005_first_prompt_context";
 ///
 /// Re-pinned without an entry: comments inside the SQL of the sample queries
 /// and the run aggregate were reworded. No statement changed.
+///
+/// Re-pinned without an entry: the run aggregate gained one column
+/// (`credential_steps`, the credential of each step) that no drift metric
+/// reads. No existing metric's value changes for the same traffic.
 pub const MEASUREMENT_DEFINITIONS_SHA256: &str =
-    "588b224ce3d50e3df6f3911880cc68e159da698e60f637fa9352cda6c786ccd4";
+    "1a9709da47230534d94cdbb29c4560bb941cab57f6aff38102cd7513208ba12d";
 
 /// The text of a top-level `pub fn <name>` in `source`, up to the `}` that
 /// closes it at column 0.

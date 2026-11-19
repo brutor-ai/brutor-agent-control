@@ -208,6 +208,78 @@ describe('ContractsPanel', () => {
         expect(screen.getByTestId('changed-count')).toHaveTextContent('1 documentation');
     });
 
+    // -- the identity policy in the diff ------------------------------------
+
+    it('names a loosened identity policy field, its values before and after, as widened', async () => {
+        mockContracts.mockResolvedValue(
+            contractList([
+                contract({
+                    diff_summary: diff({
+                        widened: [
+                            { kind: 'identity_policy', field: 'min_assurance', from: 'workload', to: 'key', detail: "identity policy min_assurance: 'workload' → 'key' (looser)" },
+                            { kind: 'identity_policy', field: 'allowed_issuers', from: ['idp-1'], to: null, detail: "identity policy allowed_issuers: ['idp-1'] → None (looser)" },
+                        ],
+                    }),
+                }),
+            ])
+        );
+        render(<ContractsPanel aiSystemId="sys-1" />);
+        const widened = await screen.findByTestId('widened');
+        const entries = within(widened).getAllByTestId('diff-identity-policy');
+        expect(entries).toHaveLength(2);
+        expect(entries[0]).toHaveTextContent('Identity policy · Minimum credential level: Workload → Key');
+        expect(entries[1]).toHaveTextContent('Identity policy · Identity providers: idp-1 → any');
+        for (const entry of entries) expect(within(entry).getByTestId('diff-identity-direction')).toHaveTextContent('widened');
+        // The server's sentence, with its Python spelling, is not what is shown.
+        expect(widened).not.toHaveTextContent('(looser)');
+    });
+
+    it('names a tightened identity policy field as narrowed, and the version as granting nothing new', async () => {
+        mockContracts.mockResolvedValue(
+            contractList([
+                contract({
+                    diff_summary: diff({
+                        narrowed: [
+                            { kind: 'identity_policy', field: 'mode', from: 'audit', to: 'enforce', detail: "identity policy mode: 'audit' → 'enforce' (stricter)" },
+                            { kind: 'identity_policy', field: 'max_key_ttl_days', from: null, to: 30, detail: 'identity policy max_key_ttl_days: None → 30 (stricter)' },
+                        ],
+                    }),
+                }),
+            ])
+        );
+        render(<ContractsPanel aiSystemId="sys-1" />);
+        expect(await screen.findByTestId('no-widening')).toBeInTheDocument();
+        const entries = within(screen.getByTestId('narrowed')).getAllByTestId('diff-identity-policy');
+        expect(entries[0]).toHaveTextContent('Identity policy · Mode: audit → enforce');
+        expect(entries[1]).toHaveTextContent('Identity policy · Longest API key lifetime: no ceiling → 30 days');
+        for (const entry of entries) expect(within(entry).getByTestId('diff-identity-direction')).toHaveTextContent('narrowed');
+    });
+
+    it('names an explicit identity policy set to the default as a change that moves no field', async () => {
+        mockContracts.mockResolvedValue(
+            contractList([
+                contract({
+                    diff_summary: diff({
+                        changed: [
+                            {
+                                kind: 'identity_policy',
+                                field: 'policy',
+                                from: null,
+                                to: { mode: 'audit', min_assurance: 'key', allow_user_keys: true, allowed_issuers: null, max_token_lifetime_s: 3600, max_key_ttl_days: null },
+                                detail: 'explicit identity policy set (same as the default)',
+                            },
+                        ],
+                    }),
+                }),
+            ])
+        );
+        render(<ContractsPanel aiSystemId="sys-1" />);
+        expect(await screen.findByTestId('no-widening')).toBeInTheDocument();
+        const entry = within(screen.getByTestId('changed-identity-policy')).getByTestId('diff-identity-policy');
+        expect(entry).toHaveTextContent('Identity policy: an explicit policy was set, the same as the default; no field moved');
+        expect(within(entry).queryByTestId('diff-identity-direction')).not.toBeInTheDocument();
+    });
+
     // -- conformance ------------------------------------------------------
 
     it('names configuration drift rather than implying it', async () => {

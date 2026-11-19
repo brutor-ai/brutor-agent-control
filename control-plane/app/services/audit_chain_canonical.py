@@ -16,29 +16,30 @@ standard library only, so it can be lifted out and run anywhere.
 
 Two implementations of one format is the thing the core's verifier warns
 against (drift makes honest rows fail). What makes it safe here is that
-drift cannot land quietly: `tests/test_audit_chain_v4.py` pins the same
+drift cannot land quietly: `tests/test_audit_chain_v5.py` pins the same
 fixed rows to the same hashes the core's `audit_chain::tests` pin and the
 RFC 8785 vectors the core's `jcs::tests` pin, and `tests/test_audit_chain_v3.py`
-parses the core's `V3_FIELDS`, `V4_ADDED_FIELDS`, `CHAIN_EXCLUDED_COLUMNS`
-and version constants so the field lists and the known format cannot
-diverge.
+parses the core's `V3_FIELDS`, `V4_ADDED_FIELDS`, `V5_ADDED_FIELDS`,
+`CHAIN_EXCLUDED_COLUMNS` and version constants so the field lists and the
+known format cannot diverge.
 
 ## The format
 
-One format, `v4`: the one this release writes and the one this
+One format, `v5`: the one this release writes and the one this
 verifier computes, like the core's `audit_chain::row_matches`. A row must
 name it in `chain_version` and hash to its stored value under it; a row that
 names another format, or none, does not verify. The tag is also the first
 field inside the hashed bytes, so a row cannot be given the label without
 having been sealed under it.
 
-The bytes: `b"v4\\0"`, then for each field in `V3_FIELDS`, then each in
-`V4_ADDED_FIELDS`, and finally prev_hash: NULL → `0x00`; present →
-`0x01 ‖ u32-BE byte length ‖ UTF-8`. Booleans are `"1"`/`"0"`, integers
+The bytes: `b"v5\\0"`, then for each field in `V3_FIELDS`, then each in
+`V4_ADDED_FIELDS`, then each in `V5_ADDED_FIELDS`, and finally prev_hash:
+NULL → `0x00`; present → `0x01 ‖ u32-BE byte length ‖ UTF-8`. Booleans are `"1"`/`"0"`, integers
 decimal, the timestamp RFC 3339 UTC with exactly six fractional digits and
 `Z` (truncated to microseconds — what `timestamptz` stores). The JSON
 decision records (`V4_ADDED_FIELDS`) are each their RFC 8785 (JCS) text;
-SQL NULL and a JSON `null` document both encode as absent.
+SQL NULL and a JSON `null` document both encode as absent. The credential
+fields (`V5_ADDED_FIELDS`) are plain strings, like the `V3_FIELDS` scalars.
 """
 
 from __future__ import annotations
@@ -52,7 +53,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 #: The row format: the one this release writes and the one verified.
-CANONICAL_VERSION = "v4"
+CANONICAL_VERSION = "v5"
 #: Every row format the verifier computes. Mirrors `audit_chain::KNOWN_VERSIONS`.
 KNOWN_VERSIONS = (CANONICAL_VERSION,)
 
@@ -151,8 +152,17 @@ V4_ADDED_FIELDS: Tuple[str, ...] = (
     "tags",
 )
 
+#: What follows V4_ADDED_FIELDS: the credential that made the call and the
+#: identity judge's verdict, plain strings. Mirrors `audit_chain::V5_ADDED_FIELDS`.
+V5_ADDED_FIELDS: Tuple[str, ...] = (
+    "credential_kind",
+    "credential_assurance",
+    "credential_ref",
+    "credential_policy_outcome",
+)
+
 #: The canonical field order of the format.
-V4_FIELDS: Tuple[str, ...] = V3_FIELDS + V4_ADDED_FIELDS
+V5_FIELDS: Tuple[str, ...] = V3_FIELDS + V4_ADDED_FIELDS + V5_ADDED_FIELDS
 
 JSON_FIELDS = frozenset(V4_ADDED_FIELDS)
 
@@ -169,7 +179,7 @@ INT_FIELDS = frozenset({"http_status_code", "delegation_depth"})
 
 #: Every proxy_logs column OUTSIDE the chain, and why. Mirrors
 #: `audit_chain::CHAIN_EXCLUDED_COLUMNS` (reason = the Rust `Excluded`
-#: variant); together with V4_FIELDS it must partition the ORM's columns.
+#: variant); together with V5_FIELDS it must partition the ORM's columns.
 CHAIN_EXCLUDED_COLUMNS: Dict[str, str] = {
     "chain_id": "ChainMechanics",
     "chain_seq": "ChainMechanics",
@@ -401,10 +411,10 @@ def _push(out: bytearray, value: Optional[str]) -> None:
     out += raw
 
 
-def canonical_row_bytes_v4(row: Any, prev_hash: str) -> bytes:
+def canonical_row_bytes(row: Any, prev_hash: str) -> bytes:
     """The canonical bytes of a row under the format (see the module text)."""
     out = bytearray(CANONICAL_VERSION.encode("ascii") + b"\x00")
-    for name in V4_FIELDS:
+    for name in V5_FIELDS:
         _push(out, _field_text(name, _get(row, name)))
     _push(out, prev_hash)
     return bytes(out)
@@ -412,7 +422,7 @@ def canonical_row_bytes_v4(row: Any, prev_hash: str) -> bytes:
 
 def hash_row(row: Any, prev_hash: str) -> str:
     """SHA-256 hex of the row's canonical bytes."""
-    return hashlib.sha256(canonical_row_bytes_v4(row, prev_hash)).hexdigest()
+    return hashlib.sha256(canonical_row_bytes(row, prev_hash)).hexdigest()
 
 
 def row_matches(row: Any, chain_version: Optional[str], prev_hash: str, stored_hash: str) -> bool:
@@ -487,7 +497,7 @@ def chain_evidence(row: Any) -> Dict[str, Any]:
     columns plus every field the format covers, under their column names,
     JSON-safe (timestamp as ISO-8601 at full stored precision)."""
     fields: Dict[str, Any] = {}
-    for name in V4_FIELDS:
+    for name in V5_FIELDS:
         value = _get(row, name)
         if name == "timestamp" and value is not None:
             value = _as_utc(value).isoformat()

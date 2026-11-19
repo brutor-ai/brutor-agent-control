@@ -45,6 +45,7 @@ control that quietly stops being on the record.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 
@@ -751,6 +752,12 @@ def resolve_closure(db: Session, system: ResourceGroup) -> Dict[str, Any]:
             "baseline_opt_out": bool(system.baseline_opt_out),
             "run_idle_timeout_seconds": system.run_idle_timeout_seconds,
         },
+        # The identity policy the contract was minted under: the system's
+        # STORED policy (normalised at write), null when unset. Not the
+        # effective policy: that tightens with the lifecycle stage, so
+        # promoting a contract would read as drift (the reason the stage
+        # itself is not here either).
+        "identity_policy": copy.deepcopy(system.identity_policy),
         # Nearest first, so a reader can see where an inherited control
         # came from without re-deriving the hierarchy.
         "inheritance_chain": [g.id for g in chain],

@@ -99,7 +99,8 @@ dependencies = [
     # (the images: Debian's libpq-dev to build, libpq5 at run time; a
     # developer: pg_config on the PATH, e.g. `brew install libpq` on macOS).
     # Not psycopg2-binary: its wheel bundles libpq, OpenSSL and Kerberos
-    # without their licence texts (owner decision L1).
+    # without their licence texts; every third-party package ships with its
+    # licence text.
     "psycopg2>=2.9.0",
     # Redis async client. Used by (1) the System Operations health probe
     # (`app/services/system_ops/overview.py`) and (2) the cache-invalidation

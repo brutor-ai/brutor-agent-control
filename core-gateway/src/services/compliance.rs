@@ -834,6 +834,11 @@ mod tests {
             agent_impl_build: None,
             agent_impl_source: None,
             client_label: None,
+            // A synthetic row: no credential made it.
+            credential_kind: None,
+            credential_assurance: None,
+            credential_ref: None,
+            credential_policy_outcome: None,
             custom_metadata: None,
             tags: None,
         };

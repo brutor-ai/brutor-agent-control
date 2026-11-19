@@ -342,6 +342,10 @@ pub fn is_route_label(s: &str) -> bool {
 /// does not.
 pub struct RequestScope {
     route: Option<Route>,
+    /// The path's label ([`label_of`]), whatever its surface.
+    label: String,
+    /// The request's HTTP method, when the middleware stated it.
+    method: Option<String>,
     recorder: Arc<Recorder>,
     /// One request is one refusal, however often it authenticates.
     counted: AtomicBool,
@@ -351,10 +355,33 @@ impl RequestScope {
     pub fn new(path: &str, surfaces: &RouteSurfaces, recorder: Arc<Recorder>) -> Self {
         Self {
             route: surfaces.route_of(path),
+            label: label_of(path),
+            method: None,
             recorder,
             counted: AtomicBool::new(false),
         }
     }
+
+    /// The request's HTTP method, for the rows written in its scope.
+    pub fn with_method(mut self, method: &str) -> Self {
+        self.method = Some(method.to_string());
+        self
+    }
+}
+
+/// What the current request's scope knows: its route on an evidence surface
+/// (`None` off them), its path label (no name, id or secret a caller put in
+/// the path) and its method. `None` outside a request scope.
+pub fn current_request() -> Option<(Option<Route>, String, Option<String>)> {
+    REQUEST
+        .try_with(|request| {
+            (
+                request.route.clone(),
+                request.label.clone(),
+                request.method.clone(),
+            )
+        })
+        .ok()
 }
 
 tokio::task_local! {
