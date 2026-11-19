@@ -37,6 +37,7 @@ vi.mock('../subtabs/GroupComplianceTab', async () => (await shared()).paneModule
 vi.mock('../subtabs/GroupGuardrailsPanel', async () => (await shared()).paneModule('guardrails'));
 vi.mock('../subtabs/GroupResourceLimitsTab', async () => (await shared()).paneModule('limits'));
 vi.mock('../subtabs/GroupResourceGovernanceTab', async () => (await shared()).paneModule('policy'));
+vi.mock('../subtabs/GroupIdentityTab', async () => (await shared()).paneModule('identity'));
 vi.mock('../subtabs/GroupLLModelsTab', async () => (await shared()).paneModule('models'));
 vi.mock('../subtabs/GroupMCPServersTab', async () => (await shared()).paneModule('mcp'));
 vi.mock('../subtabs/GroupAgentSkillsTab', async () => (await shared()).paneModule('skills'));
@@ -151,6 +152,13 @@ describe('GroupDetailsPanel — the Governance strip', () => {
         expect(screen.getByTestId('pane-limits')).toBeInTheDocument();
         fireEvent.click(screen.getByText('Policy'));
         expect(screen.getByTestId('pane-policy')).toBeInTheDocument();
+    });
+
+    it('offers Identity: what credential a caller must present', () => {
+        renderPanel();
+        fireEvent.click(screen.getByText('Governance'));
+        fireEvent.click(screen.getByText('Identity'));
+        expect(screen.getByTestId('pane-identity')).toBeInTheDocument();
     });
 
     it('opens Governance on the remembered sub-tab', () => {

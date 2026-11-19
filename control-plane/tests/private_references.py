@@ -146,6 +146,14 @@ HISTORY_PHRASES = [
     "(was:",
 ]
 
+# A decision cited instead of the rule it made: what the owner decided
+# (`owner decision L1`, `owner ruling`), a numbered answer (`legal answer
+# 5`), the day it was made (`decided on 2026-11-16`) and a numbered decision
+# (`decision 11`, `Decision Q12`). The words the owner spoke in: each
+# followed by an id (a number, or up to six capitals and a number) or not.
+OWNER_WORDS = ["decision", "ruling", "instruction", "answer"]
+DATE_WORDS = ["on", "in", "of", "from"]
+
 # Prefixes of numbered records kept outside the repositories, with the
 # fewest digits that make one.
 TRACKED_PREFIXES = [
@@ -228,6 +236,16 @@ _REPOSITORY = re.compile(
 _HOME = re.compile(r"(?<![\w.~/\-])/(Users|home)/([A-Za-z0-9][\w.\-]*)/", _A)
 _HISTORY = [re.compile(_any_case(p)) for p in HISTORY_PHRASES]
 _DATE = re.compile(r"(?<!\w)20\d\d-\d\d-\d\d(?!\w)(?!-\d)", _A)
+_DECISION_ID = r"[ \-#]*(?:\d+|[A-Z]{1,6}-?\d+)(?!\w)"
+_DECISION = re.compile(
+    _word_start("owner") + r"[ \-]+(?:%s)[sS]?(?![A-Za-z])(?:%s)?"
+    % ("|".join(_any_case(w) for w in OWNER_WORDS), _DECISION_ID)
+    + "|" + _word_start("legal") + r"[ \-]+" + _any_case("answer") + r"[sS]?[ \-#]*\d+(?!\w)"
+    + "|(?:" + _word_start("decided") + "|" + _word_start("decision") + "[sS]?)"
+    + r"[ \-]+(?:(?:%s)[ \-]+)?20\d\d-\d\d-\d\d(?!\w)" % "|".join(_any_case(w) for w in DATE_WORDS)
+    + "|" + _word_start("decision") + "[sS]?" + _DECISION_ID,
+    _A,
+)
 _TOLD_BY = re.compile(r"[A-Za-z,(]+")
 
 
@@ -426,12 +444,22 @@ def offences(
         for m in pattern.finditer(s):
             add(m.start(), m.end(), "history note")
 
+    # "owner decision L1", "legal answer 5", "decided on 2026-11-16",
+    # "(decision 11)": a decision cited instead of the rule it made. Its
+    # date is part of it.
+    decided: list[tuple[int, int]] = []
+    for m in _DECISION.finditer(s):
+        decided.append((m.start(), m.end()))
+        add(m.start(), m.end(), "cited decision")
+
     # "(2026-10-26)", "policy 2026-10-05", "since 2026-09-06": the day
     # something was decided or happened. A quoted date, a timestamp and a
     # `name: date` or `--flag date` value are data.
     for m in () if dates_are_content else _DATE.finditer(s):
         at = m.start()
         if m.group(0) in PUBLIC_DATES or m.group(0) in declared.dates:
+            continue
+        if any(start <= at < end for start, end in decided):
             continue
         before = char(at - 1)
         word = s[s.rfind(" ", 0, max(at - 1, 0)) + 1:max(at - 1, 0)]
@@ -528,6 +556,28 @@ SCANNER_EXAMPLES: list[tuple[str, list[str]]] = [
             "3: history note: (was:",
         ],
     ),
+    # A decision cited instead of the rule it made.
+    (
+        "# Owner decision (legal answer 5, 2026-11-16): ship them unmodified\n# (owner decision\n"
+        "# L1); decided on 2026-11-16, decision of 2026-11-17",
+        [
+            "1: cited decision: Owner decision",
+            "1: cited decision: legal answer 5",
+            "2: cited decision: owner decision L1",
+            "3: cited decision: decided on 2026-11-16",
+            "3: cited decision: decision of 2026-11-17",
+        ],
+    ),
+    (
+        "the chunk size (decision 13), Decision Q12 and decisions 5; owner ruling, legal answers #4",
+        [
+            "1: cited decision: decision 13",
+            "1: cited decision: Decision Q12",
+            "1: cited decision: decisions 5",
+            "1: cited decision: owner ruling",
+            "1: cited decision: legal answers #4",
+        ],
+    ),
     (
         "cd /Users/alice/src; KUBECONFIG=/home/bob.smith/.kube/config\n"
         "C:/Users/Bob/AppData and the image's /home/brutor/.kube",
@@ -573,6 +623,12 @@ SCANNER_EXAMPLES: list[tuple[str, list[str]]] = [
     ("<!-- env-registry:begin (generated from src/env_vars.rs) -->", []),
     ("issue #42 and PR #43 of the repository; `&#169;`; SHA-256, UTF-8, SEP-1024", []),
     ("a two-phase commit; Phase Inversion", []),
+    (
+        "a decision tree; the caller decides; decisions are logged; decided on the order\n"
+        "waits for a decision: 1 to 300 seconds; decision_1 = 0; the owner of a decision;"
+        " the resource owner decides; a legal answer",
+        [],
+    ),
     ('<path d="M12 9v2m0 4h.01 M4 6h16 M4,12 S3 -1.5 2"/>', []),
     ("/home/<user>/.kube, /Users/<you>/src, $HOME/.aws, ~/.config, /home/brutor/.aws", []),
     ("https://console.example.com/project/home/dashboard/ and app/home/view/; /Users/Errors", []),

@@ -354,6 +354,25 @@ fn controls(log: &ProxyLogInsert) -> Vec<Control> {
             log.autonomy_level.clone(),
         ));
     }
+    // The identity judge's verdict on the credential: the one fact of the
+    // credential a record carries (its reference never enters).
+    if let Some(outcome) = &log.credential_policy_outcome {
+        let (result, blocking) = match outcome.as_str() {
+            "met" => (control_result::PASS, false),
+            "below_policy" => (control_result::FAIL, false),
+            "exempt" => (control_result::NA, false),
+            // `refused`, and any value that is no verdict: a refusal.
+            _ => (control_result::FAIL, true),
+        };
+        out.push(Control {
+            id: "ai.brutor.identity_policy".into(),
+            result: result.into(),
+            blocking,
+            severity: None,
+            kind: Some("identity_policy".into()),
+            evidence_digest: None,
+        });
+    }
     let refusal = |id: &str, kind: &str| gate(id, kind, true, None);
     match subtype {
         Some(st::RESIDENCY_VIOLATION) => out.push(refusal("ai.brutor.residency", "residency")),
@@ -764,6 +783,7 @@ mod tests {
             "request_body_preview",
             "response_body_preview",
             "actor_agent_id",
+            "credential_ref",
         ] {
             let mentions = body.matches(forbidden).count();
             // The doc comment at the top of the file lists these by name once
@@ -930,6 +950,67 @@ mod tests {
         let v = brutor_evidence::verify(&m.record, None);
         assert!(v.ok, "{:?}", v.findings);
         assert_eq!(v.effect_mode, Some("dispatched_unconfirmed"));
+    }
+
+    /// The identity judge's verdict enters a record as one control, and
+    /// nothing else of the credential does.
+    #[test]
+    fn the_identity_verdict_is_one_control_and_the_reference_never_enters() {
+        for (outcome, result, blocking) in [
+            ("met", "pass", false),
+            ("below_policy", "fail", false),
+            ("refused", "fail", true),
+            ("exempt", "n/a", false),
+        ] {
+            let mut row = mcp_row(
+                if outcome == "refused" { 403 } else { 200 },
+                outcome != "refused",
+            );
+            if outcome == "refused" {
+                row.proxy_subtype = Some(st::ACCESS_DENIED.into());
+                row.error_type = Some("credential_policy".into());
+            }
+            row.credential_kind = Some("api_key".into());
+            row.credential_assurance = Some("key".into());
+            row.credential_ref = Some("api_key:key-secretish-1".into());
+            row.credential_policy_outcome = Some(outcome.into());
+            let m = built(&row);
+            let controls = m.record["controls"].as_array().expect("controls");
+            let identity: Vec<&Value> = controls
+                .iter()
+                .filter(|c| c["id"] == "ai.brutor.identity_policy")
+                .collect();
+            assert_eq!(identity.len(), 1, "{outcome}: {controls:?}");
+            assert_eq!(identity[0]["kind"], "identity_policy");
+            assert_eq!(identity[0]["result"], result, "{outcome}");
+            assert_eq!(identity[0]["blocking"], blocking, "{outcome}");
+            let text = m.record.to_string();
+            for leaked in [
+                "api_key:key-secretish-1",
+                "credential_ref",
+                "credential_kind",
+                "credential_assurance",
+            ] {
+                assert!(
+                    !text.contains(leaked),
+                    "{outcome}: {leaked} entered the record"
+                );
+            }
+            if outcome == "refused" {
+                assert_eq!(m.verdict, verdict::DENIED);
+                assert!(m.record.get("effect").is_none());
+            }
+            let v = brutor_evidence::verify(&m.record, None);
+            assert!(v.ok, "{outcome}: {:?}", v.findings);
+        }
+        // No verdict, no control.
+        let m = built(&mcp_row(200, true));
+        let controls = m.record["controls"].as_array().cloned().unwrap_or_default();
+        assert!(
+            controls
+                .iter()
+                .all(|c| c["id"] != "ai.brutor.identity_policy")
+        );
     }
 
     #[test]

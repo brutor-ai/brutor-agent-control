@@ -1648,7 +1648,8 @@ pub const PROXY_LOG_INSERT_COLUMNS: &str = "
             custom_metadata, tags,
             record_id, a2a_task_state,
             agent_impl_name, agent_impl_version, agent_impl_build, agent_impl_source,
-            client_label
+            client_label,
+            credential_kind, credential_assurance, credential_ref, credential_policy_outcome
 ";
 
 async fn insert_logs(
@@ -1800,7 +1801,12 @@ async fn insert_logs(
             .push_bind(&log.agent_impl_version)
             .push_bind(&log.agent_impl_build)
             .push_bind(&log.agent_impl_source)
-            .push_bind(&log.client_label);
+            .push_bind(&log.client_label)
+            // The credential that made the call (sealed).
+            .push_bind(&log.credential_kind)
+            .push_bind(&log.credential_assurance)
+            .push_bind(&log.credential_ref)
+            .push_bind(&log.credential_policy_outcome);
     });
 
     qb.build().execute(pool).await

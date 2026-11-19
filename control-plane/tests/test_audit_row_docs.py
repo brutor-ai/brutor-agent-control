@@ -7,7 +7,7 @@
 `docs.brutor.ai/reference/audit-row/` is what a third party implements a
 verifier from: the canonical field order and the list of columns outside the
 chain, with the reason for each. The code's lists are pinned across the two
-repos (`test_audit_chain_v3.py`, `test_audit_chain_v4.py`); this pins the
+repos (`test_audit_chain_v3.py`, `test_audit_chain_v5.py`); this pins the
 published page to them — the one format, its field order, its vectors — so a
 format change that forgets the docs fails here
 instead of shipping a page that sends an external verifier to the wrong
@@ -33,7 +33,8 @@ from app.services.audit_chain_canonical import (
     KNOWN_VERSIONS,
     V3_FIELDS,
     V4_ADDED_FIELDS,
-    V4_FIELDS,
+    V5_ADDED_FIELDS,
+    V5_FIELDS,
     hash_row,
 )
 
@@ -79,14 +80,18 @@ class TestFieldOrder:
     def test_the_documented_order_is_the_code_order(self, page):
         scalars = _TICKED.findall(_paragraph(page, "**Scalar fields, in hash order.**"))
         records = _TICKED.findall(_paragraph(page, "**Then the JSON decision records:**"))
+        credential = _TICKED.findall(
+            _paragraph(page, "**Then the credential fields**").split(")", 1)[-1]
+        )
         assert tuple(records) == V4_ADDED_FIELDS
-        assert tuple(scalars + records) == V4_FIELDS
+        assert tuple(credential) == V5_ADDED_FIELDS
+        assert tuple(scalars + records + credential) == V5_FIELDS
 
     def test_the_documented_counts_match(self, page):
-        assert len(V4_ADDED_FIELDS) == 6
+        assert len(V4_ADDED_FIELDS) == 6 and len(V5_ADDED_FIELDS) == 4
         assert (
-            f"The covered fields are {len(V4_FIELDS)}: {len(V3_FIELDS)} scalar fields, "
-            f"then the six JSON decision records." in page
+            f"The covered fields are {len(V5_FIELDS)}: {len(V3_FIELDS)} scalar fields, "
+            f"then the six JSON decision records, then the four credential fields." in page
         )
 
     def test_the_page_documents_the_one_format_the_verifier_computes(self, page):
@@ -99,7 +104,7 @@ class TestFieldOrder:
         assert "**v3 field order.**" not in page and "NUL-terminated" not in page
 
     def test_the_documented_vectors_are_what_the_reference_verifier_computes(self, page):
-        from tests.test_audit_chain_v4 import VECTOR_PREV, vector_sparse, vector_sparse_json
+        from tests.test_audit_chain_v5 import VECTOR_PREV, vector_sparse, vector_sparse_json
 
         sparse = hash_row(vector_sparse(0), VECTOR_PREV)
         assert f"hashes to `{sparse}`" in page
@@ -138,4 +143,4 @@ class TestExclusionTable:
 
     def test_no_covered_column_is_documented_as_excluded(self, page):
         documented = {c for _, cols in self._rows(page) for c in cols}
-        assert not documented & set(V4_FIELDS)
+        assert not documented & set(V5_FIELDS)

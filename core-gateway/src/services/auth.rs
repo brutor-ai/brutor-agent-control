@@ -1134,20 +1134,10 @@ pub enum AuthError {
     )]
     GroupRequired,
     /// The identity judge refused the credential under the call's policy
-    /// (`services::identity_policy`).
-    #[error(
-        "CREDENTIAL_ASSURANCE_INSUFFICIENT: this call requires credential level {}; this request presented {} ({}): {}",
-        required.as_str(),
-        presented.map_or("no credential", |level| level.as_str()),
-        presented_kind.as_str(),
-        reason.as_str()
-    )]
-    CredentialAssuranceInsufficient {
-        required: crate::models::auth::CredentialAssurance,
-        presented: Option<crate::models::auth::CredentialAssurance>,
-        presented_kind: crate::models::auth::CredentialKind,
-        reason: crate::services::identity_policy::Reason,
-    },
+    /// (`services::identity_policy`): what it needed and why, as every
+    /// surface's envelope states it. The message starts with the code.
+    #[error("{0}")]
+    CredentialAssuranceInsufficient(Box<crate::services::identity_policy::CredentialRequirement>),
     #[error("Internal auth error: {0}")]
     Internal(String),
 
@@ -1181,7 +1171,7 @@ impl AuthError {
                 axum::http::StatusCode::FORBIDDEN
             }
             // A valid credential below what the call's policy requires.
-            AuthError::CredentialAssuranceInsufficient { .. } => axum::http::StatusCode::FORBIDDEN,
+            AuthError::CredentialAssuranceInsufficient(_) => axum::http::StatusCode::FORBIDDEN,
             AuthError::Internal(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             AuthError::Unavailable(_) => axum::http::StatusCode::SERVICE_UNAVAILABLE,
         }

@@ -439,11 +439,17 @@ async fn visible_task(
 /// errors (section 5.4) free of auth entries. By the status authentication
 /// assigned (401 / 403), not UNSUPPORTED_OPERATION / 400 for every failure.
 fn a2a_auth_error(e: &auth::AuthError) -> A2aError {
-    A2aError::new(
+    let error = A2aError::new(
         A2aErrorKind::for_auth_status(e.status_code()),
         e.to_string(),
     )
-    .with_metadata("code", e.status_code().as_u16().to_string())
+    .with_metadata("code", e.status_code().as_u16().to_string());
+    match e {
+        auth::AuthError::CredentialAssuranceInsufficient(requirement) => {
+            error.with_credential_requirement((**requirement).clone())
+        }
+        _ => error,
+    }
 }
 
 async fn resolve_request(

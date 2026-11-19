@@ -175,6 +175,11 @@ class Permission(enum.Enum):
     AGENT_IDENTITY_READ = "agent_identity:read"
     AGENT_IDENTITY_WRITE = "agent_identity:write"
 
+    # Identity policy — what credentials a group's traffic must present
+    # (per group, and the tenant's identity default).
+    IDENTITY_POLICY_READ = "identity_policy:read"
+    IDENTITY_POLICY_MANAGE = "identity_policy:manage"
+
     # Semantic Governance Policy — NL/LLM-judged policy.
     SEMANTIC_POLICY_READ = "semantic_policy:read"
     SEMANTIC_POLICY_WRITE = "semantic_policy:write"
@@ -382,6 +387,15 @@ PERMISSION_DESCRIPTIONS = {
         "Create/update/revoke agent identities, grants, and resource-group memberships"
     ),
 
+    # Identity policy
+    Permission.IDENTITY_POLICY_READ: (
+        "View identity policies, effective credential requirements and the "
+        "credentials that reached each AI System"
+    ),
+    Permission.IDENTITY_POLICY_MANAGE: (
+        "Set a group's identity policy and the tenant's identity default"
+    ),
+
     # Semantic Governance Policy
     Permission.SEMANTIC_POLICY_READ: "View semantic governance policies",
     Permission.SEMANTIC_POLICY_WRITE: (
@@ -562,6 +576,8 @@ PERMISSION_READ_ONLY = {
     Permission.AI_ASSET_WRITE: False,
     Permission.AGENT_IDENTITY_READ: True,
     Permission.AGENT_IDENTITY_WRITE: False,
+    Permission.IDENTITY_POLICY_READ: True,
+    Permission.IDENTITY_POLICY_MANAGE: False,
     Permission.SEMANTIC_POLICY_READ: True,
     Permission.SEMANTIC_POLICY_WRITE: False,
     Permission.ASSURANCE_INBOX_READ: True,

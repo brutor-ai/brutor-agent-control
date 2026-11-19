@@ -88,11 +88,11 @@ describe('GatewayApiClient route contract', () => {
   });
 
   it('reads every module of the client, wherever its file is', () => {
-    // The facade, the base, the registry, and one file per module: 29
-    // Community modules, 40 with the Enterprise ones.
+    // The facade, the base, the registry, and one file per module: 30
+    // Community modules, 41 with the Enterprise ones.
     const names = CLIENT_SOURCES.map((file) => file.split('/').pop());
     expect(new Set(names).size).toBe(names.length);
-    expect(names.length - 3).toBe(enterpriseUnderTest() ? 40 : 29);
+    expect(names.length - 3).toBe(enterpriseUnderTest() ? 41 : 30);
   });
 
   it('calls only endpoints the Control Plane exposes', () => {

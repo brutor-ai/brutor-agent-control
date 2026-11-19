@@ -12,6 +12,12 @@ from sqlalchemy import BigInteger, CheckConstraint, Column, String, Integer, Flo
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func, text
 
+from app.constants.identity import (
+    CREDENTIAL_KINDS,
+    CREDENTIAL_LEVELS,
+    CREDENTIAL_POLICY_OUTCOMES,
+    sql_in,
+)
 from app.database import Base
 
 
@@ -363,6 +369,36 @@ class ProxyLog(Base):
         nullable=True,
         index=True,
         comment="Identity Provider ID (for OAuth)"
+    )
+
+    # ==========================================================================
+    # Credential facts: what authenticated the call, at which level, and what
+    # the identity policy said about it. Written by the core on every row
+    # after authentication succeeded; sealed in the audit chain.
+    # ==========================================================================
+
+    credential_kind = Column(
+        String(16),
+        nullable=True,
+        comment="What authenticated the call; NULL only before authentication succeeded",
+    )
+
+    credential_assurance = Column(
+        String(16),
+        nullable=True,
+        comment="The credential's level on the ladder; NULL for kinds outside the ladder",
+    )
+
+    credential_ref = Column(
+        String(512),
+        nullable=True,
+        comment="Stable, non-secret reference to the credential (api_key:<id>, token:<idp>:<sub>, ...)",
+    )
+
+    credential_policy_outcome = Column(
+        String(16),
+        nullable=True,
+        comment="The identity policy's verdict: met | below_policy | refused | exempt",
     )
 
     # ==========================================================================
@@ -1169,8 +1205,30 @@ class ProxyLog(Base):
         ),
         # The canonical formats the verifier knows how to dispatch.
         CheckConstraint(
-            "chain_version IN ('v1', 'v2', 'v3', 'v4')",
+            "chain_version IN ('v5')",
             name="ck_proxy_logs_chain_version",
+        ),
+        # Closed vocabularies of the credential facts.
+        CheckConstraint(
+            sql_in("credential_kind", CREDENTIAL_KINDS),
+            name="ck_proxy_logs_credential_kind",
+        ),
+        CheckConstraint(
+            sql_in("credential_assurance", CREDENTIAL_LEVELS),
+            name="ck_proxy_logs_credential_assurance",
+        ),
+        CheckConstraint(
+            sql_in("credential_policy_outcome", CREDENTIAL_POLICY_OUTCOMES),
+            name="ck_proxy_logs_credential_outcome",
+        ),
+        # The lifecycle gate's look-back and the identity summary read
+        # credential facts per group and window through this index.
+        Index(
+            'ix_proxy_logs_credential',
+            'tenant_id',
+            'resource_group_id',
+            'credential_assurance',
+            'timestamp',
         ),
         # ==========================
         # Audit chain — MUST be declared here, not only in the

@@ -66,6 +66,10 @@ pub struct EffectiveGroupData {
     pub member_user_ids: HashSet<i32>,
     /// Ancestor group IDs (parent chain from this group to root)
     pub ancestor_ids: Vec<String>,
+    /// What the identity judge resolves a call's policy from: this group
+    /// and every ancestor, root first, with each one's explicit identity
+    /// policy, lifecycle stage and risk tier (`services::identity_policy`).
+    pub identity: crate::services::identity_policy::GroupIdentity,
     /// What the registered loaders added: the
     /// per-group settings of the features that are composed in. Empty in a
     /// gateway composed with none.
@@ -713,6 +717,16 @@ impl ResourceGroupCache {
                 .await?;
         let member_user_ids: HashSet<i32> = member_rows.into_iter().map(|(id,)| id).collect();
 
+        // 7b. What the identity judge reads: every group of the chain, root
+        //     first. A failed read fails the load (no floor is ever cached
+        //     open).
+        let identity = crate::services::identity_policy::load_group_identity(
+            &self.db,
+            tenant_id,
+            &all_group_ids,
+        )
+        .await?;
+
         // 8. What the composed features keep per group:
         //    every registered loader, in registration order, inside
         //    this load. `?` is the point: a loader that cannot read fails
@@ -740,6 +754,7 @@ impl ResourceGroupCache {
             effective_a2a_limits,
             a2a_governance_levels,
             member_user_ids,
+            identity,
             ancestor_ids,
             extras,
         }))
@@ -936,6 +951,7 @@ impl ResourceGroupCache {
             a2a_governance_levels: Vec::new(),
             member_user_ids: HashSet::new(),
             ancestor_ids: vec![],
+            identity: Default::default(),
             extras: GroupExtras::default(),
         };
         self.groups

@@ -831,7 +831,7 @@ async fn an_unmatched_client_is_refused_with_its_reason(pool: PgPool) {
     assert!(b.to_string().contains("client_id mismatch"), "{b}");
 
     // An IdP the record does not carry.
-    common::seed_idp(&pool, "idp-2", T, None, None).await;
+    common::seed_idp_with_issuer(&pool, "idp-2", T, "https://idp-2.test.local", None, None).await;
     let (s, b, _) = send(&w.app, token_req_at(SRV, "idp-2", &no_pkce_form(&code))).await;
     assert_eq!(s, StatusCode::NOT_FOUND, "{b}");
     assert!(b.to_string().contains("idp_id mismatch"), "{b}");
@@ -2880,16 +2880,17 @@ pub(crate) const B_ACCESS: &str = "idp-b-access-token";
 /// Nothing links it to [`SRV`].
 pub(crate) async fn second_idp(pool: &PgPool) -> MockServer {
     let b = MockServer::start().await;
-    common::seed_idp(
+    common::seed_idp_with_issuer(
         pool,
         IDP_B,
         T,
+        "https://idp-b.test.local",
         Some("https://idp-b.test.local/authorize"),
         None,
     )
     .await;
     sqlx::query(
-        "UPDATE idp_servers SET issuer = 'https://idp-b.test.local', token_endpoint = $1, \
+        "UPDATE idp_servers SET token_endpoint = $1, \
          userinfo_endpoint = $2 WHERE id = $3",
     )
     .bind(format!("{}/token", b.uri()))

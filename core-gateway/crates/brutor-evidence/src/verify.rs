@@ -672,6 +672,18 @@ mod tests {
     }
 
     #[test]
+    fn a_credential_reference_never_enters_a_record() {
+        // It names a key or a subject.
+        let mut v = executed();
+        v["context"] = json!({"root_task_id": "run-1", "credential_ref": "api_key:k-1"});
+        v["record_id"] = json!(compute_record_id(&v).unwrap());
+        let r = verify(&v, None);
+        assert!(!r.ok);
+        assert_eq!(codes(&r), vec!["never_enters_member"]);
+        assert_eq!(r.findings[0].detail, "$.context.credential_ref");
+    }
+
+    #[test]
     fn float_and_bad_shape_are_structural() {
         let r = verify(
             &json!({"schema": SCHEMA, "action_id": "x", "kind": "decide", "operator": "t", "system": "ungoverned", "timestamp": "t", "verdict": "executed", "record_id": "0".repeat(64), "context": {"score": 0.5}}),

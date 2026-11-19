@@ -1530,6 +1530,26 @@ pub struct ProxyLogInsert {
     /// `user_agent` is kept alongside.
     #[serde(default)]
     pub client_label: Option<String>,
+    // --- The credential that made the call -----------------------------
+    // Stated by authentication and the identity judge
+    // (`services::identity_policy`); sealed. NULL on a row written before
+    // authentication succeeded.
+    /// `api_key` | `workload_token` | `x509_svid` | `brutor_token` |
+    /// `human_session` | `platform_service` | `anonymous`.
+    #[serde(default)]
+    pub credential_kind: Option<String>,
+    /// The credential's level on the assurance ladder: `key` |
+    /// `bound_key` | `workload` | `workload_pop`. NULL outside the ladder.
+    #[serde(default)]
+    pub credential_assurance: Option<String>,
+    /// A stable, non-secret reference to the credential (a key id, an
+    /// identity provider and subject, a session).
+    #[serde(default)]
+    pub credential_ref: Option<String>,
+    /// The identity judge's verdict: `met` | `below_policy` | `refused` |
+    /// `exempt`. NULL when no surface judged the call.
+    #[serde(default)]
+    pub credential_policy_outcome: Option<String>,
     // Custom
     pub custom_metadata: Option<serde_json::Value>,
     pub tags: Option<serde_json::Value>,

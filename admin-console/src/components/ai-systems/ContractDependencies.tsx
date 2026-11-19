@@ -56,7 +56,15 @@ export function DiffEntryLine({
                         className={`w-3 h-3 shrink-0 mt-0.5 ${tone === 'widened' ? 'text-amber-600' : ''}`}
                     />
                 )}
-                <span data-testid={entry.kind === 'agent_implementation' ? 'diff-agent-implementation' : undefined}>
+                <span
+                    data-testid={
+                        entry.kind === 'agent_implementation'
+                            ? 'diff-agent-implementation'
+                            : entry.kind === 'identity_policy'
+                              ? 'diff-identity-policy'
+                              : undefined
+                    }
+                >
                     {entry.section === 'outcomes' && (
                         <span
                             className="mr-1 px-1 py-px rounded bg-surface-alt border border-default text-[10px] uppercase tracking-wide text-muted"
@@ -66,6 +74,21 @@ export function DiffEntryLine({
                         </span>
                     )}
                     {diffEntryText(entry)}
+                    {entry.kind === 'identity_policy' && tone !== 'changed' && (
+                        <span
+                            className={`ml-1.5 px-1 py-px rounded text-[10px] font-medium ${
+                                tone === 'widened' ? 'bg-amber-100 text-amber-800' : 'bg-surface-alt border border-default text-muted'
+                            }`}
+                            title={
+                                tone === 'widened'
+                                    ? 'Looser than the previous version: credentials it refused are now accepted.'
+                                    : 'Stricter than the previous version: fewer credentials are accepted.'
+                            }
+                            data-testid="diff-identity-direction"
+                        >
+                            {tone}
+                        </span>
+                    )}
                     {entry.called_out && (
                         <span
                             className="ml-1.5 px-1 py-px rounded bg-amber-100 text-amber-800 text-[10px] font-medium"

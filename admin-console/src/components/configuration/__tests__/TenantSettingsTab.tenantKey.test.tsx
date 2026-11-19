@@ -31,6 +31,10 @@ vi.mock('../../common/ConfirmationDialog', () => ({
 vi.mock('../../common/Toast', () => ({
     useToast: () => toast,
 }));
+// The Workload Identity sub-tab's panel reads its permissions and the IdP list itself.
+vi.mock('../../../hooks/useAuth', () => ({
+    useAuth: () => ({ hasPermission: () => true, gatewayClient: { fetchIdPConfigs: () => Promise.resolve({ idps: {} }) } }),
+}));
 vi.mock('../TenantEvidencePanel', () => ({
     TenantEvidencePanel: () => <div>evidence panel</div>,
     default: () => <div>evidence panel</div>,
@@ -88,6 +92,7 @@ describe('TenantSettingsTab — no key of the tenant\'s own', () => {
             'Data Residency',
             'Data Retention',
             'AI System Assurance',
+            'Workload Identity',
             'Evidence',
         ]);
         expect(strip().filter((label) => OFFERS_A_KEY.test(label))).toEqual([]);
@@ -106,7 +111,7 @@ describe('TenantSettingsTab — no key of the tenant\'s own', () => {
             const fields = Array.from(document.body.querySelectorAll<HTMLInputElement>('input, textarea'));
             shown.push([document.body.textContent ?? '', ...fields.map((field) => field.value)].join('\n'));
         }
-        expect(shown).toHaveLength(8);
+        expect(shown).toHaveLength(9);
         expect(shown.filter((text) => OFFERS_A_KEY.test(text))).toEqual([]);
     });
 });

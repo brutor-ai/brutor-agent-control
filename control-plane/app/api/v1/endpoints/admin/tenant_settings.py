@@ -42,6 +42,8 @@ from app.core.admin_user.dependencies import (
     require_permission,
 )
 from app.core.admin_user.permissions import Permission
+from app.core.sync_bridge import block_on
+from app.services.cache_invalidation import invalidate_proxy_cache
 from app.core.admin_user.services.audit_logger import UnifiedAdminAuditLogger
 from app.core.logging_system import BrutorLogger
 from app.database import get_db
@@ -218,6 +220,7 @@ def update_tenant_record(
 
         # Track changes for audit
         changes = {}
+        identity_default_changed = False
 
         # Update fields
         update_data = updates.dict(exclude_none=True)
@@ -296,6 +299,25 @@ def update_tenant_record(
                     },
                 )
             update_data["ai_system_gate_policy"] = updates.ai_system_gate_policy
+        if "identity_policy_default" in updates.model_fields_set:
+            # Its own permission besides the route's: the default takes part
+            # in every group's effective identity policy.
+            if not admin.has_permission(Permission.IDENTITY_POLICY_MANAGE.value):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail={
+                        "message": "Changing the tenant's identity default needs identity_policy:manage",
+                        "code": "permission_denied",
+                        "permission": Permission.IDENTITY_POLICY_MANAGE.value,
+                    },
+                )
+            value = updates.identity_policy_default
+            if value is not None:
+                from app.api.v1.endpoints.admin.identity_policy import refuse_unknown_issuers
+
+                refuse_unknown_issuers(db, tenant_id, value.allowed_issuers)
+            update_data["identity_policy_default"] = value.model_dump() if value is not None else None
+            identity_default_changed = update_data["identity_policy_default"] != tenant.identity_policy_default
 
         # Keys of `settings` that have a route of their own are left as
         # they are stored: the general update neither sets nor drops them.
@@ -341,6 +363,11 @@ def update_tenant_record(
 
         db.flush()
         db.refresh(tenant)
+
+        if identity_default_changed:
+            # The default takes part in every group's effective identity
+            # policy: the core drops the tenant's group views.
+            block_on(invalidate_proxy_cache(request, "resource_group", tenant_id, tenant_id, action="update"))
 
         audit_details = {"tenant_name": tenant.name, "changes": changes}
         if mfa_policy_changes and is_stricter(tenant.mfa_policy, than=mfa_policy_before):

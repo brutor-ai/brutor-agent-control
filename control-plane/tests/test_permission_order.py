@@ -41,7 +41,7 @@ def _expected(values):
 
 
 def test_the_recording_is_whole():
-    assert len(RECORDED["order"]) == 160 and len(set(RECORDED["order"])) == 160
+    assert len(RECORDED["order"]) == 162 and len(set(RECORDED["order"])) == 162
     assert len(ENTERPRISE) == 39 and ENTERPRISE < set(RECORDED["order"])
 
 

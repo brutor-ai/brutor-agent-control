@@ -108,6 +108,7 @@ OWN_TENANT_FIELDS = {
     "assurance_capture_interval_hours": 24,
     "default_approval_window_seconds": 600,
     "ai_system_gate_policy": None,
+    "identity_policy_default": None,
     # Set and cleared together (test_tenant_google_drive_picker.py): alone,
     # each can only be written as it is (clear).
     "portal_google_drive_client_id": None,

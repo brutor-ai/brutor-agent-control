@@ -103,6 +103,10 @@ _BY_NAME = [
     "ai_system_reach_rules",
     # GuardrailConfig carries an mcp_servers FK (per-server scoping).
     "mcp_servers",
+    # The identity floor of every way into `active` reads the calls and the
+    # credentials that made them.
+    "proxy_logs",
+    "api_keys",
 ]
 
 REQUIRED_TABLES = [Base.metadata.tables[n] for n in _BY_NAME] + [
@@ -474,6 +478,247 @@ class TestMinting:
         # The hash legitimately matches v1 — a fact worth being able to see.
         v1 = db.query(AISystemContract).filter_by(version=1).one()
         assert third.contract_hash == v1.contract_hash
+
+
+_POLICY = {
+    "mode": "enforce",
+    "min_assurance": "workload",
+    "allow_user_keys": False,
+    "allowed_issuers": None,
+    "max_token_lifetime_s": 900,
+    "max_key_ttl_days": 30,
+}
+
+
+class TestIdentityPolicyInClosure:
+    """A contract records the identity policy it was minted under: the
+    system's stored policy, null when unset. Not the effective policy: that
+    moves with the lifecycle stage, and a promotion would read as drift."""
+
+    def _reload(self, db):
+        db.flush()
+        db.expire_all()
+        return db.query(ResourceGroup).filter_by(id="sys").one()
+
+    def test_an_unset_policy_is_recorded_as_null(self, db):
+        sys = make_system(db)
+        closure = resolve_closure(db, sys)
+        assert "identity_policy" in closure
+        assert closure["identity_policy"] is None
+
+    def test_the_stored_policy_is_recorded_as_stored(self, db):
+        sys = make_system(db, identity_policy=dict(_POLICY))
+        assert resolve_closure(db, sys)["identity_policy"] == _POLICY
+
+    def test_setting_and_changing_the_policy_moves_the_hash(self, db):
+        sys = make_system(db)
+        unset = hash_closure(resolve_closure(db, sys))
+        sys.identity_policy = dict(_POLICY)
+        sys = self._reload(db)
+        set_once = hash_closure(resolve_closure(db, sys))
+        assert set_once != unset
+        sys.identity_policy = {**_POLICY, "max_token_lifetime_s": 600}
+        sys = self._reload(db)
+        assert hash_closure(resolve_closure(db, sys)) not in (unset, set_once)
+
+    def test_only_the_policy_member_changes(self, db):
+        sys = make_system(db)
+        before = resolve_closure(db, sys)
+        sys.identity_policy = dict(_POLICY)
+        sys = self._reload(db)
+        after = resolve_closure(db, sys)
+        assert {k for k in after if after[k] != before.get(k)} == {"identity_policy"}
+        assert set(after) == set(before)
+
+    def test_the_stage_does_not_move_the_recorded_policy(self, db):
+        # The effective policy of a production system is stricter than the
+        # stored one; recording it would drift the contract on promotion.
+        sys = make_system(db, lifecycle_stage="approved", identity_policy={
+            **_POLICY, "mode": "audit", "min_assurance": "key",
+        })
+        before = resolve_closure(db, sys)
+        sys.lifecycle_stage = "active"
+        sys = self._reload(db)
+        after = resolve_closure(db, sys)
+        assert after["identity_policy"] == before["identity_policy"]
+        assert after["identity_policy"]["min_assurance"] == "key"
+        assert hash_closure(after) == hash_closure(before)
+
+    def test_a_policy_change_mints_a_new_contract_hash(self, db):
+        sys = make_system(db)
+        first, _ = contracts.mint(db, sys)
+        assert first.resolved_closure["identity_policy"] is None
+        sys.identity_policy = dict(_POLICY)
+        sys = self._reload(db)
+        assert contracts.is_config_drifted(db, sys) is False  # no active contract yet
+        second, created = contracts.mint(db, sys)
+        assert created and second.version == 2
+        assert second.contract_hash != first.contract_hash
+        assert second.resolved_closure["identity_policy"] == _POLICY
+        assert second.contract_hash == hash_closure(resolve_closure(db, sys))
+
+    def test_a_policy_change_after_promotion_is_drift(self, db):
+        sys = make_system(db, lifecycle_stage="approved")
+        contract, _ = contracts.mint(db, sys)
+        contracts.approve(db, contract, approved_by="alice")
+        contracts.promote(db, contract, lifecycle_stage=sys.lifecycle_stage)
+        sys = self._reload(db)
+        assert contracts.is_config_drifted(db, sys) is False
+        sys.identity_policy = dict(_POLICY)
+        sys = self._reload(db)
+        assert contracts.is_config_drifted(db, sys) is True
+
+
+_DEV_DEFAULT = {
+    "mode": "audit",
+    "min_assurance": "key",
+    "allow_user_keys": True,
+    "allowed_issuers": None,
+    "max_token_lifetime_s": 3600,
+    "max_key_ttl_days": None,
+}
+_WITH_ISSUERS = {**_POLICY, "allowed_issuers": ["idp-a", "idp-b"]}
+
+
+class TestIdentityPolicyDiff:
+    """An approver sees an identity-policy change: loosening is a widening,
+    tightening a narrowing, field by field in the policy's member order;
+    each entry names its field."""
+
+    def _diff(self, before, after):
+        return contracts.diff_closures({"identity_policy": before}, {"identity_policy": after})
+
+    def _entries(self, diff, bucket):
+        return [(e["field"], e["from"], e["to"]) for e in diff[bucket] if e["kind"] == "identity_policy"]
+
+    def _only(self, before, after, bucket):
+        diff = self._diff(before, after)
+        others = {"widened", "narrowed", "changed"} - {bucket}
+        for other in others:
+            assert self._entries(diff, other) == [], other
+        return self._entries(diff, bucket)
+
+    @pytest.mark.parametrize(
+        "field, stricter, looser",
+        [
+            ("min_assurance", "workload", "bound_key"),
+            ("mode", "enforce", "audit"),
+            ("allow_user_keys", False, True),
+            ("max_token_lifetime_s", 900, 1800),
+            ("max_key_ttl_days", 30, 90),
+            ("max_key_ttl_days", 30, None),
+        ],
+    )
+    def test_a_looser_field_is_a_widening(self, field, stricter, looser):
+        before = {**_POLICY, field: stricter}
+        after = {**_POLICY, field: looser}
+        assert self._only(before, after, "widened") == [(field, stricter, looser)]
+
+    @pytest.mark.parametrize(
+        "field, stricter, looser",
+        [
+            ("min_assurance", "workload_pop", "workload"),
+            ("mode", "enforce", "audit"),
+            ("allow_user_keys", False, True),
+            ("max_token_lifetime_s", 600, 900),
+            ("max_key_ttl_days", 7, 30),
+            ("max_key_ttl_days", 30, None),
+        ],
+    )
+    def test_a_stricter_field_is_a_narrowing(self, field, stricter, looser):
+        before = {**_POLICY, field: looser}
+        after = {**_POLICY, field: stricter}
+        assert self._only(before, after, "narrowed") == [(field, looser, stricter)]
+
+    def test_added_issuers_are_a_widening(self):
+        after = {**_WITH_ISSUERS, "allowed_issuers": ["idp-a", "idp-b", "idp-c"]}
+        assert self._only(_WITH_ISSUERS, after, "widened") == [
+            ("allowed_issuers", ["idp-a", "idp-b"], ["idp-a", "idp-b", "idp-c"])
+        ]
+
+    def test_removing_the_issuer_list_is_a_widening(self):
+        # null = any issuer.
+        after = {**_WITH_ISSUERS, "allowed_issuers": None}
+        assert self._only(_WITH_ISSUERS, after, "widened") == [
+            ("allowed_issuers", ["idp-a", "idp-b"], None)
+        ]
+
+    def test_removed_issuers_are_a_narrowing(self):
+        after = {**_WITH_ISSUERS, "allowed_issuers": ["idp-a"]}
+        assert self._only(_WITH_ISSUERS, after, "narrowed") == [
+            ("allowed_issuers", ["idp-a", "idp-b"], ["idp-a"])
+        ]
+
+    def test_a_new_issuer_list_is_a_narrowing(self):
+        assert self._only(_POLICY, _WITH_ISSUERS, "narrowed") == [
+            ("allowed_issuers", None, ["idp-a", "idp-b"])
+        ]
+
+    def test_a_swapped_issuer_is_a_widening(self):
+        # A newly accepted IdP is let in, whatever else was removed.
+        after = {**_WITH_ISSUERS, "allowed_issuers": ["idp-a", "idp-c"]}
+        assert self._only(_WITH_ISSUERS, after, "widened") == [
+            ("allowed_issuers", ["idp-a", "idp-b"], ["idp-a", "idp-c"])
+        ]
+
+    def test_removing_a_policy_stricter_than_the_default_is_a_widening(self):
+        # No explicit policy contributes the development default.
+        assert self._only(_POLICY, None, "widened") == [
+            ("mode", "enforce", "audit"),
+            ("min_assurance", "workload", "key"),
+            ("allow_user_keys", False, True),
+            ("max_token_lifetime_s", 900, 3600),
+            ("max_key_ttl_days", 30, None),
+        ]
+
+    def test_setting_a_policy_stricter_than_the_default_is_a_narrowing(self):
+        assert self._only(None, _POLICY, "narrowed") == [
+            ("mode", "audit", "enforce"),
+            ("min_assurance", "key", "workload"),
+            ("allow_user_keys", True, False),
+            ("max_token_lifetime_s", 3600, 900),
+            ("max_key_ttl_days", None, 30),
+        ]
+
+    def test_setting_or_removing_a_policy_equal_to_the_default_is_a_change(self):
+        assert self._only(None, dict(_DEV_DEFAULT), "changed") == [("policy", None, _DEV_DEFAULT)]
+        assert self._only(dict(_DEV_DEFAULT), None, "changed") == [("policy", _DEV_DEFAULT, None)]
+
+    def test_a_mixed_change_reports_each_field_in_member_order(self):
+        after = {
+            **_POLICY,
+            "min_assurance": "workload_pop",  # tightened
+            "allow_user_keys": True,  # loosened
+            "allowed_issuers": ["idp-a"],  # tightened (was any)
+            "max_token_lifetime_s": 3600,  # loosened
+        }
+        diff = self._diff(_POLICY, after)
+        assert self._entries(diff, "widened") == [
+            ("allow_user_keys", False, True),
+            ("max_token_lifetime_s", 900, 3600),
+        ]
+        assert self._entries(diff, "narrowed") == [
+            ("min_assurance", "workload", "workload_pop"),
+            ("allowed_issuers", None, ["idp-a"]),
+        ]
+        assert self._entries(diff, "changed") == []
+        assert diff["has_widened_permissions"] is True
+        assert all(e["detail"] for e in diff["widened"] + diff["narrowed"])
+
+    def test_an_unchanged_policy_diffs_to_nothing(self):
+        diff = self._diff(_POLICY, dict(_POLICY))
+        assert diff["widened_count"] == diff["narrowed_count"] == diff["changed_count"] == 0
+        assert self._diff(None, None)["changed_count"] == 0
+
+    def test_a_loosened_policy_mints_a_widening_version(self, db):
+        sys = make_system(db, identity_policy=dict(_POLICY))
+        contracts.mint(db, sys)
+        sys.identity_policy = {**_POLICY, "mode": "audit"}
+        db.flush()
+        db.expire_all()
+        sys = db.query(ResourceGroup).filter_by(id="sys").one()
+        second, created = contracts.mint(db, sys)
+        assert created and second.diff_summary["has_widened_permissions"] is True
 
 
 class TestDiffDirection:

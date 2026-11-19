@@ -21,6 +21,13 @@
 //! `workload_no_group` credential that answered as a served or not-found
 //! call now refuse (two routes that answer every authentication error with
 //! 401 say 401). No other cell changed.
+//! Re-recorded on purpose once more when the identity judge began reading
+//! the policy store: five credentials were added, each judged in an AI
+//! System ([`ACTIVE_SYSTEM`] in production, [`DEVELOPMENT_SYSTEM`] not):
+//! a key on the production system (refused, 403), a workload token on it
+//! (met), a person's own key on it (refused, 403), the platform service key
+//! (exempt) and a key on the development system (met). Only their columns
+//! were added; no other cell changed.
 //!
 //! ## How the surfaces are enumerated
 //!
@@ -61,10 +68,17 @@ use crate::common;
 pub(crate) const TENANT: &str = "tenant-matrix";
 pub(crate) const OTHER_TENANT: &str = "tenant-matrix-other";
 pub(crate) const GROUP: &str = "rg-matrix";
+/// An AI System in production (`active`): its identity floor refuses a key.
+pub(crate) const ACTIVE_SYSTEM: &str = "rg-matrix-active";
+/// An AI System in development (`approved`): a key meets its policy.
+pub(crate) const DEVELOPMENT_SYSTEM: &str = "rg-matrix-development";
 /// The end user the portal tokens name.
 pub(crate) const USER: i32 = 1;
 /// An end user whose sessions were ended after the token was issued.
 pub(crate) const CUT_OFF_USER: i32 = 2;
+/// The end user whose own key is on [`ACTIVE_SYSTEM`] (a member of it). Not
+/// [`USER`]: the portal sessions of the matrix name a user of no group.
+pub(crate) const PERSONAL_KEY_USER: i32 = 4;
 /// An MCP server that exists, for the OAuth routes (they take the tenant from
 /// it). Nothing is proxied to it: no route of the matrix names it as `server_id`.
 pub(crate) const OAUTH_SERVER: &str = "oauth-srv";
@@ -994,6 +1008,13 @@ pub(crate) struct World {
     pub(crate) disabled_agent_api_key: String,
     pub(crate) expired_agent_api_key: String,
     pub(crate) revoked_agent_api_key: String,
+    /// Keys judged by an AI System's identity policy: a shared key and a
+    /// person's own key of [`ACTIVE_SYSTEM`], a shared key of
+    /// [`DEVELOPMENT_SYSTEM`], and the platform service key.
+    pub(crate) active_system_api_key: String,
+    pub(crate) active_system_personal_key: String,
+    pub(crate) development_system_api_key: String,
+    pub(crate) platform_key: String,
     pub(crate) tenant_admin_jti: String,
     pub(crate) system_admin_jti: String,
     pub(crate) revoked_admin_jti: String,
@@ -1024,6 +1045,8 @@ const WL_DISABLED_SUB: &str = "spiffe://matrix/disabled";
 const WL_EXPIRED_IDENTITY_SUB: &str = "spiffe://matrix/expired-identity";
 /// An enabled agent of [`TENANT`] that is a member of no resource group.
 const WL_NO_GROUP_SUB: &str = "spiffe://matrix/no-group";
+/// An enabled agent of [`TENANT`], a member of [`ACTIVE_SYSTEM`] only.
+const WL_ACTIVE_SYSTEM_SUB: &str = "spiffe://matrix/active-system";
 /// An enabled agent of [`OTHER_TENANT`], a member of a group of that tenant.
 const WL_OTHER_SUB: &str = "spiffe://matrix-other/agent";
 
@@ -1091,6 +1114,13 @@ async fn seed_workload_world(pool: &PgPool) -> WorkloadWorld {
             "idp-matrix",
             WL_NO_GROUP_SUB,
             None,
+        ),
+        (
+            "agent-matrix-active-system",
+            TENANT,
+            "idp-matrix",
+            WL_ACTIVE_SYSTEM_SUB,
+            Some(ACTIVE_SYSTEM),
         ),
         (
             "agent-matrix-other",
@@ -1257,6 +1287,15 @@ pub(crate) const CREDENTIALS: &[&str] = &[
     "api_key_disabled_agent",
     "api_key_expired_agent",
     "api_key_revoked_agent",
+    // Judged by an AI System's identity policy: a key on a system in
+    // production (refused), a workload token on it (met), a person's own key
+    // on it (refused), the platform service key (exempt), a key on a system
+    // in development (met).
+    "api_key_active_system",
+    "workload_active_system",
+    "api_key_personal_active_system",
+    "platform_key",
+    "api_key_development_system",
 ];
 
 pub(crate) fn credential(kind: &str, world: &World) -> Carry {
@@ -1397,6 +1436,13 @@ pub(crate) fn credential(kind: &str, world: &World) -> Carry {
         "api_key_disabled_agent" => XApiKey(world.disabled_agent_api_key.clone()),
         "api_key_expired_agent" => XApiKey(world.expired_agent_api_key.clone()),
         "api_key_revoked_agent" => XApiKey(world.revoked_agent_api_key.clone()),
+        "api_key_active_system" => XApiKey(world.active_system_api_key.clone()),
+        "workload_active_system" => {
+            Authorization(WorkloadWorld::token(WL_ISSUER, WL_ACTIVE_SYSTEM_SUB, 3600))
+        }
+        "api_key_personal_active_system" => XApiKey(world.active_system_personal_key.clone()),
+        "platform_key" => XApiKey(world.platform_key.clone()),
+        "api_key_development_system" => XApiKey(world.development_system_api_key.clone()),
         other => panic!("no credential named {other}"),
     }
 }
@@ -1466,6 +1512,19 @@ pub(crate) async fn seed_world(pool: &PgPool) -> World {
     common::seed_tenant(pool, TENANT).await;
     common::seed_tenant(pool, OTHER_TENANT).await;
     common::seed_resource_group(pool, GROUP, TENANT).await;
+    for (system, stage) in [(ACTIVE_SYSTEM, "active"), (DEVELOPMENT_SYSTEM, "approved")] {
+        common::seed_resource_group(pool, system, TENANT).await;
+        sqlx::query(
+            "UPDATE resource_groups SET group_type = 'AI_SYSTEM', lifecycle_stage = $2 \
+             WHERE id = $1",
+        )
+        .bind(system)
+        .bind(stage)
+        .execute(pool)
+        .await
+        .expect("AI System");
+    }
+    common::seed_unbound_system_group(pool, "rg-matrix-unbound", TENANT).await;
     common::seed_end_user(pool, USER, TENANT).await;
     common::seed_end_user(pool, CUT_OFF_USER, TENANT).await;
     common::seed_mcp_server(pool, OAUTH_SERVER, TENANT, OAUTH_SERVER).await;
@@ -1547,9 +1606,30 @@ pub(crate) async fn seed_world(pool: &PgPool) -> World {
     .await
     .expect("system admin session");
 
+    let active_system_api_key =
+        common::seed_shared_group_api_key(pool, TENANT, ACTIVE_SYSTEM, "matrix-active").await;
+    common::seed_end_user(pool, PERSONAL_KEY_USER, TENANT).await;
+    common::add_direct_membership(pool, PERSONAL_KEY_USER, ACTIVE_SYSTEM, TENANT).await;
+    let active_system_personal_key = common::seed_api_key(
+        pool,
+        TENANT,
+        ACTIVE_SYSTEM,
+        Some(PERSONAL_KEY_USER),
+        "matrix-active-personal",
+    )
+    .await;
+    let development_system_api_key =
+        common::seed_shared_group_api_key(pool, TENANT, DEVELOPMENT_SYSTEM, "matrix-development")
+            .await;
+    let platform_key = common::seed_key(pool, TENANT, None, true, "matrix-platform").await;
+
     let workload = seed_workload_world(pool).await;
 
     World {
+        active_system_api_key,
+        active_system_personal_key,
+        development_system_api_key,
+        platform_key,
         api_key,
         revoked_api_key,
         disabled_agent_api_key,

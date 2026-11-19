@@ -7,6 +7,7 @@ import { ownTenantOf, type CurrentTenant } from '../../lib/gatewayApi/tenant';
 import { mergeTabs, useSlot, type SlotIcon, type TenantModelField } from '../../app/slots';
 import { errorMessage, errorStatus, getString } from '../../lib/narrow';
 import { toModelOptions, type TenantModelOption } from '../../lib/tenantModelOptions';
+import { gateFloorsOf } from '../../lib/lifecycleGates';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     Building2,
@@ -23,16 +24,18 @@ import {
     Trash2,
     Info,
     FileSignature,
+    Fingerprint,
 } from 'lucide-react';
 import { useGateway } from '../../hooks/useGateway';
 import TenantEvidencePanel from './TenantEvidencePanel';
+import TenantIdentityDefaultPanel from './TenantIdentityDefaultPanel';
 import { useToast } from '../common/Toast';
 import { asyncHandler, runBackground } from '../../lib/asyncSafe';
 import type { ApiSendableBody } from '../../lib/api/controlPlaneTypes';
 import { useReadFailures } from '../../hooks/useRead';
 import ReadFailureNotice from '../common/ReadFailureNotice';
 
-type SubTabId = 'identity' | 'profile' | 'security' | 'embedding' | 'residency' | 'retention' | 'assurance' | 'evidence';
+type SubTabId = 'identity' | 'profile' | 'security' | 'embedding' | 'residency' | 'retention' | 'assurance' | 'workload-identity' | 'evidence';
 
 /** A sub-tab of the strip: one of this page's own or a contributed one. */
 /** The two-factor policies the Control Plane accepts for a tenant. */
@@ -112,6 +115,9 @@ const SUB_TABS: (SubTab & { id: SubTabId })[] = [
     { id: 'residency', label: 'Data Residency', icon: Globe, editable: true },
     { id: 'retention', label: 'Data Retention', icon: Database, editable: true },
     { id: 'assurance', label: 'AI System Assurance', icon: ShieldCheck, editable: true },
+    // The tenant identity default. It saves itself (it needs its own
+    // permission), so no save bar.
+    { id: 'workload-identity', label: 'Workload Identity', icon: Fingerprint, editable: false },
     // Witnesses and the tenant log's key. The panel has
     // its own add / edit / delete actions, so no save bar.
     { id: 'evidence', label: 'Evidence', icon: FileSignature, editable: false },
@@ -1063,7 +1069,7 @@ const TenantSettingsTab: React.FC<TenantSettingsTabProps> = ({ initialSubTab }) 
                         Which evidence each lifecycle transition demands before
                         an AI System may move stage. Leave empty to use the
                         built-in requirements. A tenant may tighten or relax any
-                        transition — with one exception, below.
+                        transition, except for the requirements the gate always re-adds, below.
                     </p>
                     <textarea
                         value={gatePolicyText}
@@ -1109,17 +1115,14 @@ const TenantSettingsTab: React.FC<TenantSettingsTabProps> = ({ initialSubTab }) 
                                     </li>
                                 ))}
                             </ul>
-                            {gateVocab.immutable_floor && (
-                                <p className="text-[11px] text-amber-700 dark:text-amber-400 pt-1">
+                            {gateFloorsOf(gateVocab).map((floor) => (
+                                <p key={floor.when} className="text-[11px] text-amber-700 dark:text-amber-400 pt-1" data-testid="gate-immutable-floor">
                                     <AlertTriangle className="inline-block h-3 w-3 mr-1" />
-                                    On a high-risk system,{' '}
-                                    <span className="font-mono">
-                                        {gateVocab.immutable_floor.always_required?.join(', ')}
-                                    </span>{' '}
-                                    is re-added by the gate even if your policy omits
-                                    it. You can relax the rest; you cannot relax that.
+                                    {floor.when},{' '}
+                                    <span className="font-mono">{floor.alwaysRequired.join(', ')}</span>{' '}
+                                    is re-added by the gate even if your policy omits it. You can relax the rest; you cannot relax that.
                                 </p>
-                            )}
+                            ))}
                         </div>
                     )}
                 </div>
@@ -1145,6 +1148,8 @@ const TenantSettingsTab: React.FC<TenantSettingsTabProps> = ({ initialSubTab }) 
                 return renderAssurance();
             case 'evidence':
                 return <TenantEvidencePanel />;
+            case 'workload-identity':
+                return <TenantIdentityDefaultPanel tenant={tenant} onSaved={(value) => setTenant({ ...tenant, identity_policy_default: value } as TenantRecord)} />;
             default:
                 return contributed.get(activeSubTab)?.render({ tenant });
         }

@@ -131,7 +131,11 @@ pub(crate) async fn proxy(
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     // The tenant's "Virtual MCP servers" switch (`tenant_features`).

@@ -16832,6 +16832,18 @@
             "title": "Id",
             "type": "string"
           },
+          "identity_policy_default": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identity Policy Default"
+          },
           "is_active": {
             "title": "Is Active",
             "type": "boolean"
@@ -28161,6 +28173,545 @@
           "name"
         ],
         "title": "IdPUser",
+        "type": "object"
+      },
+      "IdentityCallsByLevel": {
+        "properties": {
+          "bound_key": {
+            "default": 0,
+            "title": "Bound Key",
+            "type": "integer"
+          },
+          "key": {
+            "default": 0,
+            "title": "Key",
+            "type": "integer"
+          },
+          "outside_ladder": {
+            "default": 0,
+            "title": "Outside Ladder",
+            "type": "integer"
+          },
+          "workload": {
+            "default": 0,
+            "title": "Workload",
+            "type": "integer"
+          },
+          "workload_pop": {
+            "default": 0,
+            "title": "Workload Pop",
+            "type": "integer"
+          }
+        },
+        "title": "IdentityCallsByLevel",
+        "type": "object"
+      },
+      "IdentityCredentialItem": {
+        "properties": {
+          "agent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Id"
+          },
+          "api_key_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key Id"
+          },
+          "api_key_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key Name"
+          },
+          "below_policy_calls": {
+            "title": "Below Policy Calls",
+            "type": "integer"
+          },
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "credential_assurance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Assurance"
+          },
+          "credential_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Kind"
+          },
+          "credential_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Ref"
+          },
+          "first_seen": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Seen"
+          },
+          "last_seen": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen"
+          },
+          "refused_calls": {
+            "title": "Refused Calls",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "calls",
+          "below_policy_calls",
+          "refused_calls"
+        ],
+        "title": "IdentityCredentialItem",
+        "type": "object"
+      },
+      "IdentityCredentialsResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/IdentityCredentialItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "IdentityCredentialsResponse",
+        "type": "object"
+      },
+      "IdentityOutcomes": {
+        "properties": {
+          "below_policy": {
+            "default": 0,
+            "title": "Below Policy",
+            "type": "integer"
+          },
+          "exempt": {
+            "default": 0,
+            "title": "Exempt",
+            "type": "integer"
+          },
+          "met": {
+            "default": 0,
+            "title": "Met",
+            "type": "integer"
+          },
+          "refused": {
+            "default": 0,
+            "title": "Refused",
+            "type": "integer"
+          }
+        },
+        "title": "IdentityOutcomes",
+        "type": "object"
+      },
+      "IdentityPolicyDefaultModel": {
+        "additionalProperties": false,
+        "description": "The tenant's identity default: a policy plus the personal-key ceiling.",
+        "properties": {
+          "allow_user_keys": {
+            "description": "Whether personal API keys are accepted",
+            "title": "Allow User Keys",
+            "type": "boolean"
+          },
+          "allowed_issuers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "OIDC IdP ids whose workload tokens are accepted; null = any issuer",
+            "title": "Allowed Issuers"
+          },
+          "max_key_ttl_days": {
+            "anyOf": [
+              {
+                "maximum": 3650.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Longest API key lifetime in days; null = no ceiling",
+            "title": "Max Key Ttl Days"
+          },
+          "max_token_lifetime_s": {
+            "description": "Longest accepted workload token lifetime",
+            "maximum": 3600.0,
+            "minimum": 60.0,
+            "title": "Max Token Lifetime S",
+            "type": "integer"
+          },
+          "max_user_key_ttl_days": {
+            "description": "Longest personal API key lifetime in days",
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Max User Key Ttl Days",
+            "type": "integer"
+          },
+          "min_assurance": {
+            "description": "The lowest credential level a call may present",
+            "enum": [
+              "key",
+              "bound_key",
+              "workload",
+              "workload_pop"
+            ],
+            "title": "Min Assurance",
+            "type": "string"
+          },
+          "mode": {
+            "description": "audit: record calls below the policy; enforce: refuse them",
+            "enum": [
+              "audit",
+              "enforce"
+            ],
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "min_assurance",
+          "allow_user_keys",
+          "allowed_issuers",
+          "max_token_lifetime_s",
+          "max_key_ttl_days",
+          "max_user_key_ttl_days"
+        ],
+        "title": "IdentityPolicyDefaultModel",
+        "type": "object"
+      },
+      "IdentityPolicyModel": {
+        "additionalProperties": false,
+        "description": "A group's identity policy: all six members, no other.",
+        "properties": {
+          "allow_user_keys": {
+            "description": "Whether personal API keys are accepted",
+            "title": "Allow User Keys",
+            "type": "boolean"
+          },
+          "allowed_issuers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "OIDC IdP ids whose workload tokens are accepted; null = any issuer",
+            "title": "Allowed Issuers"
+          },
+          "max_key_ttl_days": {
+            "anyOf": [
+              {
+                "maximum": 3650.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Longest API key lifetime in days; null = no ceiling",
+            "title": "Max Key Ttl Days"
+          },
+          "max_token_lifetime_s": {
+            "description": "Longest accepted workload token lifetime",
+            "maximum": 3600.0,
+            "minimum": 60.0,
+            "title": "Max Token Lifetime S",
+            "type": "integer"
+          },
+          "min_assurance": {
+            "description": "The lowest credential level a call may present",
+            "enum": [
+              "key",
+              "bound_key",
+              "workload",
+              "workload_pop"
+            ],
+            "title": "Min Assurance",
+            "type": "string"
+          },
+          "mode": {
+            "description": "audit: record calls below the policy; enforce: refuse them",
+            "enum": [
+              "audit",
+              "enforce"
+            ],
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "min_assurance",
+          "allow_user_keys",
+          "allowed_issuers",
+          "max_token_lifetime_s",
+          "max_key_ttl_days"
+        ],
+        "title": "IdentityPolicyModel",
+        "type": "object"
+      },
+      "IdentityPolicyPut": {
+        "additionalProperties": false,
+        "description": "`PUT \u2026/identity-policy`: the wrapper lets null (clear) be said.",
+        "properties": {
+          "policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IdentityPolicyModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The explicit policy, or null to clear it"
+          }
+        },
+        "required": [
+          "policy"
+        ],
+        "title": "IdentityPolicyPut",
+        "type": "object"
+      },
+      "IdentityPolicyResponse": {
+        "properties": {
+          "attributed_to_ai_system": {
+            "title": "Attributed To Ai System",
+            "type": "boolean"
+          },
+          "effective": {
+            "additionalProperties": true,
+            "title": "Effective",
+            "type": "object"
+          },
+          "eu_ai_act_risk_tier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eu Ai Act Risk Tier"
+          },
+          "group_id": {
+            "title": "Group Id",
+            "type": "string"
+          },
+          "group_name": {
+            "title": "Group Name",
+            "type": "string"
+          },
+          "inherited_floor": {
+            "additionalProperties": true,
+            "title": "Inherited Floor",
+            "type": "object"
+          },
+          "is_ai_system": {
+            "title": "Is Ai System",
+            "type": "boolean"
+          },
+          "lifecycle_stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lifecycle Stage"
+          },
+          "max_user_key_ttl_days": {
+            "title": "Max User Key Ttl Days",
+            "type": "integer"
+          },
+          "policy": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy"
+          },
+          "sources": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Sources",
+            "type": "object"
+          }
+        },
+        "required": [
+          "group_id",
+          "group_name",
+          "is_ai_system",
+          "attributed_to_ai_system",
+          "effective",
+          "inherited_floor",
+          "sources",
+          "max_user_key_ttl_days"
+        ],
+        "title": "IdentityPolicyResponse",
+        "type": "object"
+      },
+      "IdentityRunsByMinLevel": {
+        "properties": {
+          "bound_key": {
+            "default": 0,
+            "title": "Bound Key",
+            "type": "integer"
+          },
+          "key": {
+            "default": 0,
+            "title": "Key",
+            "type": "integer"
+          },
+          "none": {
+            "default": 0,
+            "title": "None",
+            "type": "integer"
+          },
+          "workload": {
+            "default": 0,
+            "title": "Workload",
+            "type": "integer"
+          },
+          "workload_pop": {
+            "default": 0,
+            "title": "Workload Pop",
+            "type": "integer"
+          }
+        },
+        "title": "IdentityRunsByMinLevel",
+        "type": "object"
+      },
+      "IdentitySummaryResponse": {
+        "properties": {
+          "ai_system_id": {
+            "title": "Ai System Id",
+            "type": "string"
+          },
+          "calls_by_level": {
+            "$ref": "#/components/schemas/IdentityCallsByLevel"
+          },
+          "credentials": {
+            "title": "Credentials",
+            "type": "integer"
+          },
+          "effective": {
+            "additionalProperties": true,
+            "title": "Effective",
+            "type": "object"
+          },
+          "outcomes": {
+            "$ref": "#/components/schemas/IdentityOutcomes"
+          },
+          "runs_by_min_level": {
+            "$ref": "#/components/schemas/IdentityRunsByMinLevel"
+          },
+          "window_days": {
+            "title": "Window Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ai_system_id",
+          "window_days",
+          "effective",
+          "calls_by_level",
+          "outcomes",
+          "runs_by_min_level",
+          "credentials"
+        ],
+        "title": "IdentitySummaryResponse",
         "type": "object"
       },
       "InUse": {
@@ -42352,6 +42903,57 @@
         "title": "ObservedUndeclared",
         "type": "object"
       },
+      "OffendingCredential": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "credential_assurance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Assurance"
+          },
+          "credential_kind": {
+            "title": "Credential Kind",
+            "type": "string"
+          },
+          "credential_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Ref"
+          },
+          "last_seen": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen"
+          }
+        },
+        "required": [
+          "credential_kind",
+          "calls"
+        ],
+        "title": "OffendingCredential",
+        "type": "object"
+      },
       "OutcomeActionRow": {
         "description": "Run length of ONE processed outcome, over its `success` runs.",
         "properties": {
@@ -45779,6 +46381,31 @@
           "label": {
             "title": "Label",
             "type": "string"
+          },
+          "offending_credentials": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/OffendingCredential"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offending Credentials"
+          },
+          "offending_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offending Total"
           },
           "satisfied": {
             "title": "Satisfied",
@@ -50843,6 +51470,42 @@
               }
             ],
             "title": "Created At"
+          },
+          "credential_assurance_min": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Assurance Min"
+          },
+          "credential_mixed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Mixed"
+          },
+          "credential_refs": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Refs"
           },
           "distinct_tools": {
             "default": 0,
@@ -58865,6 +59528,18 @@
             "title": "Id",
             "type": "string"
           },
+          "identity_policy_default": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identity Policy Default"
+          },
           "is_active": {
             "title": "Is Active",
             "type": "boolean"
@@ -59187,6 +59862,17 @@
               }
             ],
             "title": "Domain"
+          },
+          "identity_policy_default": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IdentityPolicyDefaultModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The tenant's identity default: an identity policy (all six members) plus `max_user_key_ttl_days`, the longest a personal API key may live. It takes part in every group's effective identity policy, stricter wins. Pass null for no tenant default. Setting it also needs `identity_policy:manage`."
           },
           "mfa_policy": {
             "anyOf": [
@@ -71814,6 +72500,149 @@
         "summary": "One number, five components, always decomposable",
         "tags": [
           "AI System Response"
+        ]
+      }
+    },
+    "/v1/admin/ai-systems/{ai_system_id}/identity/credentials": {
+      "get": {
+        "description": "One item per credential that made calls in the system's subtree in the last `days` days, newest first: calls, calls below the policy and refused, first and last seen, and the key or agent behind it.",
+        "operationId": "identity_credentials_v1_admin_ai_systems__ai_system_id__identity_credentials_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ai_system_id",
+            "required": true,
+            "schema": {
+              "title": "Ai System Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 90,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityCredentialsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Credentials that reached an AI System",
+        "tags": [
+          "Identity Policy"
+        ]
+      }
+    },
+    "/v1/admin/ai-systems/{ai_system_id}/identity/summary": {
+      "get": {
+        "description": "Calls of the system's subtree in the last `days` days by credential level and by the identity policy's verdict, its runs by their lowest credential level, and the number of distinct credentials.",
+        "operationId": "identity_summary_v1_admin_ai_systems__ai_system_id__identity_summary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ai_system_id",
+            "required": true,
+            "schema": {
+              "title": "Ai System Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 7,
+              "maximum": 90,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentitySummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Credential assurance of an AI System's calls",
+        "tags": [
+          "Identity Policy"
         ]
       }
     },
@@ -96334,6 +97163,110 @@
         "summary": "Bind one or more EndUserGroups to this Resource Group",
         "tags": [
           "Resource Group \u2014 End-User Group Bindings (Admin)"
+        ]
+      }
+    },
+    "/v1/admin/resource-groups/{group_id}/identity-policy": {
+      "get": {
+        "description": "The group's explicit identity policy (or null), its effective policy, the floor it inherits (the policy without its own), and where each effective value comes from.",
+        "operationId": "get_identity_policy_v1_admin_resource_groups__group_id__identity_policy_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityPolicyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get a group's identity policy",
+        "tags": [
+          "Identity Policy"
+        ]
+      },
+      "put": {
+        "description": "Stores the group's explicit identity policy (`{\"policy\": null}` clears it). A policy looser than what the group inherits in any field is refused with 422 `identity_policy_below_floor`, naming every such field, the floor and its source.",
+        "operationId": "put_identity_policy_v1_admin_resource_groups__group_id__identity_policy_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdentityPolicyPut"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityPolicyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set a group's identity policy",
+        "tags": [
+          "Identity Policy"
         ]
       }
     },

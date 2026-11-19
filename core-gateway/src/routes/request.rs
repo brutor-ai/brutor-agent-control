@@ -142,7 +142,7 @@ impl SessionRefusal {
             | AuthError::GroupNotMember
             | AuthError::AgentNotBound
             | AuthError::GroupRequired
-            | AuthError::CredentialAssuranceInsufficient { .. }
+            | AuthError::CredentialAssuranceInsufficient(_)
             | AuthError::Internal(_)
             | AuthError::Unavailable(_) => None,
         }
@@ -434,9 +434,13 @@ pub async fn extract_media_caller(
     let (tenant_id, mut auth_ctx) = authenticate_caller(state, headers, tenant, client_ip).await?;
     // The credential against the call's identity policy, for every route that
     // authenticates its caller here (files, images, audio, video).
-    crate::services::identity_policy::judge_call(state, &mut auth_ctx)
-        .await
-        .map_err(|e| session_auth_refusal(&e))?;
+    if let Err(e) = crate::services::identity_policy::judge_call(state, &mut auth_ctx).await {
+        return Err(crate::services::identity_policy::refusal_response(
+            &e,
+            session_auth_refusal(&e),
+        )
+        .await);
+    }
     if auth_ctx.auth_type == AuthType::IdpOauth {
         return workload_agent_of(tenant_id, auth_ctx);
     }

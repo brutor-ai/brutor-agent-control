@@ -10,7 +10,7 @@
  * hand off elsewhere say where they went.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 
 const mockLifecycle = vi.fn();
 const mockContracts = vi.fn();
@@ -35,6 +35,7 @@ vi.mock('../../../hooks/useAdminUsername', () => ({
 }));
 
 import LifecyclePanel from '../LifecyclePanel';
+import { GatewayAPIError } from '../../../lib/gatewayApi/base';
 import type { LifecycleResponse, TransitionOption } from '../../../lib/aiSystemTypes';
 
 function req(key: string, label: string, satisfied: boolean, detail?: string) {
@@ -469,6 +470,88 @@ describe('LifecyclePanel', () => {
         render(<LifecyclePanel aiSystemId="sys-1" setActiveTab={vi.fn()} />);
         await screen.findByTestId('lifecycle-gate');
         expect(screen.queryByTestId('req-fix-owner_set')).toBeNull();
+    });
+});
+
+describe('LifecyclePanel — the workload identity requirement', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockContracts.mockResolvedValue({ contracts: [], total: 0, active_version: null, config_drifted: false });
+    });
+
+    it('lists the offending credentials under the requirement in the transition\'s checklist', async () => {
+        const requirement = {
+            ...req('workload_identity_enforced', 'Machine callers authenticate with workload identity', false, '1 credential(s) reached this system below workload'),
+            offending_credentials: [
+                { credential_ref: 'api_key:k-9', credential_kind: 'api_key', credential_assurance: 'key', calls: 3, last_seen: '2026-11-17T08:00:00Z' },
+            ],
+            offending_total: 1,
+        };
+        mockLifecycle.mockResolvedValue(lifecycle({ current_stage: 'approved', transitions: [option('active', [requirement])] }));
+        render(<LifecyclePanel aiSystemId="sys-1" />);
+        const row = await screen.findByTestId('transition-active');
+        const list = within(row).getByTestId('offending-active');
+        expect(list).toHaveTextContent('api_key:k-9');
+        expect(list).toHaveTextContent('3 calls');
+        expect(list).not.toHaveTextContent('more not listed');
+    });
+
+    it('lists the offending credentials the refusal of a move carries', async () => {
+        // The checklist said the move was open; by the time it was sent a
+        // credential below the level had called. The 409 carries the gate's
+        // decision, and the panel lists what it names.
+        mockLifecycle.mockResolvedValue(
+            lifecycle({ current_stage: 'approved', transitions: [option('active', [req('workload_identity_enforced', 'Machine callers authenticate with workload identity', true)])] }),
+        );
+        const unmet = {
+            ...req('workload_identity_enforced', 'Machine callers authenticate with workload identity', false, '2 credential(s) reached this system below workload'),
+            offending_credentials: [
+                { credential_ref: 'api_key:k-7', credential_kind: 'api_key', credential_assurance: 'key', calls: 5, last_seen: '2026-11-18T08:00:00Z' },
+                { credential_ref: null, credential_kind: 'anonymous', credential_assurance: null, calls: 1, last_seen: null },
+            ],
+            offending_total: 4,
+        };
+        mockTransition.mockRejectedValue(
+            new GatewayAPIError('Cannot move from approved to active: Machine callers authenticate with workload identity', 409, undefined, {
+                detail: {
+                    message: 'Cannot move from approved to active: Machine callers authenticate with workload identity',
+                    decision: { from_stage: 'approved', to_stage: 'active', allowed: false, requirements: [unmet], unmet: [unmet] },
+                },
+            }),
+        );
+        render(<LifecyclePanel aiSystemId="sys-1" />);
+        fireEvent.click(await screen.findByTestId('go-active'));
+        const list = await screen.findByTestId('refused-offending-workload_identity_enforced');
+        expect(screen.getByText(/Cannot move from approved to active/)).toBeInTheDocument();
+        expect(list).toHaveTextContent('api_key:k-7');
+        expect(list).toHaveTextContent('5 calls');
+        expect(list).toHaveTextContent('no reference');
+        expect(list).toHaveTextContent('2 more not listed');
+    });
+
+    it('lists nothing more for a refusal that carries no offending credentials', async () => {
+        mockLifecycle.mockResolvedValue(
+            lifecycle({ current_stage: 'approved', transitions: [option('active', [req('owner_set', 'An accountable owner is named', true)])] }),
+        );
+        const unmet = req('owner_set', 'An accountable owner is named', false, 'No owner set');
+        mockTransition.mockRejectedValue(
+            new GatewayAPIError('Cannot move from approved to active: An accountable owner is named', 409, undefined, {
+                detail: { message: 'Cannot move', decision: { allowed: false, requirements: [unmet], unmet: [unmet] } },
+            }),
+        );
+        render(<LifecyclePanel aiSystemId="sys-1" />);
+        fireEvent.click(await screen.findByTestId('go-active'));
+        await screen.findByText(/Cannot move from approved to active/);
+        expect(screen.queryByTestId(/^refused-offending-/)).not.toBeInTheDocument();
+    });
+
+    it('lists none when the requirement is met', async () => {
+        mockLifecycle.mockResolvedValue(
+            lifecycle({ current_stage: 'approved', transitions: [option('active', [req('workload_identity_enforced', 'Machine callers authenticate with workload identity', true)])] }),
+        );
+        render(<LifecyclePanel aiSystemId="sys-1" />);
+        await screen.findByTestId('transition-active');
+        expect(screen.queryByTestId('offending-active')).not.toBeInTheDocument();
     });
 });
 

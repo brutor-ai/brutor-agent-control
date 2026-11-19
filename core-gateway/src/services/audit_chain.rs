@@ -76,9 +76,10 @@ use crate::models::db::ProxyLogInsert;
 /// not verify ([`row_matches`]).
 ///
 /// The format: the tag, then [`V3_FIELDS`], then the JSON decision records
-/// ([`V4_ADDED_FIELDS`]) in their RFC 8785 canonical form, length-framed
+/// ([`V4_ADDED_FIELDS`]) in their RFC 8785 canonical form, then the
+/// credential that made the call ([`V5_ADDED_FIELDS`]), length-framed
 /// ([`canonical_row_bytes`]).
-pub const CANONICAL_VERSION: &str = "v4";
+pub const CANONICAL_VERSION: &str = "v5";
 /// Every row format the verifier computes.
 pub const KNOWN_VERSIONS: &[&str] = &[CANONICAL_VERSION];
 
@@ -117,8 +118,8 @@ pub const GENESIS_HASH: &str = "000000000000000000000000000000000000000000000000
 /// explicit list [`CHAIN_EXCLUDED_COLUMNS`]; a unit test fails when a column
 /// the writer inserts is on neither list.
 ///
-/// Field ORDER here is not the hash order — [`V3_FIELDS`] then
-/// [`V4_ADDED_FIELDS`] fix that.
+/// Field ORDER here is not the hash order — [`V3_FIELDS`], then
+/// [`V4_ADDED_FIELDS`], then [`V5_ADDED_FIELDS`] fix that.
 /// Adding a field to this struct without adding it there covers nothing;
 /// adding it there without bumping [`CANONICAL_VERSION`] breaks every
 /// historical row.
@@ -205,6 +206,12 @@ pub struct CoveredFields {
     pub pre_action_state: Option<serde_json::Value>,
     pub custom_metadata: Option<serde_json::Value>,
     pub tags: Option<serde_json::Value>,
+    // v5. The credential that made the call, as authentication and the
+    // identity judge stated it.
+    pub credential_kind: Option<String>,
+    pub credential_assurance: Option<String>,
+    pub credential_ref: Option<String>,
+    pub credential_policy_outcome: Option<String>,
 }
 
 /// The scalar fields of the canonical row, in hash order: the contract
@@ -312,8 +319,21 @@ pub const V4_ADDED_FIELDS: &[&str] = &[
     "tags",
 ];
 
+/// What a row hashes after [`V4_ADDED_FIELDS`]: the credential that made
+/// the call (its kind, its level on the assurance ladder, its reference) and
+/// the identity judge's verdict, each a plain string like the
+/// [`V3_FIELDS`] scalars. Never reorder, insert or remove: that is a new
+/// version.
+pub const V5_ADDED_FIELDS: &[&str] = &[
+    "credential_kind",
+    "credential_assurance",
+    "credential_ref",
+    "credential_policy_outcome",
+];
+
 /// Why a `proxy_logs` column is outside the chain. Every column the writer
-/// inserts is either covered ([`V3_FIELDS`], [`V4_ADDED_FIELDS`]) or on
+/// inserts is either covered ([`V3_FIELDS`], [`V4_ADDED_FIELDS`],
+/// [`V5_ADDED_FIELDS`]) or on
 /// [`CHAIN_EXCLUDED_COLUMNS`] with
 /// one of these reasons — the guard that stops the next column landing
 /// outside the chain by accident (as columns have before).
@@ -352,7 +372,7 @@ pub enum Excluded {
 
 /// Every `proxy_logs` column outside the chain, with the reason. The
 /// control plane pins the same map against its ORM
-/// (`tests/test_audit_chain_v3.py`, `tests/test_audit_chain_v4.py`).
+/// (`tests/test_audit_chain_v3.py`, `tests/test_audit_chain_v5.py`).
 pub const CHAIN_EXCLUDED_COLUMNS: &[(&str, Excluded)] = &[
     ("chain_id", Excluded::ChainMechanics),
     ("chain_seq", Excluded::ChainMechanics),
@@ -423,7 +443,7 @@ pub const CHAIN_EXCLUDED_COLUMNS: &[(&str, Excluded)] = &[
 
 /// The `SELECT` list matching [`CoveredFields`]. Kept beside the struct so
 /// the two are edited together; a unit test pins it to [`V3_FIELDS`] +
-/// [`V4_ADDED_FIELDS`].
+/// [`V4_ADDED_FIELDS`] + [`V5_ADDED_FIELDS`].
 pub const COVERED_SELECT: &str = "\
     id, tenant_id, timestamp, proxy_type, proxy_subtype, \
     actor_agent_id, subject_id, subject_kind, api_key_id, resource_group_id, \
@@ -444,7 +464,8 @@ pub const COVERED_SELECT: &str = "\
     current_task_id, parent_task_id, delegation_depth, \
     trace_root_kind, trace_continuity, run_end_state, deciding_model, \
     compliance_tags, guardrails_skipped, guardrails_degraded, pre_action_state, \
-    custom_metadata, tags";
+    custom_metadata, tags, \
+    credential_kind, credential_assurance, credential_ref, credential_policy_outcome";
 
 impl From<&ProxyLogInsert> for CoveredFields {
     fn from(l: &ProxyLogInsert) -> Self {
@@ -523,13 +544,39 @@ impl From<&ProxyLogInsert> for CoveredFields {
             pre_action_state: l.pre_action_state.clone(),
             custom_metadata: l.custom_metadata.clone(),
             tags: l.tags.clone(),
+            credential_kind: l.credential_kind.clone(),
+            credential_assurance: l.credential_assurance.clone(),
+            credential_ref: l.credential_ref.clone(),
+            credential_policy_outcome: l.credential_policy_outcome.clone(),
         }
     }
 }
 
-/// The bytes a row's hash covers.
+/// The bytes a row's hash covers:
+///
+/// ```text
+/// "v5" 0x00                                   -- the tag
+/// for each field in V3_FIELDS, then each in V4_ADDED_FIELDS (a JSON
+/// document as its RFC 8785 text), then each in V5_ADDED_FIELDS (see
+/// `row_values`), then prev_hash:
+///     NULL       -> 0x00
+///     present s  -> 0x01 ‖ u32_be(len(utf8(s))) ‖ utf8(s)
+/// ```
+///
+/// Length-prefixed: the row covers values that originate with the caller
+/// (the release carriers, the client label, URLs, scopes), and the encoding
+/// must not rely on a validator in another module to keep a separator byte
+/// out of them. Length prefixes are self-delimiting whatever the content,
+/// and the presence byte keeps NULL and `""` distinct.
 pub fn canonical_row_bytes(f: &CoveredFields, prev_hash: &str) -> Vec<u8> {
-    canonical_row_bytes_v4(f, prev_hash)
+    let mut out = Vec::with_capacity(1024);
+    out.extend_from_slice(CANONICAL_VERSION.as_bytes());
+    out.push(0);
+    for (_, v) in row_values(f) {
+        push_field(&mut out, v.as_deref());
+    }
+    push_field(&mut out, Some(prev_hash));
+    out
 }
 
 /// The canonical timestamp: RFC 3339, UTC, `Z`, exactly six fractional
@@ -629,13 +676,14 @@ pub fn v3_values(f: &CoveredFields) -> Vec<(&'static str, Option<String>)> {
     ]
 }
 
-/// A row's field values: [`v3_values`], then each [`V4_ADDED_FIELDS`]
-/// column as its RFC 8785 text.
+/// A row's field values in hash order: [`v3_values`], then each
+/// [`V4_ADDED_FIELDS`] column as its RFC 8785 text, then each
+/// [`V5_ADDED_FIELDS`] value as it is.
 ///
 /// SQL NULL and a JSON `null` document are the same absence (`None`): the
 /// database driver, the ORM of an exporter and a JSON export cannot all keep
 /// the two apart, and neither is a decision record.
-pub fn v4_values(f: &CoveredFields) -> Vec<(&'static str, Option<String>)> {
+pub fn row_values(f: &CoveredFields) -> Vec<(&'static str, Option<String>)> {
     let j = |v: &Option<serde_json::Value>| match v {
         None | Some(serde_json::Value::Null) => None,
         Some(doc) => Some(crate::services::jcs::canonicalize(doc)),
@@ -648,6 +696,13 @@ pub fn v4_values(f: &CoveredFields) -> Vec<(&'static str, Option<String>)> {
         ("pre_action_state", j(&f.pre_action_state)),
         ("custom_metadata", j(&f.custom_metadata)),
         ("tags", j(&f.tags)),
+        ("credential_kind", f.credential_kind.clone()),
+        ("credential_assurance", f.credential_assurance.clone()),
+        ("credential_ref", f.credential_ref.clone()),
+        (
+            "credential_policy_outcome",
+            f.credential_policy_outcome.clone(),
+        ),
     ]);
     out
 }
@@ -754,7 +809,7 @@ pub fn make_sealed_json_exact(row: &mut ProxyLogInsert) -> Vec<String> {
 }
 
 /// Append one field: `0x00` for NULL, else `0x01 ‖ u32-BE length ‖ UTF-8`.
-fn push_v3(out: &mut Vec<u8>, v: Option<&str>) {
+fn push_field(out: &mut Vec<u8>, v: Option<&str>) {
     match v {
         None => out.push(0x00),
         Some(s) => {
@@ -767,32 +822,6 @@ fn push_v3(out: &mut Vec<u8>, v: Option<&str>) {
             out.extend_from_slice(s.as_bytes());
         }
     }
-}
-
-/// The canonical bytes of a row:
-///
-/// ```text
-/// "v4" 0x00                                   -- the tag
-/// for each field in V3_FIELDS, then each in V4_ADDED_FIELDS (a JSON
-/// document as its RFC 8785 text, see `v4_values`), then prev_hash:
-///     NULL       -> 0x00
-///     present s  -> 0x01 ‖ u32_be(len(utf8(s))) ‖ utf8(s)
-/// ```
-///
-/// Length-prefixed: the row covers values that originate with the caller
-/// (the release carriers, the client label, URLs, scopes), and the encoding
-/// must not rely on a validator in another module to keep a separator byte
-/// out of them. Length prefixes are self-delimiting whatever the content,
-/// and the presence byte keeps NULL and `""` distinct.
-pub fn canonical_row_bytes_v4(f: &CoveredFields, prev_hash: &str) -> Vec<u8> {
-    let mut out = Vec::with_capacity(1024);
-    out.extend_from_slice(CANONICAL_VERSION.as_bytes());
-    out.push(0);
-    for (_, v) in v4_values(f) {
-        push_v3(&mut out, v.as_deref());
-    }
-    push_v3(&mut out, Some(prev_hash));
-    out
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -1387,7 +1416,7 @@ mod tests {
         // build pass.
         let h = hash_row(&log("row-1"), GENESIS_HASH);
         assert_eq!(
-            h, "0bbb9e222df2c9a419001ebd76bc91b7b03d720ca0e0a04ee544ec3b5ca87de3",
+            h, "13689782eb2fb980c5eeaa7cbfd1dfdea6eeded921f9f198a1f45374067f91df",
             "canonical row bytes changed — see the comment above before touching this",
         );
     }
@@ -1727,7 +1756,7 @@ mod tests {
     // -- fixed vectors ------------------------------------------------
     //
     // The vectors below are the cross-repo contract. The control plane's
-    // reference verifier (`tests/test_audit_chain_v4.py`) builds the SAME
+    // reference verifier (`tests/test_audit_chain_v5.py`) builds the SAME
     // rows and pins the SAME hashes; a divergence in either implementation
     // fails that repo's suite, never an honest row.
 
@@ -1841,6 +1870,11 @@ mod tests {
             tags: Some(
                 serde_json::json!({"refusal": "quota", "scope": "tenant", "limits": [1, 2.5, -0.0]}),
             ),
+            // v5 — the credential that made the call.
+            credential_kind: Some("api_key".into()),
+            credential_assurance: Some("key".into()),
+            credential_ref: Some("api_key:key-1".into()),
+            credential_policy_outcome: Some("below_policy".into()),
         }
     }
 
@@ -1921,10 +1955,26 @@ mod tests {
             pre_action_state: None,
             custom_metadata: None,
             tags: None,
+            credential_kind: None,
+            credential_assurance: None,
+            credential_ref: None,
+            credential_policy_outcome: None,
         }
     }
 
-    /// The documented v4 vector: the sparse row with one JSON document,
+    /// The documented v5 vector: the sparse row, made by a workload token
+    /// that met its identity policy.
+    pub(crate) fn vector_credential() -> CoveredFields {
+        let mut f = vector_sparse(0);
+        f.idp_server_id = Some("idp-1".into());
+        f.credential_kind = Some("workload_token".into());
+        f.credential_assurance = Some("workload".into());
+        f.credential_ref = Some("token:idp-1:spiffe://example.org/agent".into());
+        f.credential_policy_outcome = Some("met".into());
+        f
+    }
+
+    /// The documented JSON vector: the sparse row with one JSON document,
     /// written with its keys out of order and `1.50` for 1.5.
     pub(crate) fn vector_sparse_json() -> CoveredFields {
         let mut f = vector_sparse(0);
@@ -1939,32 +1989,38 @@ mod tests {
     #[test]
     fn fixed_vectors_pin_the_format() {
         // (row, prev_hash) -> hash. Mirrored verbatim in the control plane's
-        // tests/test_audit_chain_v4.py. Never edit an expectation to make a
+        // tests/test_audit_chain_v5.py. Never edit an expectation to make a
         // build pass — a new format is a new version.
         let full = vector_full();
         let sparse = vector_sparse(0);
         let sparse_ms = vector_sparse(250_000);
         let sparse_json = vector_sparse_json();
-        let cases: [(&CoveredFields, &str, &str); 4] = [
+        let credential = vector_credential();
+        let cases: [(&CoveredFields, &str, &str); 5] = [
             (
                 &full,
                 GENESIS_HASH,
-                "648db704aad64e13a93ec3862a488b2fa561ffa0bc1ec92832f677b9576f6b78",
+                "abc22a7be36095712b93245f4bde8d4e401f016e1dcaf2161984410c3d3e555f",
             ),
             (
                 &sparse,
                 VECTOR_PREV,
-                "9e96cc27d103dee60a7b4d8df573f76eedffb7f5f6f496f14e4f3abf8fab2557",
+                "ce73f839770d7046c2d308c7f607d5ec0bb8357dad02cff4b9bc245a9945b7d7",
             ),
             (
                 &sparse_ms,
                 VECTOR_PREV,
-                "07bc370a29b5638cc61a66cd1a0449409df65fc4f978445391ce09b534933f46",
+                "ccdfd6ac60549914896b09f63a7426cc85a3589d48ac2aa3b73c8799b6d763b9",
             ),
             (
                 &sparse_json,
                 VECTOR_PREV,
-                "c18201c95d62f47743a543738a18ddd4dbc97e5eaa99a85daae869ea562c45ff",
+                "701ddf149d26266c8c4bd09d7055be5c20ec15c3e527c3cca0e514ae3dbbfb27",
+            ),
+            (
+                &credential,
+                VECTOR_PREV,
+                "3e2c71293eb42dcecf880f6cb660b948f661ceb556451dc670cff14c985b9044",
             ),
         ];
         for (row, prev, expected) in cases {
@@ -2043,22 +2099,25 @@ mod tests {
                 "named mutation {i} not covered"
             );
         }
-        // Every field, generically: each value in v4_values must move the
+        // Every field, generically: each value in row_values must move the
         // hash when changed. Done through the encoded values so a field the
         // encoder forgot would show up as a mismatch with the field lists.
-        let values = v4_values(&base);
-        assert_eq!(values.len(), V3_FIELDS.len() + V4_ADDED_FIELDS.len());
+        let values = row_values(&base);
+        assert_eq!(
+            values.len(),
+            V3_FIELDS.len() + V4_ADDED_FIELDS.len() + V5_ADDED_FIELDS.len()
+        );
         for idx in 0..values.len() {
-            let mut bytes = b"v4\0".to_vec();
+            let mut bytes = b"v5\0".to_vec();
             for (j, (_, v)) in values.iter().enumerate() {
                 let v = if j == idx {
                     Some(format!("{}~", v.clone().unwrap_or_default()))
                 } else {
                     v.clone()
                 };
-                push_v3(&mut bytes, v.as_deref());
+                push_field(&mut bytes, v.as_deref());
             }
-            push_v3(&mut bytes, Some(GENESIS_HASH));
+            push_field(&mut bytes, Some(GENESIS_HASH));
             assert_ne!(
                 sha256_hex(&bytes),
                 sealed,
@@ -2067,11 +2126,11 @@ mod tests {
             );
         }
         // The unedited encoding is the sealed one.
-        let mut bytes = b"v4\0".to_vec();
+        let mut bytes = b"v5\0".to_vec();
         for (_, v) in &values {
-            push_v3(&mut bytes, v.as_deref());
+            push_field(&mut bytes, v.as_deref());
         }
-        push_v3(&mut bytes, Some(GENESIS_HASH));
+        push_field(&mut bytes, Some(GENESIS_HASH));
         assert_eq!(sha256_hex(&bytes), sealed);
     }
 
@@ -2260,17 +2319,24 @@ mod tests {
     }
 
     #[test]
-    fn the_v4_byte_layout_is_exactly_as_documented() {
-        // Hand-built from the documented layout: v3's framing under the tag
-        // `v4`, the v3 fields, then the six JSON fields as JCS text.
-        let row = vector_sparse_json();
-        let mut want = b"v4\0".to_vec();
+    fn the_byte_layout_is_exactly_as_documented() {
+        // Hand-built from the documented layout: the framing under the tag
+        // `v5`, the v3 fields, the six JSON fields as JCS text, then the
+        // four credential fields as plain text.
+        let mut row = vector_sparse_json();
+        row.credential_kind = Some("api_key".into());
+        row.credential_ref = Some("api_key:k".into());
+        let mut want = b"v5\0".to_vec();
         let field = |out: &mut Vec<u8>, s: &str| {
             out.push(1);
             out.extend_from_slice(&(s.len() as u32).to_be_bytes());
             out.extend_from_slice(s.as_bytes());
         };
-        for name in V3_FIELDS.iter().chain(V4_ADDED_FIELDS) {
+        for name in V3_FIELDS
+            .iter()
+            .chain(V4_ADDED_FIELDS)
+            .chain(V5_ADDED_FIELDS)
+        {
             match *name {
                 "id" => field(&mut want, "01K6V3VECTOR0000000000SPARSE"),
                 "tenant_id" => field(&mut want, "tenant-vec"),
@@ -2288,30 +2354,60 @@ mod tests {
                     &mut want,
                     r#"{"kind":"llm_quota","used":1.5,"window":"day"}"#,
                 ),
+                "credential_kind" => field(&mut want, "api_key"),
+                "credential_ref" => field(&mut want, "api_key:k"),
                 _ => want.push(0),
             }
         }
         field(&mut want, VECTOR_PREV);
-        assert_eq!(canonical_row_bytes_v4(&row, VECTOR_PREV), want);
+        assert_eq!(canonical_row_bytes(&row, VECTOR_PREV), want);
     }
 
     #[test]
-    fn the_writer_seals_v4_over_the_json_it_inserts() {
+    fn the_writer_seals_over_the_json_and_the_credential_it_inserts() {
         // stamp_with hashes the ProxyLogInsert the INSERT binds: the JSON
         // columns reach CoveredFields from the insert row, not a copy.
         let mut rows = vec![log("j")];
         rows[0].pre_action_state = Some(serde_json::json!({"kind": "llm_quota", "used": 3}));
         rows[0].guardrails_skipped = Some(serde_json::json!([{"check": "pii"}]));
+        rows[0].credential_kind = Some("api_key".into());
+        rows[0].credential_assurance = Some("key".into());
+        rows[0].credential_ref = Some("api_key:k-1".into());
+        rows[0].credential_policy_outcome = Some("refused".into());
         stamp_with("chain-json", 0, GENESIS_HASH, &mut rows).unwrap();
         let sealed = rows[0].row_hash.clone().unwrap();
-        assert_eq!(rows[0].chain_version.as_deref(), Some("v4"));
-        let mut f = CoveredFields::from(&rows[0]);
-        assert!(row_matches(&f, Some("v4"), GENESIS_HASH, &sealed));
-        f.pre_action_state = Some(serde_json::json!({"kind": "llm_quota", "used": 4}));
-        assert!(!row_matches(&f, Some("v4"), GENESIS_HASH, &sealed));
+        assert_eq!(rows[0].chain_version.as_deref(), Some("v5"));
+        let f = CoveredFields::from(&rows[0]);
+        assert!(row_matches(&f, Some("v5"), GENESIS_HASH, &sealed));
+        let mut edited = f.clone();
+        edited.pre_action_state = Some(serde_json::json!({"kind": "llm_quota", "used": 4}));
+        assert!(!row_matches(&edited, Some("v5"), GENESIS_HASH, &sealed));
+        // A refused call rewritten as one that met its policy, a key
+        // rewritten as a workload token: each breaks the row.
+        let edits: [fn(&mut CoveredFields); 5] = [
+            |f| f.credential_policy_outcome = Some("met".into()),
+            |f| f.credential_kind = Some("workload_token".into()),
+            |f| f.credential_assurance = Some("workload".into()),
+            |f| f.credential_ref = Some("api_key:k-2".into()),
+            |f| f.credential_policy_outcome = None,
+        ];
+        for edit in edits {
+            let mut edited = f.clone();
+            edit(&mut edited);
+            assert!(!row_matches(&edited, Some("v5"), GENESIS_HASH, &sealed));
+        }
     }
 
     // -- the column-coverage guard ------------------------------------
+
+    /// Every field the format covers, in hash order.
+    fn covered_fields() -> impl Iterator<Item = &'static str> {
+        V3_FIELDS
+            .iter()
+            .chain(V4_ADDED_FIELDS)
+            .chain(V5_ADDED_FIELDS)
+            .copied()
+    }
 
     fn insert_columns() -> Vec<String> {
         crate::services::background_writer::PROXY_LOG_INSERT_COLUMNS
@@ -2326,12 +2422,12 @@ mod tests {
         // The class-level guard (feedback: regressions need class-level
         // tests). proxy_logs columns have been added that landed
         // outside the chain with nothing to force the decision. Now every
-        // column the writer inserts must be in V3_FIELDS or on
+        // column the writer inserts must be covered or on
         // CHAIN_EXCLUDED_COLUMNS with a reason — adding a column to the
         // INSERT without deciding fails here.
         use std::collections::HashSet;
         let insert = insert_columns();
-        let covered: HashSet<&str> = V3_FIELDS.iter().chain(V4_ADDED_FIELDS).copied().collect();
+        let covered: HashSet<&str> = covered_fields().collect();
         let excluded: HashSet<&str> = CHAIN_EXCLUDED_COLUMNS.iter().map(|(c, _)| *c).collect();
 
         let undecided: Vec<&String> = insert
@@ -2341,12 +2437,12 @@ mod tests {
         assert!(
             undecided.is_empty(),
             "proxy_logs columns written by the core but neither in the audit chain \
-             (audit_chain::V3_FIELDS / V4_ADDED_FIELDS) nor on audit_chain::CHAIN_EXCLUDED_COLUMNS: {undecided:?}. \
+             (audit_chain::V3_FIELDS / V4_ADDED_FIELDS / V5_ADDED_FIELDS) nor on audit_chain::CHAIN_EXCLUDED_COLUMNS: {undecided:?}. \
              Decide: cover it (a new canonical version) or exclude it with a reason.",
         );
         // Covered fields are real inserted columns...
         let inserted: HashSet<&str> = insert.iter().map(String::as_str).collect();
-        for f in V3_FIELDS.iter().chain(V4_ADDED_FIELDS) {
+        for f in covered_fields() {
             assert!(
                 inserted.contains(f),
                 "the chain covers {f}, which the writer never inserts"
@@ -2359,7 +2455,7 @@ mod tests {
         );
         assert_eq!(
             covered.len(),
-            V3_FIELDS.len() + V4_ADDED_FIELDS.len(),
+            V3_FIELDS.len() + V4_ADDED_FIELDS.len() + V5_ADDED_FIELDS.len(),
             "a covered field is listed twice"
         );
         assert_eq!(
@@ -2390,19 +2486,19 @@ mod tests {
         // views, pinned equal.
         let names: Vec<&str> = v3_values(&vector_full()).iter().map(|(n, _)| *n).collect();
         assert_eq!(names, V3_FIELDS, "v3_values order differs from V3_FIELDS");
-        let names: Vec<&str> = v4_values(&vector_full()).iter().map(|(n, _)| *n).collect();
-        let v4_order: Vec<&str> = V3_FIELDS.iter().chain(V4_ADDED_FIELDS).copied().collect();
+        let names: Vec<&str> = row_values(&vector_full()).iter().map(|(n, _)| *n).collect();
+        let order: Vec<&str> = covered_fields().collect();
         assert_eq!(
-            names, v4_order,
-            "v4_values is not V3_FIELDS then V4_ADDED_FIELDS"
+            names, order,
+            "row_values is not V3_FIELDS, then V4_ADDED_FIELDS, then V5_ADDED_FIELDS"
         );
         let mut select: Vec<&str> = COVERED_SELECT.split(',').map(str::trim).collect();
-        let mut fields: Vec<&str> = v4_order.clone();
+        let mut fields: Vec<&str> = order.clone();
         select.sort_unstable();
         fields.sort_unstable();
         assert_eq!(
             select, fields,
-            "COVERED_SELECT does not read exactly the v4 fields"
+            "COVERED_SELECT does not read exactly the covered fields"
         );
     }
 
@@ -2568,9 +2664,9 @@ mod tests {
     }
 
     /// The cross-repo vector for exact integers: what the writer stores for a
-    /// document with unsafe integers, and the v4 hash of the sparse vector
+    /// document with unsafe integers, and the hash of the sparse vector
     /// row carrying it. The hash is the one the control plane's verifier
-    /// (`app/services/audit_chain_canonical.py`, `hash_row_as(…, "v4")`)
+    /// (`app/services/audit_chain_canonical.py`, `hash_row`)
     /// computes for the STORED document — it reads the column, finds
     /// strings, and hashes them character for character — so the two agree
     /// without a change on its side. Never edit the expectation to make a
@@ -2597,7 +2693,7 @@ mod tests {
         f.custom_metadata = Some(stored);
         assert_eq!(
             hash_fields(&f, VECTOR_PREV),
-            "120dbfc18038f31ef6b9841ebae02ff1669b9fa3fe0b5a69f7c830dace0909f9",
+            "00477ad359799f7356e51b1595329de7ee306e170e73fb30bc004d11c3f1f176",
         );
         // One less, the same double: another hash (the verifier's too).
         f.custom_metadata = Some(serde_json::json!({
@@ -2606,7 +2702,7 @@ mod tests {
         }));
         assert_eq!(
             hash_fields(&f, VECTOR_PREV),
-            "0d8a3731c74545bd5ba42de20ae19f707bcac7acb472ed1704b5a7bb23d326f0",
+            "1c8a1144252a0b4858e60b19fd3d996ae8f88cd3319960637de612c42d60a5db",
         );
     }
 

@@ -972,6 +972,20 @@
   "tenant": 404,
   "tenant_other": 403
  },
+ "GET /v1/admin/ai-systems/{ai_system_id}/identity/credentials": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/ai-systems/{ai_system_id}/identity/summary": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
+  "tenant": 404,
+  "tenant_other": 404
+ },
  "GET /v1/admin/ai-systems/{ai_system_id}/incident-windows": {
   "anonymous": 401,
   "system": 400,
@@ -2810,6 +2824,13 @@
   "anonymous": 401,
   "system": 400,
   "system_named": 400,
+  "tenant": 404,
+  "tenant_other": 404
+ },
+ "GET /v1/admin/resource-groups/{group_id}/identity-policy": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 404,
   "tenant": 404,
   "tenant_other": 404
  },
@@ -5878,6 +5899,13 @@
   "system_named": 500,
   "tenant": 404,
   "tenant_other": 404
+ },
+ "PUT /v1/admin/resource-groups/{group_id}/identity-policy": {
+  "anonymous": 401,
+  "system": 400,
+  "system_named": 422,
+  "tenant": 422,
+  "tenant_other": 422
  },
  "PUT /v1/admin/resource-groups/{group_id}/server-configs/{config_id}/capabilities": {
   "anonymous": 401,

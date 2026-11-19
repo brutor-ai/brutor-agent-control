@@ -212,7 +212,7 @@ async fn eu_ai_act_tier_stamps_tier_suffix(pool: PgPool) {
         .mount(&mock)
         .await;
 
-    let api_key = seed_topology(&pool, &mock.uri()).await;
+    let personal_key = seed_topology(&pool, &mock.uri()).await;
     common::set_tenant_compliance_profile(
         &pool,
         "tenant-comp",
@@ -221,6 +221,14 @@ async fn eu_ai_act_tier_stamps_tier_suffix(pool: PgPool) {
     .await;
     common::set_rg_eu_ai_act_tier(&pool, "rg-comp", "high").await;
 
+    // A high-risk group refuses a person's own key (its identity floor);
+    // the call is made with the group's shared key.
+    assert_eq!(
+        issue_chat_completion(&pool, &personal_key).await,
+        StatusCode::FORBIDDEN,
+    );
+    let api_key =
+        common::seed_shared_group_api_key(&pool, "tenant-comp", "rg-comp", "comp-shared").await;
     assert_eq!(issue_chat_completion(&pool, &api_key).await, StatusCode::OK,);
 
     let tags = await_compliance_tags(&pool, "tenant-comp")

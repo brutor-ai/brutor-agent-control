@@ -38,8 +38,7 @@ os.environ.setdefault("ENCRYPTION_KEY", "a" * 44 + "=")
 # the moment selection or sharding changed. `setdefault`, so any module that
 # wants a different algorithm still wins.
 os.environ.setdefault("JWT_ALGORITHM", "HS256")
-# The accounts a first start creates have no default password (owner decision
-# Q11): the install seed refuses to run without the administrator's, and the
+# The accounts a first start creates have no default password: the install seed refuses to run without the administrator's, and the
 # Enterprise Edition's tenant creation without one. The suite sets what it
 # needs here, to values of its own (never a stock password, which the rule refuses); a test of the
 # refusal takes them out again (`tests/test_initial_passwords.py`).

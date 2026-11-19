@@ -1660,6 +1660,16 @@ class ResourceGroup(ResourceAuthorshipMixin, ResourceVersionMixin, Base):
         comment="Governance lifecycle: proposed|approved|active|deprecated|retired"
     )
 
+    # The group's explicit identity policy: what credentials its traffic
+    # must present. Combined stricter-wins with the tenant default, the
+    # ancestors' policies and the lifecycle and risk floors
+    # (`app/services/identity_policy.py`).
+    identity_policy = Column(
+        JSONB,
+        nullable=True,
+        comment="Explicit identity policy (six members) or NULL = no explicit policy",
+    )
+
     # Attested exclusion from the estate rollup. Mission Control takes
     # the WORST health/verdict over a subtree, which is the right policy and
     # also means any real estate reads red forever: a retired system, a

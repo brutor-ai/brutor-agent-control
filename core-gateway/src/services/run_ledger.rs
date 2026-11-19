@@ -279,6 +279,8 @@ pub struct RunAggregate {
     /// call held for a human is not unsuccessful), as
     /// `run_outcome::CallFacts` JSON. Read for the error cause.
     pub failing_call: Option<Value>,
+    /// `[kind, level, reference]` of every step, in step order.
+    pub credential_steps: Value,
     // Sub-aggregations.
     pub models_used: Option<Value>,
     pub tool_error_types: Option<Value>,
@@ -653,6 +655,13 @@ SELECT
     (ARRAY_AGG(pl.subject_kind ORDER BY pl.timestamp, pl.id)
         FILTER (WHERE pl.subject_kind IS NOT NULL))[1]         AS subject_kind,
 
+    -- The credential of every step, in step order, delegated steps
+    -- included (`CredentialRollup`).
+    COALESCE(JSONB_AGG(JSONB_BUILD_ARRAY(pl.credential_kind, pl.credential_assurance,
+                                         pl.credential_ref)
+                       ORDER BY pl.timestamp, pl.id), '[]'::jsonb)
+                                                               AS credential_steps,
+
     (ARRAY_AGG(pl.id ORDER BY pl.timestamp DESC, pl.id DESC))[1] AS last_step_id,
     COALESCE((ARRAY_AGG(pl.success ORDER BY pl.timestamp DESC, pl.id DESC))[1], true)
                                                                AS last_success,
@@ -813,6 +822,90 @@ pub async fn aggregate_run(
     }
     tx.commit().await?;
     Ok(agg)
+}
+
+// ---------------------------------------------------------------------------
+// The credentials of a run
+// ---------------------------------------------------------------------------
+
+/// Credential kinds on the assurance ladder: the ones that can lower a run.
+const LADDER_KINDS: [&str; 4] = ["api_key", "workload_token", "x509_svid", "brutor_token"];
+
+/// The most references a run keeps.
+pub const MAX_RUN_CREDENTIAL_REFS: usize = 8;
+
+/// What a run says about the credentials its steps (delegated ones
+/// included) were made with. Every member `None` when no step stated a
+/// credential (rows written before authentication succeeded).
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct CredentialRollup {
+    /// The lowest level over the steps whose kind is on the ladder. `None`
+    /// when no step is, and when any step is anonymous (below every level,
+    /// with none of its own). A person's session or the platform's
+    /// credential does not lower it.
+    pub assurance_min: Option<String>,
+    /// Two or more distinct references among the steps (no reference counts
+    /// as one value).
+    pub mixed: Option<bool>,
+    /// The distinct references, first seen first, at most
+    /// [`MAX_RUN_CREDENTIAL_REFS`], as a JSON array.
+    pub refs: Option<Value>,
+}
+
+impl CredentialRollup {
+    /// From `[[kind, level, reference], …]` in step order.
+    pub fn of(steps: &Value) -> Self {
+        use crate::models::auth::CredentialAssurance;
+        let text = |v: Option<&Value>| v.and_then(Value::as_str).map(str::to_string);
+        let steps: Vec<(String, Option<String>, Option<String>)> = steps
+            .as_array()
+            .map(Vec::as_slice)
+            .unwrap_or_default()
+            .iter()
+            .filter_map(|step| {
+                let kind = text(step.get(0))?;
+                Some((kind, text(step.get(1)), text(step.get(2))))
+            })
+            .collect();
+        if steps.is_empty() {
+            return Self::default();
+        }
+        let anonymous = steps.iter().any(|(kind, _, _)| kind == "anonymous");
+        let assurance_min = if anonymous {
+            None
+        } else {
+            steps
+                .iter()
+                .filter(|(kind, _, _)| LADDER_KINDS.contains(&kind.as_str()))
+                // A ladder step whose level cannot be read is the lowest:
+                // it never raises the run.
+                .map(|(_, level, _)| {
+                    level
+                        .as_deref()
+                        .and_then(CredentialAssurance::parse)
+                        .unwrap_or(CredentialAssurance::Key)
+                })
+                .min()
+                .map(|level| level.as_str().to_string())
+        };
+        let mut distinct: Vec<&Option<String>> = Vec::new();
+        for (_, _, reference) in &steps {
+            if !distinct.contains(&reference) {
+                distinct.push(reference);
+            }
+        }
+        let refs: Vec<Value> = distinct
+            .iter()
+            .filter_map(|r| r.as_deref())
+            .take(MAX_RUN_CREDENTIAL_REFS)
+            .map(Value::from)
+            .collect();
+        Self {
+            assurance_min,
+            mixed: Some(distinct.len() >= 2),
+            refs: Some(Value::Array(refs)),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1208,6 +1301,7 @@ pub async fn finalize_run(
     // overwrites it. That read is what makes a reopen idempotent.
     let prior_release =
         agent_releases::lock_and_read_prior(&mut tx, tenant_id, root_task_id).await?;
+    let credentials = CredentialRollup::of(&agg.credential_steps);
     let row: (String, i32, bool) = sqlx::query_as(UPSERT_SQL)
         .bind(&run_id)
         .bind(tenant_id)
@@ -1286,6 +1380,9 @@ pub async fn finalize_run(
         .bind(agg.scope.records_touched as i32)
         .bind(agg.scope.scope_violation_count as i32)
         .bind(agg.scope.scope_unbound_count as i32)
+        .bind(credentials.assurance_min.as_deref())
+        .bind(credentials.mixed)
+        .bind(credentials.refs.clone())
         .fetch_one(&mut *tx)
         .await?;
     // Replay runs never feed baselines, so they carry no segments (the flag
@@ -1441,6 +1538,7 @@ INSERT INTO ai_system_runs (
     peak_context_tokens, peak_context_utilization, context_growth,
     tools_used,
     scope_declared, records_touched, scope_violation_count, scope_unbound_count,
+    credential_assurance_min, credential_mixed, credential_refs,
     feedback_score
 ) VALUES (
     $1, $2, $3, $4, $5, $6,
@@ -1469,6 +1567,7 @@ INSERT INTO ai_system_runs (
     $70, $71, $72,
     $73,
     $74, $75, $76, $77,
+    $78, $79, $80,
     -- Folded in from the source of truth rather than passed as a parameter.
     --
     -- Feedback usually arrives BEFORE the run is finalized: portal chats close
@@ -1561,6 +1660,10 @@ ON CONFLICT (tenant_id, root_task_id) DO UPDATE SET
     peak_context_utilization = EXCLUDED.peak_context_utilization,
     context_growth = EXCLUDED.context_growth,
     client_label = EXCLUDED.client_label,
+    -- The credentials of every step, recomputed with the steps.
+    credential_assurance_min = EXCLUDED.credential_assurance_min,
+    credential_mixed = EXCLUDED.credential_mixed,
+    credential_refs = EXCLUDED.credential_refs,
     -- Recomputed from the steps like the actor: the
     -- earliest carrying action decides, so a late step cannot move it
     -- unless it is earlier.
@@ -2595,6 +2698,113 @@ pub fn describe_sweep(finalized: usize, elapsed_ms: u128) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn step(kind: Option<&str>, level: Option<&str>, reference: Option<&str>) -> Value {
+        serde_json::json!([kind, level, reference])
+    }
+
+    #[test]
+    fn a_run_of_key_and_workload_steps_is_mixed_at_its_lowest_level() {
+        let steps = Value::Array(vec![
+            step(
+                Some("workload_token"),
+                Some("workload"),
+                Some("token:idp-1:spiffe://a"),
+            ),
+            step(Some("api_key"), Some("key"), Some("api_key:k-1")),
+            step(
+                Some("workload_token"),
+                Some("workload"),
+                Some("token:idp-1:spiffe://a"),
+            ),
+        ]);
+        let r = CredentialRollup::of(&steps);
+        assert_eq!(r.assurance_min.as_deref(), Some("key"));
+        assert_eq!(r.mixed, Some(true));
+        assert_eq!(
+            r.refs,
+            Some(serde_json::json!(["token:idp-1:spiffe://a", "api_key:k-1"]))
+        );
+    }
+
+    #[test]
+    fn sessions_and_the_platform_do_not_lower_a_run_and_anonymous_has_no_level() {
+        // One workload credential, and a person's session beside it: the
+        // run's minimum is the workload's; two references: mixed.
+        let steps = Value::Array(vec![
+            step(Some("workload_token"), Some("workload"), Some("token:i:s")),
+            step(Some("human_session"), None, Some("session:admin:1")),
+            step(Some("platform_service"), None, Some("gateway_token")),
+        ]);
+        let r = CredentialRollup::of(&steps);
+        assert_eq!(r.assurance_min.as_deref(), Some("workload"));
+        assert_eq!(r.mixed, Some(true));
+        // One credential, many steps: not mixed.
+        let steps = Value::Array(vec![
+            step(Some("api_key"), Some("key"), Some("api_key:k")),
+            step(Some("api_key"), Some("key"), Some("api_key:k")),
+        ]);
+        let r = CredentialRollup::of(&steps);
+        assert_eq!(r.assurance_min.as_deref(), Some("key"));
+        assert_eq!(r.mixed, Some(false));
+        // An anonymous step: below every level, with none of its own.
+        let steps = Value::Array(vec![
+            step(Some("workload_token"), Some("workload"), Some("token:i:s")),
+            step(Some("anonymous"), None, None),
+        ]);
+        let r = CredentialRollup::of(&steps);
+        assert_eq!(r.assurance_min, None);
+        assert_eq!(r.mixed, Some(true), "NULL is one more value");
+        assert_eq!(r.refs, Some(serde_json::json!(["token:i:s"])));
+        // Only sessions: no level.
+        let steps = Value::Array(vec![step(
+            Some("human_session"),
+            None,
+            Some("session:portal:9"),
+        )]);
+        assert_eq!(CredentialRollup::of(&steps).assurance_min, None);
+        // No step stated a credential (rows written before authentication):
+        // nothing is known.
+        let steps = Value::Array(vec![step(None, None, None)]);
+        assert_eq!(CredentialRollup::of(&steps), CredentialRollup::default());
+    }
+
+    #[test]
+    fn a_run_keeps_at_most_eight_references_in_first_seen_order() {
+        let steps = Value::Array(
+            (0..12)
+                .map(|i| {
+                    step(
+                        Some("api_key"),
+                        Some("key"),
+                        Some(&format!("api_key:k-{i}")),
+                    )
+                })
+                .collect(),
+        );
+        let r = CredentialRollup::of(&steps);
+        let refs = r.refs.unwrap();
+        let refs = refs.as_array().unwrap();
+        assert_eq!(refs.len(), 8);
+        assert_eq!(refs[0], "api_key:k-0");
+        assert_eq!(refs[7], "api_key:k-7");
+    }
+
+    #[test]
+    fn the_run_reads_and_stores_the_credential_rollup() {
+        assert!(AGGREGATE_SQL.contains("AS credential_steps"));
+        for column in [
+            "credential_assurance_min",
+            "credential_mixed",
+            "credential_refs",
+        ] {
+            assert!(UPSERT_SQL.contains(column), "{column} not written");
+            assert!(
+                UPSERT_SQL.contains(&format!("{column} = EXCLUDED.{column}")),
+                "{column} not recomputed on a reopen"
+            );
+        }
+    }
 
     // -- run facts: the tier-A vocabulary -------------
 

@@ -69,12 +69,12 @@ def test_the_built_in_lists_have_these_sizes():
     """So that an entry cannot leave both editions unnoticed: Community here,
     Enterprise in `test_the_extension_has_these_entries`."""
     assert {kind: len(entries) for kind, entries in _builtin_lists().items()} == {
-        "routers": 79,
+        "routers": 80,
         "startup": 13,
         "shutdown": 1,
         "install_seed": 9,
         "tenant_provisioning": 15,
-        "permissions": 121,
+        "permissions": 123,
         "principals": 1,
         "identity_protocols": 1,
     }

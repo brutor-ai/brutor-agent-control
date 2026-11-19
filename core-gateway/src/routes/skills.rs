@@ -330,7 +330,11 @@ pub(crate) async fn execute_skill(
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     // Resolve the skill's id up front for audit rows. Callers usually invoke by
@@ -1127,7 +1131,11 @@ pub(crate) async fn get_execution(
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     let result = match skill_orchestrator::get_execution_status(
@@ -1198,7 +1206,11 @@ pub(crate) async fn cancel_execution(
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     let cancelled_by = auth_ctx.gateway_username.as_deref().unwrap_or("system");
@@ -1277,7 +1289,11 @@ pub(crate) async fn get_catalog(
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     let catalog = match skill_orchestrator::get_catalog(

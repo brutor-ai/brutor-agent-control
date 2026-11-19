@@ -35,6 +35,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import validates
 from sqlalchemy.sql import func
 
+from app.constants.identity import CREDENTIAL_LEVELS, sql_in
 from app.constants.outcomes import ERROR_CAUSES, OUTCOME_CONFORMANCES
 from app.database import Base
 
@@ -396,6 +397,27 @@ class AISystemRun(Base):
     tokens_saved = Column(Integer, nullable=False, default=0, server_default="0")
 
     # ------------------------------------------------------------------
+    # Credentials: what authenticated the run's steps (delegated steps
+    # included), computed by the run ledger over the run's rows.
+    # ------------------------------------------------------------------
+
+    credential_assurance_min = Column(
+        String(16),
+        nullable=True,
+        comment="Lowest credential level over the run's steps on the ladder; NULL when none is, or any step is anonymous",
+    )
+    credential_mixed = Column(
+        Boolean,
+        nullable=True,
+        comment="True when two or more distinct credentials made the run's steps",
+    )
+    credential_refs = Column(
+        JSONB,
+        nullable=True,
+        comment="Distinct credential references of the run's steps, first-seen order, at most 8",
+    )
+
+    # ------------------------------------------------------------------
     # Reliability
     # ------------------------------------------------------------------
 
@@ -571,6 +593,10 @@ class AISystemRun(Base):
             "agent_impl_trust IN ('verified', 'declared')",
             name="ck_ai_system_runs_agent_impl_trust",
         ),
+        CheckConstraint(
+            sql_in("credential_assurance_min", CREDENTIAL_LEVELS),
+            name="ck_ai_system_runs_credential_assurance_min",
+        ),
         {
             "comment": (
                 "One row per finalized run. Rollup over "
@@ -731,6 +757,9 @@ class AISystemRun(Base):
             "models_used": self.models_used or [],
             "cache_hit_count": self.cache_hit_count,
             "tokens_saved": self.tokens_saved,
+            "credential_assurance_min": self.credential_assurance_min,
+            "credential_mixed": self.credential_mixed,
+            "credential_refs": self.credential_refs,
             "error_count": self.error_count,
             "retry_count": self.retry_count,
             "fallback_count": self.fallback_count,

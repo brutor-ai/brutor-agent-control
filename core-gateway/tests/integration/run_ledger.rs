@@ -1809,3 +1809,123 @@ async fn no_measured_call_leaves_the_task_size_unknown(pool: PgPool) {
     let agg = aggregate_run(&pool, t, "r").await.unwrap().unwrap();
     assert_eq!(agg.first_prompt_tokens, None);
 }
+
+// ---------------------------------------------------------------------------
+// The credentials of a run
+// ---------------------------------------------------------------------------
+
+async fn set_credential(
+    pool: &PgPool,
+    id: &str,
+    kind: &str,
+    level: Option<&str>,
+    reference: Option<&str>,
+) {
+    sqlx::query(
+        "UPDATE proxy_logs SET credential_kind = $2, credential_assurance = $3, credential_ref = $4 \
+         WHERE id = $1",
+    )
+    .bind(id)
+    .bind(kind)
+    .bind(level)
+    .bind(reference)
+    .execute(pool)
+    .await
+    .expect("set_credential");
+}
+
+async fn stored_credentials(
+    pool: &PgPool,
+    tenant: &str,
+) -> (Option<String>, Option<bool>, Option<serde_json::Value>) {
+    sqlx::query_as(
+        "SELECT credential_assurance_min, credential_mixed, credential_refs \
+           FROM ai_system_runs WHERE tenant_id = $1 AND root_task_id = 'r'",
+    )
+    .bind(tenant)
+    .fetch_one(pool)
+    .await
+    .expect("run row")
+}
+
+/// A run of a workload step and a key step, the key step delegated: the run
+/// is mixed, at the key's level, and names both credentials in the order
+/// they appeared.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn a_run_of_key_and_workload_steps_is_stored_mixed_at_its_lowest_level(pool: PgPool) {
+    let t = "t-rl-cred";
+    common::seed_tenant(&pool, t).await;
+    seed_system(&pool, t, "sys", "agent", None).await;
+
+    let mut h = Hop::new("r", "llm", 30);
+    h.group_id = Some("sys");
+    insert_hop(&pool, t, "c1", h).await;
+    set_credential(
+        &pool,
+        "c1",
+        "workload_token",
+        Some("workload"),
+        Some("token:idp-1:spiffe://a"),
+    )
+    .await;
+    let mut h = Hop::new("r", "mcp", 20);
+    h.group_id = Some("sys");
+    h.tool = Some("search");
+    h.depth = 1;
+    insert_hop(&pool, t, "c2", h).await;
+    set_credential(&pool, "c2", "api_key", Some("key"), Some("api_key:k-1")).await;
+
+    finalize_run(&pool, t, "r", finalized_by::EXPLICIT, None, None)
+        .await
+        .unwrap()
+        .expect("finalized");
+    let (min, mixed, refs) = stored_credentials(&pool, t).await;
+    assert_eq!(min.as_deref(), Some("key"));
+    assert_eq!(mixed, Some(true));
+    assert_eq!(
+        refs,
+        Some(serde_json::json!(["token:idp-1:spiffe://a", "api_key:k-1"]))
+    );
+
+    // A late anonymous step reopens the run: no level, still mixed.
+    let mut h = Hop::new("r", "mcp", 5);
+    h.group_id = Some("sys");
+    insert_hop(&pool, t, "c3", h).await;
+    set_credential(&pool, "c3", "anonymous", None, None).await;
+    finalize_run(&pool, t, "r", finalized_by::EXPLICIT, None, None)
+        .await
+        .unwrap()
+        .expect("reopened");
+    let (min, mixed, _) = stored_credentials(&pool, t).await;
+    assert_eq!(min, None, "an anonymous step has no level");
+    assert_eq!(mixed, Some(true));
+}
+
+/// One workload credential throughout: not mixed, at `workload`.
+#[sqlx::test(migrations = "./tests/migrations")]
+async fn a_run_of_one_credential_is_not_mixed(pool: PgPool) {
+    let t = "t-rl-cred-one";
+    common::seed_tenant(&pool, t).await;
+    seed_system(&pool, t, "sys", "agent", None).await;
+    for (id, ago) in [("o1", 30), ("o2", 20)] {
+        let mut h = Hop::new("r", "llm", ago);
+        h.group_id = Some("sys");
+        insert_hop(&pool, t, id, h).await;
+        set_credential(
+            &pool,
+            id,
+            "workload_token",
+            Some("workload"),
+            Some("token:i:s"),
+        )
+        .await;
+    }
+    finalize_run(&pool, t, "r", finalized_by::EXPLICIT, None, None)
+        .await
+        .unwrap()
+        .expect("finalized");
+    let (min, mixed, refs) = stored_credentials(&pool, t).await;
+    assert_eq!(min.as_deref(), Some("workload"));
+    assert_eq!(mixed, Some(false));
+    assert_eq!(refs, Some(serde_json::json!(["token:i:s"])));
+}

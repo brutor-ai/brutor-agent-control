@@ -8,7 +8,7 @@ The Rust core seals `proxy_logs` rows; the control plane carries the
 reference verifier for evidence that leaves the database
 (`app/services/audit_chain_canonical.py`). Two implementations of one byte
 format are only safe if they cannot drift quietly. The verifier computes the
-one format this release writes (`v4`, whose scalar part is the field order
+one format this release writes (`v5`, whose scalar part is the field order
 a188_audit_chain_v3 introduced as `V3_FIELDS`); a row that names any other format, or none,
 does not verify. This suite pins:
 
@@ -18,7 +18,7 @@ does not verify. This suite pins:
 * **Dispatch** — a row labelled v1, v2, v3, anything else or nothing does not
   verify, whatever its hash; the agent-implementation fields a188_audit_chain_v3 brought into the chain
   break a row when edited. (The fixed vectors are in
-  `tests/test_audit_chain_v4.py`.)
+  `tests/test_audit_chain_v5.py`.)
 * **The class guard** — every `proxy_logs` ORM column is either covered by
   the format or on the exclusion list with a reason, so the next new column
   cannot land outside the chain without a recorded decision. And no code path that rewrites stored rows (retention,
@@ -45,7 +45,7 @@ from app.services.audit_chain_canonical import (
     CHAIN_EXCLUDED_COLUMNS,
     GENESIS_HASH,
     V3_FIELDS,
-    V4_FIELDS,
+    V5_FIELDS,
     hash_row,
     row_matches,
     verify_rows,
@@ -350,12 +350,12 @@ class TestCoreParity:
 class TestColumnCoverageGuard:
     def test_every_orm_column_is_covered_or_excluded_with_a_reason(self):
         columns = {c.name for c in ProxyLog.__table__.c}
-        # The current format's coverage (v4 = v3 + the JSON records, a190_audit_chain_v4).
-        covered = set(V4_FIELDS)
+        # The current format's coverage (v5 = v3 + the JSON records + the credential fields).
+        covered = set(V5_FIELDS)
         excluded = set(CHAIN_EXCLUDED_COLUMNS)
         undecided = columns - covered - excluded
         assert not undecided, (
-            f"proxy_logs columns neither in the audit chain (V4_FIELDS) nor on "
+            f"proxy_logs columns neither in the audit chain (V5_FIELDS) nor on "
             f"CHAIN_EXCLUDED_COLUMNS: {sorted(undecided)}. Decide in BOTH repos: cover "
             f"it (a new canonical version) or exclude it with a reason."
         )
@@ -371,14 +371,13 @@ class TestColumnCoverageGuard:
         assert set(CHAIN_EXCLUDED_COLUMNS.values()) <= variants
 
     def test_the_orm_check_admits_the_format_the_verifier_computes(self):
-        # The CHECK is schema (a188_audit_chain_v3, a190_audit_chain_v4) and still admits the labels of
-        # earlier formats; the verifier refuses every one of them
-        # (TestTamper). tests/test_audit_chain_v4.py pins the exact set.
+        # The CHECK admits exactly the format the verifier computes: no row
+        # can be stored under a label the verifier would refuse.
         check = next(
             c for c in ProxyLog.__table__.constraints if c.name == "ck_proxy_logs_chain_version"
         )
         admitted = set(re.findall(r"'(v\d+)'", str(check.sqltext)))
-        assert set(canon.KNOWN_VERSIONS) <= admitted
+        assert admitted == set(canon.KNOWN_VERSIONS)
 
     def test_no_control_plane_rewrite_touches_a_covered_column(self):
         # Retention and erasure rewrite stored rows. Touching a covered
@@ -419,7 +418,7 @@ class TestColumnCoverageGuard:
                             touched.setdefault(col, set()).add(str(path.relative_to(ROOT)))
         assert touched, "the scan found no ProxyLog rewrite at all — it is not looking in the right place"
         assert {"request_body_preview", "erased_at"} <= set(touched), "retention/erasure not seen by the scan"
-        bad = {c: sorted(p) for c, p in touched.items() if c in V4_FIELDS}
+        bad = {c: sorted(p) for c, p in touched.items() if c in V5_FIELDS}
         assert not bad, f"code rewrites columns inside the audit chain: {bad}"
 
     def test_no_core_rewrite_touches_a_covered_column(self):
@@ -429,7 +428,7 @@ class TestColumnCoverageGuard:
                 for col in re.findall(r"(\w+)\s*=", m.group(1)):
                     touched.setdefault(col, set()).add(path.name)
         assert "record_id" in touched, "the scan no longer sees the evidence backfill"
-        bad = {c: sorted(p) for c, p in touched.items() if c in V4_FIELDS}
+        bad = {c: sorted(p) for c, p in touched.items() if c in V5_FIELDS}
         assert not bad, f"the core rewrites columns inside the audit chain: {bad}"
 
 
@@ -487,7 +486,7 @@ class TestExportedRowsVerify:
         assert report.ok, report
         assert report.rows_checked == 3 and report.links_checked == 2
         assert report.versions == {CANONICAL_VERSION: 3}
-        assert all(set(V4_FIELDS) <= set(b) for b in blocks), "a chain block carries every covered field"
+        assert all(set(V5_FIELDS) <= set(b) for b in blocks), "a chain block carries every covered field"
 
         # Editing an exported agent-implementation field is caught offline.
         blocks[1]["client_label"] = "browser"

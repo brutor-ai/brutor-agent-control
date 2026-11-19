@@ -28,7 +28,8 @@
     "videoJobs",
     "a2a",
     "systemOps",
-    "toolApprovals"
+    "toolApprovals",
+    "identity"
   ],
   "methods": [
     "abortRun",
@@ -257,6 +258,8 @@
     "fetchHourlyHeatmap",
     "fetchIdPConfig",
     "fetchIdPConfigs",
+    "fetchIdentityCredentials",
+    "fetchIdentityPolicy",
     "fetchIncidentWindows",
     "fetchLLMGlobalLimits",
     "fetchLLMModelLimits",
@@ -488,6 +491,7 @@
     "putAISystemEnvelope",
     "putAISystemOutcomes",
     "putEvidenceSettings",
+    "putIdentityPolicy",
     "putNoticeConfig",
     "queryVideoGenJobs",
     "quickSearchLLMs",
@@ -618,6 +622,7 @@
     "updateSkillScript",
     "updateSkillSource",
     "updateTenantAdminUser",
+    "updateTenantIdentityPolicyDefault",
     "updateVirtualServer",
     "uploadAdminPhoto",
     "uploadEndUserPhoto",

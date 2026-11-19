@@ -296,7 +296,11 @@ pub(crate) async fn end_run(
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     if let Err(resp) = check_run_access(&state, &tenant_id, &auth_ctx, &root_task_id).await {
@@ -444,7 +448,11 @@ pub(crate) async fn get_run(
         Err(e) => return error_response(e.status_code(), &e.to_string()),
     };
     if let Err(e) = crate::services::identity_policy::judge_call(&state, &mut auth_ctx).await {
-        return error_response(e.status_code(), &e.to_string());
+        return crate::services::identity_policy::refusal_response(
+            &e,
+            error_response(e.status_code(), &e.to_string()),
+        )
+        .await;
     }
 
     if let Err(resp) = check_run_access(&state, &tenant_id, &auth_ctx, &root_task_id).await {

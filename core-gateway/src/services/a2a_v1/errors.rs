@@ -257,6 +257,10 @@ pub struct A2aError {
     /// with `Retry-After` in place of its kind's status
     /// ([`A2aError::too_many_requests`]).
     retry_after_secs: Option<u64>,
+    /// A credential refusal's requirement: stated in `details` and in the
+    /// `Brutor-Credential-Required` header
+    /// (`services::identity_policy::attach_requirement`).
+    credential_requirement: Option<Box<crate::services::identity_policy::CredentialRequirement>>,
 }
 
 impl A2aError {
@@ -268,7 +272,17 @@ impl A2aError {
             message: message.into(),
             metadata: BTreeMap::new(),
             retry_after_secs: None,
+            credential_requirement: None,
         }
+    }
+
+    /// State the requirement of a credential refusal.
+    pub fn with_credential_requirement(
+        mut self,
+        requirement: crate::services::identity_policy::CredentialRequirement,
+    ) -> Self {
+        self.credential_requirement = Some(Box::new(requirement));
+        self
     }
 
     /// Answer this error as `429 Too Many Requests` with a `Retry-After`
@@ -328,6 +342,13 @@ impl A2aError {
     /// Render as an Axum [`Response`] with the correct HTTP status,
     /// `application/json` content type, and the spec body shape.
     pub fn into_response(self) -> Response {
+        if let Some(requirement) = &self.credential_requirement {
+            let mut body = serde_json::to_value(self.to_envelope()).unwrap_or_default();
+            crate::services::identity_policy::attach_requirement(&mut body, requirement);
+            let mut response = (self.http_status(), Json(body)).into_response();
+            crate::services::identity_policy::attach_required_header(&mut response, requirement);
+            return response;
+        }
         match self.retry_after_secs {
             Some(secs) => (
                 StatusCode::TOO_MANY_REQUESTS,

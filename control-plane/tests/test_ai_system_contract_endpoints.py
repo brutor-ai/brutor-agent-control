@@ -99,6 +99,10 @@ _BY_NAME = [
     "ai_system_reach_rules",
     "mcp_servers",
     "ai_system_lifecycle_events",  # a170_lifecycle_events — transitions write a record
+    # The identity floor of every way into `active` reads the calls and the
+    # credentials that made them.
+    "proxy_logs",
+    "api_keys",
 ]
 
 REQUIRED_TABLES = [Base.metadata.tables[n] for n in _BY_NAME] + [

@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 
 from sqlalchemy import Column, String, Boolean, Integer, Text, JSON, DateTime, Index, ForeignKey
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, text
 
 from app.database import Base
 
@@ -167,6 +167,17 @@ class IdPServer(Base):
 
         # Audit queries
         Index('ix_idp_servers_created_at', 'tenant_id', 'created_at'),
+
+        # One OIDC IdP per issuer and tenant (enabled or not): a workload
+        # token's issuer names exactly one IdP, which an identity policy's
+        # allowed issuers list by id.
+        Index(
+            'uq_idp_servers_tenant_oidc_issuer',
+            'tenant_id',
+            'issuer',
+            unique=True,
+            postgresql_where=text("protocol = 'oidc'"),
+        ),
 
         {
             'comment': 'OAuth/OIDC Identity Provider configurations'

@@ -78,10 +78,10 @@ describe('the built-in API modules', () => {
     it('have unique names and a known feature or none', () => {
         const names = ALL_MODULES.map((m) => m.name);
         expect(new Set(names).size).toBe(names.length);
-        expect(names.length).toBe(HAS_ENTERPRISE ? 40 : 29);
-        // The built-in ones are the Community Edition's: the first 29, none of an Enterprise feature.
+        expect(names.length).toBe(HAS_ENTERPRISE ? 41 : 30);
+        // The built-in ones are the Community Edition's: the first 30, none of an Enterprise feature.
         expect(ALL_MODULES.slice(0, BUILTIN_API_MODULES.length)).toEqual(BUILTIN_API_MODULES);
-        expect(BUILTIN_API_MODULES.length).toBe(29);
+        expect(BUILTIN_API_MODULES.length).toBe(30);
         expect(BUILTIN_API_MODULES.filter((m) => m.feature !== null)).toEqual([]);
         // `feature` is typed `EnterpriseFeature | null`, so an unknown name
         // does not compile; what is checked here is the names and the count.

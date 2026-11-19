@@ -12,7 +12,8 @@
  * Requirement keys are the control plane's (`ai_system_lifecycle_gate.py`).
  */
 
-import type { TransitionOption } from './aiSystemTypes';
+import type { GateRequirement, TransitionOption } from './aiSystemTypes';
+import { errorStatus, getArray, getBoolean, getRecord, getString, isRecord } from './narrow';
 
 export const STAGE_ORDER = ['proposed', 'approved', 'active', 'deprecated', 'retired'] as const;
 export type Stage = (typeof STAGE_ORDER)[number];
@@ -32,6 +33,7 @@ export const REQUIREMENT_SHORT: Record<string, string> = {
     human_approval: 'named approver',
     impact_assessment_on_file: 'impact assessment',
     valid_transition: 'valid transition',
+    workload_identity_enforced: 'workload identity',
 };
 
 /**
@@ -74,4 +76,49 @@ export function backwardTransition(
     if (i <= 0) return undefined;
     const prev = STAGE_ORDER[i - 1];
     return transitions.find((t) => t.to_stage === prev);
+}
+
+/**
+ * A requirement the gate re-adds after any tenant override of its policy,
+ * as the gate vocabulary states it (`immutable_floors`): when it applies, in
+ * words, and the requirement keys it re-adds.
+ */
+export interface GateFloor {
+    when: string;
+    alwaysRequired: string[];
+}
+
+/** The floors of a gate vocabulary answer; an entry that names no requirement is left out. */
+export function gateFloorsOf(vocabulary: unknown): GateFloor[] {
+    return (getArray(vocabulary, 'immutable_floors') ?? []).flatMap((floor): GateFloor[] => {
+        const alwaysRequired = (getArray(floor, 'always_required') ?? []).filter((key): key is string => typeof key === 'string');
+        if (alwaysRequired.length === 0) return [];
+        const condition = getString(floor, 'condition') ?? '';
+        const transitions = (getArray(floor, 'transitions') ?? []).filter((key): key is string => typeof key === 'string');
+        const into = /^to_stage == '([a-z_]+)'$/.exec(condition)?.[1];
+        const when =
+            condition === "eu_ai_act_risk_tier == 'high'"
+                ? 'On a high-risk system'
+                : into
+                  ? `On every way into ${into}${transitions.length ? ` (${transitions.join(', ')})` : ''}`
+                  : `When ${condition || 'always'}`;
+        return [{ when, alwaysRequired }];
+    });
+}
+
+/**
+ * The unmet requirements of a refused lifecycle move: the gate's decision
+ * the Control Plane's 409 carries (`{detail: {message, decision: {unmet}}}`),
+ * each requirement as the checklist reads it, its offending credentials
+ * included. Empty for any other error.
+ */
+export function refusedRequirementsOf(error: unknown): GateRequirement[] {
+    if (errorStatus(error) !== 409) return [];
+    const decision = getRecord(getRecord(getRecord(error, 'details'), 'detail'), 'decision');
+    return (getArray(decision, 'unmet') ?? []).flatMap((requirement): GateRequirement[] => {
+        const key = getString(requirement, 'key');
+        if (!isRecord(requirement) || key === undefined) return [];
+        // The whole requirement is kept: its offending credentials are read from it where they are shown.
+        return [{ ...requirement, key, label: getString(requirement, 'label') ?? key, satisfied: getBoolean(requirement, 'satisfied') ?? false, detail: getString(requirement, 'detail') ?? null }];
+    });
 }

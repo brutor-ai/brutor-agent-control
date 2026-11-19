@@ -48,6 +48,34 @@ describe('StageDiagram', () => {
         expect(screen.getByText('no recent runs')).toBeInTheDocument();
     });
 
+    it('lists workload identity at the gate into production', () => {
+        render(<StageDiagram />);
+        expect(screen.getByText('workload identity')).toBeInTheDocument();
+    });
+
+    it('names the credentials that keep the workload identity requirement unmet', () => {
+        const label = 'Machine callers authenticate with workload identity';
+        const requirement = {
+            key: 'workload_identity_enforced',
+            label,
+            satisfied: false,
+            detail: '2 credential(s) reached this system below workload in the last 7 days',
+            offending_credentials: [
+                { credential_ref: 'api_key:k-1', credential_kind: 'api_key', credential_assurance: 'key', calls: 40, last_seen: '2026-11-17T08:00:00Z' },
+            ],
+            offending_total: 2,
+        };
+        const activeGate: TransitionOption = { to_stage: 'active', allowed: false, requirements: [requirement], unmet: [requirement] };
+        render(<StageDiagram currentStage="approved" transitions={[activeGate]} />);
+        const list = screen.getByTestId('offending-gate-active');
+        expect(list).toHaveTextContent('api_key:k-1');
+        expect(list).toHaveTextContent('API key');
+        expect(list).toHaveTextContent('Key');
+        expect(list).toHaveTextContent('40 calls');
+        expect(list).toHaveTextContent('1 more not listed');
+        expect(list).toHaveTextContent(/still usable/i);
+    });
+
     it('marks the current stage and makes only its gate live', () => {
         render(<StageDiagram currentStage="proposed" transitions={[approvedGate]} />);
         expect(screen.getByTestId('stage-proposed')).toHaveAttribute('data-current', 'true');

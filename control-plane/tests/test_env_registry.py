@@ -21,7 +21,7 @@ here, for the Community Edition (the Enterprise Edition's share is
 - a malformed value stops every real entry point, one line per name,
   before anything connects, and no refusal, log line or printed registry
   carries a value (a name the service does not read is not refused: no
-  retired name is kept, owner decision 5);
+  retired name is kept: no such name was ever public);
 - `.env.example` and the configuration tables are what the registry
   generates;
 - the Community package names no variable of the Enterprise Edition;
@@ -322,7 +322,7 @@ def test_a_value_is_handed_out_in_its_stored_spelling_and_a_secret_exactly(monke
 @pytest.mark.parametrize("raw", ["warn", "WARN", "Warn", "warning", "WARNING", " Warning "])
 def test_warn_and_warning_are_the_same_log_level_in_any_case(monkeypatch, raw):
     """The packages set one BRUTOR_LOG_LEVEL (error/warn/info/debug) for every
-    service, Python and Rust (owner decision 7): `warn` is the Rust spelling."""
+    service, Python and Rust: `warn` is the Rust spelling."""
     monkeypatch.setenv("BRUTOR_LOG_LEVEL", raw)
     assert env_vars.BRUTOR_LOG_LEVEL.require() == "WARNING"
     assert COMMUNITY.problems(missing=False) == []

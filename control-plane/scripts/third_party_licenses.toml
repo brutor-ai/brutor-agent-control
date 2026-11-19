@@ -15,8 +15,9 @@ python = "3.13"
 # specific first, the order pip prefers them in).
 wheel_tags = ["manylinux_2_41", "manylinux_2_39", "manylinux_2_36", "manylinux_2_34", "manylinux_2_28", "manylinux_2_17", "manylinux2014"]
 tool_requirements = "third_party_licenses_tool.txt"
-# Packages the images build from source, never from a wheel (owner decision
-# L1): psycopg2, compiled against Debian's libpq (`libpq-dev` in the build
+# Packages the images build from source, never from a wheel, because
+# third-party packages ship unmodified with their licence texts, in each image
+# and in the repository: psycopg2, compiled against Debian's libpq (`libpq-dev` in the build
 # stage, `libpq5` at run time), so that the native libraries it uses are the
 # Debian packages', whose copyright files the image ships under
 # /usr/share/doc. (psycopg2-binary's wheel bundles libpq, OpenSSL, Kerberos

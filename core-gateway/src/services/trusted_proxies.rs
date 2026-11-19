@@ -40,6 +40,8 @@ use axum::http::HeaderMap;
 /// What the variable accepts (its registry entry says the same).
 pub const ACCEPTED: &str = "comma-separated IP addresses and CIDR ranges (no host names, no *)";
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 const X_FORWARDED_FOR: &str = "x-forwarded-for";
 
 /// One trusted network: an address and a prefix length.
@@ -165,9 +167,32 @@ impl TrustedProxies {
         self.networks.iter().any(|n| n.contains(ip))
     }
 
+    /// Log, at WARN and once per `reported` flag, that a request carried
+    /// `X-Forwarded-For` while no proxy is trusted: the header is ignored, so
+    /// behind a proxy every caller has the proxy's address (and network
+    /// facts about the caller are the proxy's). `true` when this call wrote
+    /// the warning.
+    fn report_ignored_forwarded(&self, headers: &HeaderMap, reported: &AtomicBool) -> bool {
+        if !self.is_empty() || !headers.contains_key(X_FORWARDED_FOR) {
+            return false;
+        }
+        if reported.swap(true, Ordering::Relaxed) {
+            return false;
+        }
+        tracing::warn!(
+            "a request carried X-Forwarded-For but BRUTOR_TRUSTED_PROXIES is empty: the header \
+             is ignored and each caller's address is its peer's (behind a load balancer, the \
+             load balancer's). \
+             List the proxies in BRUTOR_TRUSTED_PROXIES. Reported once per process."
+        );
+        true
+    }
+
     /// The client IP of a request from `peer` with `headers`, in canonical
     /// form. The rules are the module's.
     pub fn client_ip(&self, headers: &HeaderMap, peer: IpAddr) -> IpAddr {
+        static REPORTED: AtomicBool = AtomicBool::new(false);
+        self.report_ignored_forwarded(headers, &REPORTED);
         let peer = canonical(peer);
         if !self.trusts(peer) {
             return peer;
@@ -199,6 +224,24 @@ impl TrustedProxies {
 mod tests {
     use super::*;
     use axum::http::HeaderValue;
+
+    /// With no trusted proxy, a request that carries `X-Forwarded-For` is
+    /// told about once per process (the header is ignored, so every caller
+    /// behind the operator's proxy has the proxy's address); never with a
+    /// trusted list, never without the header.
+    #[test]
+    fn an_ignored_forwarded_header_is_reported_once() {
+        let flag = std::sync::atomic::AtomicBool::new(false);
+        let none = TrustedProxies::default();
+        assert!(!none.report_ignored_forwarded(&HeaderMap::new(), &flag));
+        assert!(none.report_ignored_forwarded(&xff(&["203.0.113.7"]), &flag));
+        assert!(
+            !none.report_ignored_forwarded(&xff(&["203.0.113.8"]), &flag),
+            "once"
+        );
+        let fresh = std::sync::atomic::AtomicBool::new(false);
+        assert!(!trusted("10.0.0.0/8").report_ignored_forwarded(&xff(&["203.0.113.7"]), &fresh));
+    }
 
     fn ip(s: &str) -> IpAddr {
         s.parse().unwrap()

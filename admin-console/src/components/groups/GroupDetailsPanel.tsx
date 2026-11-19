@@ -24,6 +24,7 @@ import {
     Wrench,
     Bot,
     Hourglass,
+    Fingerprint,
 } from 'lucide-react';
 import { ResourceGroup, UsageAlertInfo, GROUP_TYPE_LABELS } from '../../lib/groupTypes';
 import { useGateway } from '../../hooks/useGateway';
@@ -32,6 +33,7 @@ import GroupGeneralTab from './subtabs/GroupGeneralTab';
 import GroupUsageTab from './subtabs/GroupUsageTab';
 import GroupResourceGovernanceTab from './subtabs/GroupResourceGovernanceTab';
 import GroupApprovalWindowTab from './subtabs/GroupApprovalWindowTab';
+import GroupIdentityTab from './subtabs/GroupIdentityTab';
 import GroupGuardrailsPanel from './subtabs/GroupGuardrailsPanel';
 import GroupMembersTab from './subtabs/GroupMembersTab';
 import GroupAPIKeysTab from './subtabs/GroupAPIKeysTab';
@@ -72,9 +74,10 @@ type OwnResourceSubTab = 'models' | 'mcp' | 'skills' | 'agents';
 
 // Sub-tabs under the Governance parent. The order intentionally
 // reads as a posture pipeline:
-//   declare → enforce → meter → policy-as-code.
+//   declare → admit → enforce → meter → policy-as-code.
 type GovernanceSubTab =
     | 'compliance'      // Declare: which regimes apply, EU AI Act tier, PHI scope
+    | 'identity'        // Admit: what credential a caller must present
     | 'guardrails'      // Enforce: runtime PII / prompt-injection / etc. checks
     | 'usage-limits'    // Meter: quotas / rate limits
     | 'usage-policies'  // Policy-as-code: argument policies, denylists
@@ -119,6 +122,7 @@ const RESOURCE_SUB_TAB_STORAGE_KEY = 'groupDetailsResourceSubTab';
 
 const GOVERNANCE_SUB_TABS: GovernanceSubTabDef[] = [
     { id: 'compliance',     label: 'Compliance',     icon: ScrollText },
+    { id: 'identity',       label: 'Identity',       icon: Fingerprint },
     { id: 'guardrails',     label: 'Guardrails',     icon: ShieldCheck },
     { id: 'usage-limits',   label: 'Limits',         icon: Gauge },
     { id: 'usage-policies', label: 'Policy',         icon: FileCode },
@@ -256,6 +260,7 @@ const GroupDetailsPanel: React.FC<Props> = ({ group, onUpdate, onDelete, initial
     const renderGovernanceSubTabContent = () => {
         switch (governanceSubTab) {
             case 'compliance':     return <GroupComplianceTab group={group} onUpdate={onUpdate} />;
+            case 'identity':       return <GroupIdentityTab group={group} />;
             case 'guardrails':     return <GroupGuardrailsPanel group={group} />;
             case 'usage-limits':   return <GroupResourceLimitsTab group={group} onUpdate={onUpdate} />;
             case 'usage-policies': return <GroupResourceGovernanceTab group={group} onUpdate={onUpdate} />;

@@ -24,6 +24,8 @@ import { errorKind, errorMessage, failureSentence } from '../../../lib/narrow';
 import { asyncHandler, runBackground } from '../../../lib/asyncSafe';
 import { useReadFailures } from '../../../hooks/useRead';
 import ReadFailureNotice from '../../common/ReadFailureNotice';
+import { keyMintRefusal } from '../../../lib/identityPolicy';
+import { KeyTradeOffs } from '../../identity/IdentityTradeOffs';
 
 interface CreateGroupKeyModalProps {
     group: ResourceGroup;
@@ -174,7 +176,8 @@ const CreateGroupKeyModal: React.FC<CreateGroupKeyModalProps> = ({ group, onClos
             onClose();
         } catch (err) {
             console.error('Failed to create key:', errorKind(err));
-            setError(errorMessage(err, 'Failed to create API key'));
+            // A refusal of the identity policy says what the policy requires.
+            setError(keyMintRefusal(err, group.id)?.text ?? errorMessage(err, 'Failed to create API key'));
         } finally {
             setCreating(false);
         }
@@ -207,6 +210,9 @@ const CreateGroupKeyModal: React.FC<CreateGroupKeyModalProps> = ({ group, onClos
                         <span className="text-muted">Creating key for:</span>
                         <span className="font-medium text-default">{formatGroupLabel(group)}</span>
                     </div>
+
+                    {/* What a key proves, against workload identity. */}
+                    <KeyTradeOffs />
 
                     {/* Error Message */}
                     {error && (

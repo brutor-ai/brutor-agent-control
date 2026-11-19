@@ -49,6 +49,7 @@ import { VideoJobsApi } from './videoJobs';
 import { A2aApi } from './a2a';
 import { SystemOpsApi } from './systemOps';
 import { ToolApprovalsApi } from './toolApprovals';
+import { IdentityApi } from './identity';
 
 /** A class whose prototype methods are installed on the client. */
 export type ApiMixin = abstract new (...args: never[]) => GatewayApiBase;
@@ -92,6 +93,7 @@ export const BUILTIN_API_MODULES = [
     { name: 'a2a', feature: null, mixin: A2aApi },
     { name: 'systemOps', feature: null, mixin: SystemOpsApi },
     { name: 'toolApprovals', feature: null, mixin: ToolApprovalsApi },
+    { name: 'identity', feature: null, mixin: IdentityApi },
 ] as const satisfies readonly ApiModuleSpec[];
 
 type UnionToIntersection<U> = (U extends unknown ? (x: U) => void : never) extends (x: infer I) => void ? I : never;
